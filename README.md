@@ -1,0 +1,3 @@
+# Anteraja Capstone
+
+Proyek capstone ini berfokus pada pengembangan fitur Courier Admin Mini-Panel untuk sistem logistik Anteraja. Panel ini dirancang untuk membantu admin melacak status pengiriman dan memantau performa kurir secara real-time. Melalui dashboard ini, admin dapat mengelola penugasan rute dengan lebih efisien. Sistem ini juga diharapkan mampu mempercepat resolusi kendala operasional yang terjadi di lapangan.
