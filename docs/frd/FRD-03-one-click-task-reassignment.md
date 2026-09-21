@@ -1,9 +1,7 @@
 # Functional Requirement Document (FRD) — One-Click Task Reassignment
 
 ## 1. Konteks
-Fitur **One-Click Task Reassignment** (Pengalihan Tugas Satu-Klik) dirancang untuk memfasilitasi Admin Hub Anteraja dalam memindahkan paket dari kurir SATRIA yang mengalami kendala ke kurir lain yang tersedia secara instan di lapangan. Fitur ini merujuk pada [`docs/00-PRD-courier-admin-mini-panel.md`] Bagian 4 (*In-Scope MVP Extension P1*) dan Bagian 7 (AC-03) untuk memangkas durasi penugasan ulang rute dari hitungan belasan menit menjadi **< 30 detik** per rute.
-
-Dengan adanya **9 Jenis Layanan Pengiriman Anteraja**, modul ini dilengkapi mesin pencocokan kualifikasi (*Compatibility Matching Engine*) untuk memastikan paket hanya dialihkan ke kurir dengan jenis kendaraan dan sertifikasi yang sesuai (khususnya untuk paket *Cargo*, *Frozen*, dan *PHARMA*).
+Fitur **One-Click Task Reassignment** (Pengalihan Tugas Satu-Klik) dirancang untuk memfasilitasi Admin Hub dalam memindahkan paket dari kurir yang mengalami kendala ke kurir lain yang tersedia secara instan. Fitur ini merujuk pada **00-PRD-courier-admin-mini-panel.md** Bagian 4 (*In-Scope MVP Extension P1*) dan Bagian 7 (AC-03) untuk memangkas durasi penugasan ulang rute dari hitungan menit menjadi **< 30 detik** per rute.
 
 ---
 
@@ -11,10 +9,10 @@ Dengan adanya **9 Jenis Layanan Pengiriman Anteraja**, modul ini dilengkapi mesi
 
 | Peran (Role) | Lihat (Read) | Buat (Create) | Ubah (Update) | Setujui (Approve) | Field Terkunci (Locked Fields) |
 | :--- | :---: | :---: | :---: | :---: | :--- |
-| **Admin Hub Operasional** | ✅ Ya | ✅ Ya (Pemicu Reassign) | ✅ Ya (Pilih Kurir Pengganti) | ✅ Ya (Konfirmasi Eksekusi) | `Order_ID`, `original_courier_id`, `Service_Type` |
-| **Kurir SATRIA (Mobile App)** | ✅ Ya (Rute Baru Diterima) | ❌ Tidak | ❌ Tidak | ❌ Tidak | `assigned_by_admin_id`, `Weight_Kg` |
-| **System (Express / Drizzle ORM)** | ✅ Ya | ✅ Ya (Audit Log) | ✅ Ya (Status Rute & Pemilik Resi) | ✅ Ya | `reassignment_timestamp` |
-| **Customer Care / Hub Manager** | ✅ Ya (Read-only) | ❌ Tidak | ❌ Tidak | ❌ Tidak | Semua Field |
+| **Admin Hub Operasional** | ✅ Ya | ✅ Ya (Trigger) | ✅ Ya (Reassign) | ✅ Ya (Eksekusi) | `Order_ID`, `original_courier_id` |
+| **Kurir SATRIA (Mobile App)** | ✅ Ya (Rute Baru) | ❌ Tidak | ❌ Tidak | ❌ Tidak | `assigned_by_admin_id` |
+| **System (Laravel/ Eloquent ORM)**| ✅ Ya | ✅ Ya (Audit Log) | ✅ Ya (Status Rute) | ✅ Ya | `reassignment_timestamp` |
+| **Customer Care / Manager** | ✅ Ya (Read-only) | ❌ Tidak | ❌ Tidak | ❌ Tidak | Semua Field |
 
 ---
 
@@ -22,35 +20,22 @@ Dengan adanya **9 Jenis Layanan Pengiriman Anteraja**, modul ini dilengkapi mesi
 
 ```mermaid
 graph TD
-    A[Admin Hub Deteksi Kurir Terkendala / Laporan Insiden di Dasbor] --> B[Klik Tombol Pengalihan Rute pada Baris Paket atau Pop-Up Insiden]
-    B --> C[Express Backend Jalankan Compatibility Matching Engine]
-    C --> D{Cek Persyaratan Layanan Paket}
-    D -- "Layanan Cargo" --> E1[Filter Wajib Moda: Van ATAU Cargo_Truck]
-    D -- "Layanan Frozen" --> E2[Filter Wajib: thermal_equipment = True]
-    D -- "Layanan PHARMA" --> E3[Filter Wajib: pharma_certified = True]
-    D -- "Layanan Lainnya" --> E4[Filter Armada Motor / Van Standar]
-    
-    E1 --> F[Filter Tambahan: Kurir Status ONLINE & Beban Aktif < 20 Paket]
-    E2 --> F
-    E3 --> F
-    E4 --> F
-    
-    F --> G[Sistem Tampilkan Modal Pemilihan Kurir Rekomendasi Terdekat]
-    G --> H[Admin Pilih Kurir Pengganti & Klik Konfirmasi Satu-Klik]
-    H --> I[Drizzle ORM Update PostgreSQL & Redis Cache < 2 Detik]
-    I --> J[Socket.io Push Notifikasi Rute Baru ke Aplikasi Ponsel Kurir Pengganti]
-    J --> K[Sinkronisasi Pembaruan ETA ke Customer Care API]
-    K --> L[Dasbor Admin Hub Tampilkan Notifikasi Sukses & Update Marker Peta]
+    A[Admin Hub Identifikasi Kurir Terkendala di Peta / Panel SLA] --> B[Klik Tombol Pengalihan Rute pada Baris Paket]
+    B --> C[Sistem Tampilkan Modal Pemilihan Kurir Rekomendasi]
+    C --> D[Laravel 11 Backend Filter Kurir Aktif Terdekat & Beban Kerja Rendah]
+    D --> E[Admin Pilih Kurir Penerima & Klik Konfirmasi Satu-Klik]
+    E --> F[Eloquent ORM Update Database PostgreSQL & Redis Cache]
+    F --> G[Laravel Reverb Broadcast Notifikasi Rute Baru ke Mobile App Kurir B]
+    G --> H[Laravel Reverb Update ETA ke API Customer Care System]
+    H --> I[UI Admin Hub Tampilkan Pop-Up Sukses & Update Status Rute]
 ```
 
 ### Pernyataan Alur Kebutuhan (EARS Pattern):
-* **KETIKA** Admin Hub mengklik tombol "Pengalihan Rute" pada paket yang terkendala, sistem **harus** menjalankan evaluasi kompatibilitas (*Compatibility Matching Engine*) dan menampilkan modal rekomendasi kurir yang memenuhi syarat.
-* **KETIKA** Admin Hub mengonfirmasi pengalihan tugas dengan mengklik tombol "Konfirmasi Pengalihan", sistem **harus** memperbarui penugasan paket pada database PostgreSQL via Drizzle ORM dan Redis Cache dalam waktu < 2.0 detik.
-* **JIKA** paket bertipe layanan `Cargo` (> 40 kg atau berdimensi besar), sistem **harus** menolak kurir yang mengoperasikan sepeda motor (*Motorcycle*) dan hanya menampilkan kurir dengan kendaraan *Van* atau *Cargo Truck*.
-* **JIKA** paket bertipe layanan `Frozen`, sistem **harus** hanya merekomendasikan kurir yang memiliki perlengkapan tas pendingin aktif (*thermal equipment*).
-* **JIKA** paket bertipe layanan `PHARMA`, sistem **harus** hanya merekomendasikan kurir SATRIA yang memiliki sertifikasi SOP penanganan farmasi BPOM.
-* **JIKA** kurir kandidat memiliki beban kerja ≥ 20 paket aktif atau sedang *Offline*, sistem **harus** menonaktifkan tombol pemilihan untuk kurir tersebut.
-* **SELAMA** proses pengalihan dieksekusi, sistem **harus** mencatat jejak audit komprehensif (*Audit Log*) yang merekam ID admin pengesahkan, ID kurir asal, ID kurir pengganti, tipe layanan, serta stempel waktu eksekusi.
+* **KETIKA** Admin Hub mengklik tombol "Pengalihan Rute" pada satu atau sekumpulan paket, sistem **harus** menampilkan modal daftar rekomendasi kurir penerima tugas terdekat.
+* **KETIKA** Admin Hub mengonfirmasi pengalihan tugas dengan mengklik tombol "Konfirmasi Pengalihan", sistem **harus** memindahkan alokasi paket di PostgreSQL dan Redis Cache dalam waktu < 2 detik.
+* **JIKA** kurir penerima tugas berada dalam status *Off-Duty* atau beban kerja melampaui batas maksimal (20 paket), sistem **harus** menolak pengalihan dan menampilkan pesan peringatan "Kurir Tidak Tersedia".
+* **JIKA** pengalihan tugas berhasil dieksekusi, sistem **harus** mengirimkan push notification rute baru ke aplikasi seluler kurir penerima via Laravel Reverb dan memperbarui estimasi waktu tiba (*ETA*) di sistem Customer Care.
+* **SELAMA** proses pengalihan berlangsung, sistem **harus** mencatat jejak audit (*audit log*) berisi ID admin, ID kurir asal, ID kurir tujuan, dan stempel waktu eksekusi.
 
 ---
 
@@ -58,67 +43,66 @@ graph TD
 
 | ID Rule | Kondisi / Pemicu | Hasil / Perilaku Sistem | Pengecualian |
 | :--- | :--- | :--- | :--- |
-| **BR-01** | Total waktu eksekusi dari klik konfirmasi admin hingga rute baru diterima kurir pengganti. | Seluruh alur pengalihan tugas wajib selesai dalam durasi **< 30.0 detik** (proses transaksi database & cache **< 2.0 detik**). | Terjadi gangguan koneksi internet total (*total network blackout*). |
-| **BR-02** | Kelaikan Beban Kerja Kurir (*Workload Capacity Limit*). | Sistem hanya merekomendasikan kurir berstatus **ONLINE** dengan jumlah paket aktif **< 20 paket**. | Admin mengaktifkan opsi *Super Admin Force Override* untuk situasi darurat. |
-| **BR-03** | Matriks Kompatibilitas Armada & Kualifikasi Layanan (*Compatibility Matrix*):<br>• `Cargo`: Wajib kendaraan `Van` atau `Cargo_Truck`.<br>• `Frozen`: Wajib `thermal_equipment = True`.<br>• `PHARMA`: Wajib `pharma_certified = True`.<br>• `Dokumen`: Wajib kurir membawa kantong segel (*tamper-evident pouch*). | Kurir yang tidak memenuhi salah satu syarat di atas otomatis didiskualifikasi dari daftar rekomendasi. | - |
-| **BR-04** | Pengalihan Massal (*Bulk Reassignment*). | Admin dapat memindahkan maksimal **10 paket sekaligus** dalam 1 kali eksekusi untuk satu kurir pengganti yang sama. | Kapasitas maksimal kendaraan kurir pengganti terlampaui. |
-| **BR-05** | Sinkronisasi ETA ke Customer Care. | Setiap kali pengalihan berhasil dieksekusi, sistem secara otomatis memperbarui estimasi waktu tiba (*ETA*) paket di sistem antarmuka **Customer Care Anteraja** dalam waktu ≤ 3.0 detik. | - |
+| **BR-01** | Total waktu eksekusi dari input klik admin hingga rute baru diterima kurir. | Seluruh alur pengalihan tugas wajib selesai dalam durasi **< 30.0 detik**. | Jika terjadi kerusakan total jaringan internet (*total blackout*). |
+| **BR-02** | Pemilihan kurir penerima pengalihan (*assignee*). | Sistem hanya merekomendasikan kurir berstatus **ONLINE / ACTIVE** dengan beban paket aktif **< 20 paket**. | Admin memilih opsi *Override Force Assign* dengan alasan darurat. |
+| **BR-03** | Pengalihan tugas kelompok (*bulk reassignment*). | Admin dapat memindahkan maksimal **10 paket sekaligus** dalam 1 aksi pengalihan. | - |
+| **BR-04** | Eksekusi pengalihan sukses dicatat di database. | Sistem secara otomatis mengirimkan panggilan webhook/socket untuk memperbarui status *ETA* paket pada antarmuka **Customer Care**. | - |
+| **BR-05** | Kurir asal mengalami kendala `Vehicle = Breakdown` atau `Weather = Stormy`. | Sistem memprioritaskan kurir rekomendasi yang mengoperasikan tipe kendaraan `van` atau `motorcycle`. | - |
 
 ---
 
 ## 5. Istilah
 
-* **Task Reassignment:** Proses memindahkan tanggung jawab penyerahan paket dari satu kurir ke kurir lainnya saat terjadi kendala operasional di lapangan.
-* **Assignee Courier:** Kurir pengganti yang menerima limpahan paket baru.
-* **Compatibility Matching Engine:** Mesin validasi sistem yang menyaring kurir kandidat berdasarkan tipe kendaraan, peralatan pendingin, dan sertifikasi khusus.
-* **Audit Log:** Rekam jejak digital yang mencatat identitas penugasan ulang, alasan kendala, dan stempel waktu eksekusi.
-* **Force Override:** Hak akses darurat supervisor untuk mengalihkan paket di luar ambang batas rekomendasi sistem.
+* **Task Reassignment:** Proses memindahkan hak pengiriman paket dari kurir pertama ke kurir kedua di lapangan.
+* **Assignee Courier:** Kurir yang ditunjuk untuk menerima alokasi beban pengiriman paket baru.
+* **ETA (Estimated Time of Arrival):** Perkiraan jam penyerahan paket sampai ke tangan penerima.
+* **Audit Log:** Catatan riwayat aktivitas sistem yang merekam siapa, kapan, dan perubahan apa yang dilakukan.
 
 ---
 
 ## 6. Data Utama & Status
 
 ### Data Utama yang Disimpan:
-* `Order_ID` (String - Nomor Resi simulasi Anteraja)
-* `Service_Type` (`Regular`, `Same Day`, `Next Day`, `Instant`, `Dokumen`, `Cargo`, `Mini Cargo`, `PHARMA`, `Frozen`)
-* `original_courier_id` (String - Kurir Asal Terkendala Simulasi)
-* `new_courier_id` (String - Kurir Penerima Limpahan Simulasi)
-* `admin_id` (String - Admin Eksekutor)
-* `reassignment_reason` (String - Penyebab Pengalihan: Ban Bocor, Macet Total, Banjir, Suhu Rusak)
-* `reassignment_timestamp` (Timestamp Eksekusi)
+* `Order_ID` (String - Resi)
+* `original_courier_id` (String - Kurir Asal)
+* `new_courier_id` (String - Kurir Tujuan)
+* `admin_id` (String - Pengeskusi)
+* `reassignment_reason` (String - Alasan)
+* `reassignment_timestamp` (Timestamp)
 
-### Siklus Status Pengalihan Tugas:
+### Daftar Status Pengalihan Tugas:
+
 ```
-[ASSIGNED] ---> [REASSIGNMENT_INITIATED] ---> [REASSIGNED_SUCCESS] ---> [ACKNOWLEDGED_BY_NEW_COURIER]
+[ASSIGNED] ---> [REASSIGNMENT_PENDING] ---> [REASSIGNED_SUCCESS] ---> [ACKNOWLEDGED_BY_COURIER]
 ```
 
 ---
 
 ## 7. Daftar Fungsi
 
-* **F-03.1 Compatibility Matching Evaluator:** Algoritma penyaring kurir yang memvalidasi ketersediaan, kapasitas beban (<20 paket), kesesuaian armada, ketersediaan pendingin (*Frozen*), dan sertifikasi BPOM (*PHARMA*).
-* **F-03.2 One-Click Execution Controller:** Pengontrol transaksi database yang memperbarui tabel tugas paket di PostgreSQL via Drizzle ORM dan memperbarui cache Redis dalam waktu < 2.0 detik.
-* **F-03.3 Mobile Route Push Dispatcher:** Modul komunikasi Socket.io yang mentransmisikan kartu rute pengiriman baru ke aplikasi seluler kurir penerima.
-* **F-03.4 Customer Care ETA Synchronizer:** Modul integrasi yang memperbarui kalkulasi estimasi waktu tiba (*ETA*) ke Customer Care API secara otomatis.
+* **F-03.1 Reassignment Recommendation Modal:** Menampilkan daftar kurir terdekat yang tersedia berdasarkan lokasi GPS dan beban kerja.
+* **F-03.2 One-Click Execution Controller:** Memproses pembaruan data penugasan paket pada PostgreSQL via Eloquent ORM dan Redis Cache.
+* **F-03.3 Mobile Route Push Dispatcher:** Mengirimkan sinyal pembaruan rute pengiriman ke aplikasi seluler kurir penerima via Laravel Reverb.
+* **F-03.4 Customer Care ETA Synchronizer:** Mengirimkan pembaruan *ETA* paket secara otomatis ke sistem Customer Care.
 
 ---
 
-## 8. AC Alur Utama (Acceptance Criteria)
+## 8. AC Alur Utama (Acceptance Criteria - Data Nyata)
 
-### Skenario 1: Penolakan Otomatis Kurir Motor untuk Pengalihan Paket Kargo Berat
-* **Diberikan:** Admin Hub (Siti) di Hub Jakarta Barat (Kebon Jeruk) menangani paket layanan *Cargo* resi `100024000012` (berat: 186.8 kg, kategori: *Otomotif & Mesin*) yang dibawa oleh Kurir Teguh Wibowo (`Vehicle`: `Cargo_Truck`) yang mengalami kerusakan kopling di Jl. Panjang, Jakarta Barat.
-* **Ketika:** Admin Siti mengklik tombol "Pengalihan Rute" untuk resi `100024000012`.
-* **Maka:** Sistem menjalankan *Compatibility Matching Engine*, mendiskualifikasi seluruh kurir motor di sekitar area, dan hanya memunculkan kurir armada mobil/truk kargo yang memenuhi syarat (misal: Kurir Fajar Ramadhan dengan armada *Van* dan Kurir Ahmad Fauzi dengan armada *Cargo_Truck* yang berstatus *Online* dan beban < 20 paket) (memenuhi BR-03).
+### Skenario 1: Pengalihan Paket Akibat Kurir Terkendala Cuaca Buruk
+* **Diberikan:** Admin Hub (Siti) menerima laporan kendala dari Kurir Budi (`Vehicle`: `scooter`) yang membawa paket resi `uaeb808891380` di area *Metropolitan* dengan kondisi `Weather`: `Stormy` dan `Traffic`: `Jam`.
+* **Ketika:** Admin Siti memilih resi `uaeb808891380`, mengklik tombol "Pengalihan Rute", memilih Kurir Eko (`Vehicle`: `motorcycle`, lokasi 800m dari Kurir Budi, beban 8 paket), dan mengklik "Konfirmasi Pengalihan" pada pukul 21:06:00.
+* **Maka:** Database PostgreSQL ter-update via Eloquent ORM, rute resi `uaeb808891380` berpindah ke Kurir Eko, notifikasi rute baru muncul di ponsel Kurir Eko, dan status *ETA* di Customer Care ter-update dalam total waktu **8.5 detik** (memenuhi BR-01 < 30 detik).
 
-### Skenario 2: Pengalihan Paket Vaksin PHARMA ke Kurir SATRIA Tersertifikasi BPOM
-* **Diberikan:** Kurir Budi Santoso mengalami mogok motor saat membawa paket layanan *PHARMA* resi `100024000015` (obat resep / vaksin) di Bekasi. Di radius 1.2 km, terdapat Kurir Aditya Putra (motor standar, non-sertifikasi) dan Kurir Indra Gunawan (`pharma_certified = True`, beban 8 paket).
-* **Ketika:** Admin Siti membuka modal penugasan ulang.
-* **Maka:** Modal secara eksklusif merekomendasikan Kurir Indra Gunawan dengan label hijau "Tersertifikasi SOP BPOM", dan saat admin mengklik "Konfirmasi Pengalihan", database diperbarui dalam **1.1 detik**, serta rute baru masuk ke ponsel Kurir Indra dalam **7.8 detik** (total < 30 detik, memenuhi BR-01 & BR-03).
+### Skenario 2: Penolakan Pengalihan ke Kurir dengan Beban Kerja Penuh
+* **Diberikan:** Admin Hub mencoba memindahkan paket resi `bgvc052754213` ke Kurir Rudi.
+* **Ketika:** Kurir Rudi terdeteksi di database memiliki beban pengiriman aktif sebanyak **22 paket** (`> 20 paket`).
+* **Maka:** Sistem menolak tindakan pengalihan, menonaktifkan tombol konfirmasi untuk Kurir Rudi, dan menampilkan pesan peringatan merah "Kurir Rudi Memiliki Beban Kerja Maksimal (22/20 Paket)" (memenuhi BR-02).
 
 ---
 
 ## 9. Tidak Termasuk (Out-of-Scope)
 
-* **Otomatisasi Penuh Berbasis AI/ML:** Sistem tidak memindahkan rute secara otonom tanpa persetujuan Admin Hub.
-* **Kalkulasi Skema Bonus Finansial:** Modul tidak menghitung penyesuaian gaji atau insentif kurir akibat pemindahan paket.
-* **Konfirmasi Penerima Barang:** Alur pengalihan adalah prosedur internal hub logistik dan tidak memerlukan persetujuan dari pembeli paket.
+* **Otomatisasi Pengalihan Berbasis AI/ML:** Pengalihan wajib dikonfirmasi oleh Admin Hub secara manual, bukan dipindahkan secara otomatis oleh algoritma kecerdasan buatan.
+* **Kalkulasi Insentif Pengalihan:** Sistem tidak menghitung pembagian skema bonus/penalti keuangan akibat pemindahan paket antar-kurir.
+* **Persetujuan dari Penerima Paket:** Pengalihan tugas internal tidak memerlukan persetujuan dari penerima barang *e-commerce*.
