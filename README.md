@@ -58,3 +58,4 @@ Seluruh isi berkas `docs/data/delivery.csv` adalah **dummy data**. Data ini dibu
    - *Mobile Incident Dispatcher*: Antarmuka 3 ketukan layar untuk melaporkan kendala cuaca banjir, macet, mogok, anomali suhu, atau segel dokumen cacat.  
    - *Actionable Alert Engine*: Memicu pop-up alert interaktif di dasbor admin dalam waktu ≤ 5 detik dengan tombol aksi langsung (*Reassign* / *Adjust Buffer*).  
    - *Escalation & History Logger*: Menangani eskalasi alarm jika laporan tidak ditanggapi dalam 10 menit serta mencatat audit log lengkap.
+

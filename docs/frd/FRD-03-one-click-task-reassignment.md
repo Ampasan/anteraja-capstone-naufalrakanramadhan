@@ -3,7 +3,7 @@
 ---
 
 ### 1. Konteks
-Fitur **One-Click Task Reassignment** (Pengalihan Tugas Satu-Klik) dirancang untuk memfasilitasi Admin Hub dalam memindahkan paket dari kurir yang mengalami kendala ke kurir lain yang tersedia secara instan. Fitur ini merujuk pada **00-PRD-courier-admin-mini-panel-v2.md** Bagian 4 (In-Scope F-03) dan Bagian 7 untuk memangkas durasi penugasan ulang rute dari hitungan menit menjadi **< 30 detik** per rute.
+Fitur **One-Click Task Reassignment** (Pengalihan Tugas Satu-Klik) dirancang untuk memfasilitasi Admin Hub dalam memindahkan paket dari kurir yang mengalami kendala ke kurir lain yang tersedia secara instan. Fitur ini merujuk pada **00-PRD-courier-admin-mini-panel.md** Bagian 4 (In-Scope F-03) dan Bagian 7 untuk memangkas durasi penugasan ulang rute dari hitungan menit menjadi **< 30 detik** per rute.
 
 ---
 

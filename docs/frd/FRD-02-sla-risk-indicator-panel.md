@@ -3,7 +3,7 @@
 ---
 
 ### 1. Konteks
-Fitur **SLA Risk Indicator Panel** (Panel Indikator Risiko SLA) berfungsi untuk menampilkan dan mengurutkan seluruh paket yang belum terkirim secara otomatis berdasarkan sisa waktu SLA terdekat. Fitur ini merujuk langsung pada **00-PRD-courier-admin-mini-panel-v2.md** Bagian 4 (In-Scope F-02) dan Bagian 7 untuk menekan angka *SLA Breached* di bawah 2.5% dan mempercepat identifikasi keterlambatan yang sebelumnya bersifat reaktif.
+Fitur **SLA Risk Indicator Panel** (Panel Indikator Risiko SLA) berfungsi untuk menampilkan dan mengurutkan seluruh paket yang belum terkirim secara otomatis berdasarkan sisa waktu SLA terdekat. Fitur ini merujuk langsung pada **00-PRD-courier-admin-mini-panel.md** Bagian 4 (In-Scope F-02) dan Bagian 7 untuk menekan angka *SLA Breached* di bawah 2.5% dan mempercepat identifikasi keterlambatan yang sebelumnya bersifat reaktif.
 
 ---
 

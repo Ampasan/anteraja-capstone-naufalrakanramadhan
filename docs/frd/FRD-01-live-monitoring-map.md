@@ -3,7 +3,7 @@
 ---
 
 ### 1. Konteks
-Fitur **Live Monitoring Map** (Peta Pemantauan Langsung) dirancang untuk menyajikan visibilitas lokasi posisi kurir SATRIA, titik penyerahan paket, serta indikator suhu layanan dingin secara *real-time* pada satu antarmuka peta interaktif. Fitur ini merujuk langsung pada **00-PRD-courier-admin-mini-panel-v2.md** Bagian 4 (In-Scope F-01) dan Bagian 7 untuk menyelesaikan ketiadaan visibilitas lokasi kurir di antara titik pemindaian. Tujuan utamanya adalah mendukung Admin Hub dalam mengidentifikasi potensi penumpukan paket dan pergerakan terhenti secara proaktif.
+Fitur **Live Monitoring Map** (Peta Pemantauan Langsung) dirancang untuk menyajikan visibilitas lokasi posisi kurir SATRIA, titik penyerahan paket, serta indikator suhu layanan dingin secara *real-time* pada satu antarmuka peta interaktif. Fitur ini merujuk langsung pada **00-PRD-courier-admin-mini-panel.md** Bagian 4 (In-Scope F-01) dan Bagian 7 untuk menyelesaikan ketiadaan visibilitas lokasi kurir di antara titik pemindaian. Tujuan utamanya adalah mendukung Admin Hub dalam mengidentifikasi potensi penumpukan paket dan pergerakan terhenti secara proaktif.
 
 ---
 

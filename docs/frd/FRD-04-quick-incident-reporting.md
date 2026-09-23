@@ -3,7 +3,7 @@
 ---
 
 ### 1. Konteks
-Fitur **Quick Incident Reporting** (Pelapor Kendala Cepat) berfungsi memfasilitasi kurir di lapangan untuk melaporkan hambatan fisik (seperti cuaca buruk, kemacetan, kendaraan mogok, atau anomali suhu) secara ringkas dari aplikasi seluler SATRIA. Sinyal kendala ini langsung dikirimkan ke dasbor Admin Hub untuk memunculkan notifikasi aksi instan (*actionable alert*). Fitur ini merujuk pada **00-PRD-courier-admin-mini-panel-v2.md** Bagian 4 (In-Scope F-04) dan Bagian 7 untuk menekan pesan *chat* manual hingga **< 25 pesan/hari** dan mempercepat penanganan kendala hingga **75%**.
+Fitur **Quick Incident Reporting** (Pelapor Kendala Cepat) berfungsi memfasilitasi kurir di lapangan untuk melaporkan hambatan fisik (seperti cuaca buruk, kemacetan, kendaraan mogok, atau anomali suhu) secara ringkas dari aplikasi seluler SATRIA. Sinyal kendala ini langsung dikirimkan ke dasbor Admin Hub untuk memunculkan notifikasi aksi instan (*actionable alert*). Fitur ini merujuk pada **00-PRD-courier-admin-mini-panel.md** Bagian 4 (In-Scope F-04) dan Bagian 7 untuk menekan pesan *chat* manual hingga **< 25 pesan/hari** dan mempercepat penanganan kendala hingga **75%**.
 
 ---
 
