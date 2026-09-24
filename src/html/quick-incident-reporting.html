@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quick Incident Reporting - Anteraja Courier Ops Pulse</title>
+  <meta name="description" content="Quick Incident Reporting & Response: Pusat penerimaan dan tindak lanjut kendala lapangan SATRIA secara real-time.">
+  <link rel="stylesheet" href="../css/global.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/pages/quick-incident-reporting.css">
+</head>
+<body class="app-shell" id="_">
+
+  <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
+
+  <!-- =================================================================
+       MODAL: Detail Insiden #100024000009 – Anomali Suhu / Frozen
+       Buka: href="#modal-inc-009"  |  Tutup: href="#_"
+  ================================================================= -->
+  <section class="qir-modal-overlay" id="modal-inc-009" role="dialog" aria-modal="true" aria-labelledby="modal-inc-009-title">
+    <article class="qir-modal-card">
+      <header class="qir-modal-head">
+        <div class="qir-modal-head-meta">
+          <span class="qir-modal-tag qir-tag-escalated">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            ESKALASI
+          </span>
+          <span class="qir-modal-tag qir-tag-frozen-badge">FROZEN −2°C s/d 5°C</span>
+        </div>
+        <a href="#_" class="qir-modal-close" aria-label="Tutup modal">&#215;</a>
+      </header>
+      <div class="qir-modal-title-wrap">
+        <h2 class="qir-modal-title" id="modal-inc-009-title">
+          Anomali Suhu Cold-Chain &mdash; Resi <abbr class="qir-modal-resi" title="Nomor resi paket">#100024000009</abbr>
+        </h2>
+        <p class="qir-modal-subtitle">Dilaporkan oleh <strong>Rizky Pratama</strong> &bull; Motor Chiller Box &bull; Hub Tebet &bull; 14:22:10 WIB</p>
+      </div>
+      <section class="qir-modal-section" aria-label="Detail paket terdampak">
+        <span class="qir-modal-section-label">Detail Paket Terdampak</span>
+        <dl class="qir-detail-grid">
+          <div class="qir-detail-item">
+            <dt class="qir-detail-label">No. Resi</dt>
+            <dd class="qir-detail-val qir-mono qir-primary">#100024000009</dd>
+          </div>
+          <div class="qir-detail-item">
+            <dt class="qir-detail-label">Layanan</dt>
+            <dd class="qir-detail-val"><span class="qir-svc-badge qir-svc-frozen">FROZEN</span></dd>
+          </div>
+          <div class="qir-detail-item">
+            <dt class="qir-detail-label">Suhu Aktual</dt>
+            <dd class="qir-detail-val qir-mono qir-danger">6.2°C</dd>
+          </div>
+          <div class="qir-detail-item">
+            <dt class="qir-detail-label">Batas Aman</dt>
+            <dd class="qir-detail-val qir-mono">−2°C s/d 5°C</dd>
+          </div>
+          <div class="qir-detail-item">
+            <dt class="qir-detail-label">Jenis Kendala</dt>
+            <dd class="qir-detail-val"><span class="qir-kendala-badge qir-kendala-coldchain">Anomali Suhu</span></dd>
+          </div>
+          <div class="qir-detail-item">
+            <dt class="qir-detail-label">Status</dt>
+            <dd class="qir-detail-val"><span class="qir-status-badge qir-status-escalated">ESCALATED</span></dd>
+          </div>
+        </dl>
+      </section>
+      <section class="qir-modal-section" aria-label="Kurir pelapor">
+        <span class="qir-modal-section-label">Kurir Pelapor</span>
+        <div class="qir-kurir-block qir-kurir-block-danger">
+          <span class="qir-avatar qir-av-rp" aria-hidden="true">RP</span>
+          <div class="qir-kurir-info">
+            <span class="qir-kurir-name">Rizky Pratama</span>
+            <span class="qir-kurir-meta">Hub Tebet &bull; Motor Chiller Box &bull; Jl. Gatot Subroto Kav. 22</span>
+          </div>
+          <span class="qir-kendala-pill qir-kendala-coldchain">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2v20M4.93 5.5l14.14 13M4.93 18.5l14.14-13M2 12h20"/></svg>
+            Cold-Chain Anomaly 6.2°C
+          </span>
+        </div>
+      </section>
+      <section class="qir-modal-section" aria-label="Keterangan insiden">
+        <span class="qir-modal-section-label">Keterangan</span>
+        <p class="qir-modal-desc">Kurir SATRIA Rizky Pratama (Hub Tebet) terhenti di Jl. Gatot Subroto Kav. 22 akibat kemacetan total. Batas suhu aman tersisa 18 menit sebelum kualitas kargo rusak.</p>
+      </section>
+      <footer class="qir-modal-footer">
+        <a href="#_" class="btn btn-secondary">Tutup</a>
+        <a href="#_" class="btn btn-secondary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.68 13.6a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.41 3h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.4a16 16 0 0 0 6 6l.77-.77a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.5 18h.42z"/></svg>
+          Hubungi Kurir
+        </a>
+        <a href="one-click-task-reassignment.html" class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Pengalihan Rute Instan (&lt;30s)
+        </a>
+      </footer>
+    </article>
+  </section>
+
+  <!-- =================================================================
+       MODAL: Detail Insiden #100024000000 – Akses Banjir / Same Day
+       Buka: href="#modal-inc-000"  |  Tutup: href="#_"
+  ================================================================= -->
+  <section class="qir-modal-overlay" id="modal-inc-000" role="dialog" aria-modal="true" aria-labelledby="modal-inc-000-title">
+    <article class="qir-modal-card">
+      <header class="qir-modal-head">
+        <div class="qir-modal-head-meta">
+          <span class="qir-modal-tag qir-tag-reported">REPORTED</span>
+          <span class="qir-modal-tag qir-tag-info">SAME DAY</span>
+        </div>
+        <a href="#_" class="qir-modal-close" aria-label="Tutup modal">&#215;</a>
+      </header>
+      <div class="qir-modal-title-wrap">
+        <h2 class="qir-modal-title" id="modal-inc-000-title">
+          Akses Banjir &mdash; Resi <abbr class="qir-modal-resi" title="Nomor resi paket">#100024000000</abbr>
+        </h2>
+        <p class="qir-modal-subtitle">Dilaporkan oleh <strong>Eko Prasetyo</strong> &bull; Motor Vario &bull; B 4129 SGF &bull; 14:28:44 WIB</p>
+      </div>
+      <section class="qir-modal-section" aria-label="Detail paket">
+        <span class="qir-modal-section-label">Detail Paket</span>
+        <dl class="qir-detail-grid">
+          <div class="qir-detail-item">
+            <dt class="qir-detail-label">No. Resi</dt>
+            <dd class="qir-detail-val qir-mono qir-primary">#100024000000</dd>
+          </div>
+          <div class="qir-detail-item">
+            <dt class="qir-detail-label">Layanan</dt>
+            <dd class="qir-detail-val"><span class="qir-svc-badge qir-svc-sameday">SAME DAY</span></dd>
+          </div>
+          <div class="qir-detail-item">
+            <dt class="qir-detail-label">Jenis Kendala</dt>
+            <dd class="qir-detail-val"><span class="qir-kendala-badge qir-kendala-banjir">Banjir / Macet</span></dd>
+          </div>
+          <div class="qir-detail-item">
+            <dt class="qir-detail-label">Lokasi</dt>
+            <dd class="qir-detail-val">Jl. Panjang No. 18, Kebon Jeruk</dd>
+          </div>
+          <div class="qir-detail-item">
+            <dt class="qir-detail-label">Eskalasi</dt>
+            <dd class="qir-detail-val">dalam 07:16 mnt</dd>
+          </div>
+          <div class="qir-detail-item">
+            <dt class="qir-detail-label">Status</dt>
+            <dd class="qir-detail-val"><span class="qir-status-badge qir-status-reported">REPORTED</span></dd>
+          </div>
+        </dl>
+      </section>
+      <section class="qir-modal-section" aria-label="Kurir pelapor">
+        <span class="qir-modal-section-label">Kurir Pelapor</span>
+        <div class="qir-kurir-block">
+          <span class="qir-avatar qir-av-ep" aria-hidden="true">EP</span>
+          <div class="qir-kurir-info">
+            <span class="qir-kurir-name">Eko Prasetyo</span>
+            <span class="qir-kurir-meta">Motor Vario &bull; B 4129 SGF</span>
+          </div>
+          <span class="qir-kendala-pill qir-kendala-banjir">Akses Banjir (Genangan 40cm)</span>
+        </div>
+      </section>
+      <footer class="qir-modal-footer">
+        <a href="#_" class="btn btn-secondary">Tutup</a>
+        <a href="#_" class="btn btn-secondary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.68 13.6a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.41 3h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.4a16 16 0 0 0 6 6l.77-.77a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.5 18h.42z"/></svg>
+          Hubungi Kurir
+        </a>
+        <a href="one-click-task-reassignment.html" class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Pengalihan Rute Instan
+        </a>
+      </footer>
+    </article>
+  </section>
+
+  <!-- =================================================================
+       MODAL: Detail Insiden #100024000012 – Kendaraan Mogok / Cargo
+       Buka: href="#modal-inc-012"  |  Tutup: href="#_"
+  ================================================================= -->
+  <section class="qir-modal-overlay" id="modal-inc-012" role="dialog" aria-modal="true" aria-labelledby="modal-inc-012-title">
+    <article class="qir-modal-card">
+      <header class="qir-modal-head">
+        <div class="qir-modal-head-meta">
+          <span class="qir-modal-tag qir-tag-ack">ACKNOWLEDGED</span>
+          <span class="qir-modal-tag qir-tag-cargo-badge">CARGO</span>
+        </div>
+        <a href="#_" class="qir-modal-close" aria-label="Tutup modal">&#215;</a>
+      </header>
+      <div class="qir-modal-title-wrap">
+        <h2 class="qir-modal-title" id="modal-inc-012-title">
+          Kendaraan Mogok &mdash; Resi <abbr class="qir-modal-resi" title="Nomor resi paket">#100024000012</abbr>
+        </h2>
+        <p class="qir-modal-subtitle">Dilaporkan oleh <strong>Teguh Wibowo</strong> &bull; Truk Canter &bull; B 9301 TX &bull; 14:15:30 WIB</p>
+      </div>
+      <section class="qir-modal-section" aria-label="Detail paket">
+        <span class="qir-modal-section-label">Detail Paket</span>
+        <dl class="qir-detail-grid">
+          <div class="qir-detail-item">
+            <dt class="qir-detail-label">No. Resi</dt>
+            <dd class="qir-detail-val qir-mono qir-primary">#100024000012</dd>
+          </div>
+          <div class="qir-detail-item">
+            <dt class="qir-detail-label">Layanan</dt>
+            <dd class="qir-detail-val"><span class="qir-svc-badge qir-svc-cargo">CARGO</span></dd>
+          </div>
+          <div class="qir-detail-item">
+            <dt class="qir-detail-label">Jenis Kendala</dt>
+            <dd class="qir-detail-val"><span class="qir-kendala-badge qir-kendala-vehicle">Ban Bocor / Mogok</span></dd>
+          </div>
+          <div class="qir-detail-item">
+            <dt class="qir-detail-label">Lokasi</dt>
+            <dd class="qir-detail-val">Tol Dalam Kota KM 14 (Bahu Jalan)</dd>
+          </div>
+          <div class="qir-detail-item">
+            <dt class="qir-detail-label">Truk Pengganti</dt>
+            <dd class="qir-detail-val" style="color:#059669;font-weight:700;">Dikirim</dd>
+          </div>
+          <div class="qir-detail-item">
+            <dt class="qir-detail-label">Status</dt>
+            <dd class="qir-detail-val"><span class="qir-status-badge qir-status-acknowledged">ACKNOWLEDGED</span></dd>
+          </div>
+        </dl>
+      </section>
+      <section class="qir-modal-section" aria-label="Kurir pelapor">
+        <span class="qir-modal-section-label">Kurir Pelapor</span>
+        <div class="qir-kurir-block">
+          <span class="qir-avatar qir-av-tw" aria-hidden="true">TW</span>
+          <div class="qir-kurir-info">
+            <span class="qir-kurir-name">Teguh Wibowo</span>
+            <span class="qir-kurir-meta">Truk Canter &bull; B 9301 TX</span>
+          </div>
+          <span class="qir-kendala-pill qir-kendala-vehicle">Kendaraan Mogok (Kopling Slip)</span>
+        </div>
+      </section>
+      <footer class="qir-modal-footer">
+        <a href="#_" class="btn btn-secondary">Tutup</a>
+        <a href="#_" class="btn btn-secondary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          Respon
+        </a>
+        <a href="#_" class="btn btn-secondary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.68 13.6a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.41 3h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.4a16 16 0 0 0 6 6l.77-.77a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.5 18h.42z"/></svg>
+          Hubungi Kurir
+        </a>
+      </footer>
+    </article>
+  </section>
+
+  <!-- =================================================================
+       MODAL: Detail Insiden #100024000015 – Ban Bocor / Regular
+       Buka: href="#modal-inc-015"  |  Tutup: href="#_"
+  ================================================================= -->
+  <section class="qir-modal-overlay" id="modal-inc-015" role="dialog" aria-modal="true" aria-labelledby="modal-inc-015-title">
+    <article class="qir-modal-card">
+      <header class="qir-modal-head">
+        <div class="qir-modal-head-meta">
+          <span class="qir-modal-tag qir-tag-success">RESOLVED</span>
+          <span class="qir-modal-tag qir-tag-info">REGULAR</span>
+        </div>
+        <a href="#_" class="qir-modal-close" aria-label="Tutup modal">&#215;</a>
+      </header>
+      <div class="qir-modal-title-wrap">
+        <h2 class="qir-modal-title" id="modal-inc-015-title">
+          Ban Belakang Bocor &mdash; Resi <abbr class="qir-modal-resi" title="Nomor resi paket">#100024000015</abbr>
+        </h2>
+        <p class="qir-modal-subtitle">Dilaporkan oleh <strong>Bambang Sudiro</strong> &bull; Motor &bull; B 3081 PXR &bull; 14:02:11 WIB</p>
+      </div>
+      <section class="qir-modal-section" aria-label="Detail paket">
+        <span class="qir-modal-section-label">Detail Paket</span>
+        <dl class="qir-detail-grid">
+          <div class="qir-detail-item">
+            <dt class="qir-detail-label">No. Resi</dt>
+            <dd class="qir-detail-val qir-mono qir-primary">#100024000015</dd>
+          </div>
+          <div class="qir-detail-item">
+            <dt class="qir-detail-label">Layanan</dt>
+            <dd class="qir-detail-val"><span class="qir-svc-badge qir-svc-regular">REGULAR</span></dd>
+          </div>
+          <div class="qir-detail-item">
+            <dt class="qir-detail-label">Jenis Kendala</dt>
+            <dd class="qir-detail-val"><span class="qir-kendala-badge qir-kendala-vehicle">Ban Bocor</span></dd>
+          </div>
+          <div class="qir-detail-item">
+            <dt class="qir-detail-label">Lokasi</dt>
+            <dd class="qir-detail-val">Jl. Casablanca Depan Mal Kota Kasablanka</dd>
+          </div>
+          <div class="qir-detail-item">
+            <dt class="qir-detail-label">Resolusi</dt>
+            <dd class="qir-detail-val" style="color:#059669;font-weight:700;">Selesai via Buffer +15 mnt</dd>
+          </div>
+          <div class="qir-detail-item">
+            <dt class="qir-detail-label">Status</dt>
+            <dd class="qir-detail-val"><span class="qir-status-badge qir-status-resolved">RESOLVED</span></dd>
+          </div>
+        </dl>
+      </section>
+      <section class="qir-modal-section" aria-label="Kurir pelapor">
+        <span class="qir-modal-section-label">Kurir Pelapor</span>
+        <div class="qir-kurir-block qir-kurir-block-resolved">
+          <span class="qir-avatar qir-av-bs" aria-hidden="true">BS</span>
+          <div class="qir-kurir-info">
+            <span class="qir-kurir-name">Bambang Sudiro</span>
+            <span class="qir-kurir-meta">Motor &bull; B 3081 PXR</span>
+          </div>
+          <span class="qir-kendala-pill qir-kendala-resolved">Ban Belakang Bocor (Tambal Ban)</span>
+        </div>
+      </section>
+      <footer class="qir-modal-footer">
+        <a href="#_" class="btn btn-secondary">Tutup</a>
+        <a href="#_" class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          Selesai
+        </a>
+      </footer>
+    </article>
+  </section>
+
+  <!-- =================================================================
+       MODAL: Audit Log & Riwayat
+       Buka: href="#modal-audit-log"  |  Tutup: href="#_"
+  ================================================================= -->
+  <section class="qir-modal-overlay" id="modal-audit-log" role="dialog" aria-modal="true" aria-labelledby="modal-audit-log-title">
+    <article class="qir-modal-card">
+      <header class="qir-modal-head">
+        <div class="qir-modal-head-meta">
+          <span class="qir-modal-tag qir-tag-primary">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Audit Log
+          </span>
+          <span style="font-family:var(--font-family-mono);font-size:var(--font-size-mono-sm);color:var(--text-muted);">Siklus Siang</span>
+        </div>
+        <a href="#_" class="qir-modal-close" aria-label="Tutup audit log">&#215;</a>
+      </header>
+      <div class="qir-modal-title-wrap">
+        <h2 class="qir-modal-title" id="modal-audit-log-title">Riwayat Insiden &amp; Penanganan</h2>
+        <p class="qir-modal-subtitle">Rekaman seluruh aktivitas pelaporan dan resolusi kendala lapangan pada siklus ini.</p>
+      </div>
+      <section class="qir-modal-section" aria-label="Daftar riwayat insiden">
+        <ol class="qir-audit-list" aria-label="Daftar audit log insiden">
+          <li class="qir-audit-item">
+            <div class="qir-audit-timeline" aria-hidden="true">
+              <span class="qir-audit-dot qir-audit-dot-resolved"></span>
+              <span class="qir-audit-line"></span>
+            </div>
+            <div class="qir-audit-content">
+              <div class="qir-audit-header">
+                <span class="qir-audit-action">RESOLVED — Ban Bocor (Tambal Ban)</span>
+                <time class="qir-audit-time" datetime="2026-09-24T14:02:11">14:02:11 WIB</time>
+              </div>
+              <p class="qir-audit-meta">Resi <strong class="qir-audit-resi">#100024000015</strong> (Regular) &bull; Bambang Sudiro &bull; Selesai via Buffer SLA +15 mnt &bull; Admin: <strong>Reza Bramantyo</strong></p>
+            </div>
+          </li>
+          <li class="qir-audit-item">
+            <div class="qir-audit-timeline" aria-hidden="true">
+              <span class="qir-audit-dot qir-audit-dot-ack"></span>
+              <span class="qir-audit-line"></span>
+            </div>
+            <div class="qir-audit-content">
+              <div class="qir-audit-header">
+                <span class="qir-audit-action">ACKNOWLEDGED — Kendaraan Mogok (Kopling Slip)</span>
+                <time class="qir-audit-time" datetime="2026-09-24T14:15:30">14:15:30 WIB</time>
+              </div>
+              <p class="qir-audit-meta">Resi <strong class="qir-audit-resi">#100024000012</strong> (Cargo) &bull; Teguh Wibowo &bull; Truk Pengganti Dikirim &bull; Admin: <strong>Reza Bramantyo</strong></p>
+            </div>
+          </li>
+          <li class="qir-audit-item">
+            <div class="qir-audit-timeline" aria-hidden="true">
+              <span class="qir-audit-dot qir-audit-dot-reported"></span>
+              <span class="qir-audit-line"></span>
+            </div>
+            <div class="qir-audit-content">
+              <div class="qir-audit-header">
+                <span class="qir-audit-action">REPORTED — Akses Banjir (Genangan 40cm)</span>
+                <time class="qir-audit-time" datetime="2026-09-24T14:28:44">14:28:44 WIB</time>
+              </div>
+              <p class="qir-audit-meta">Resi <strong class="qir-audit-resi">#100024000000</strong> (Same Day) &bull; Eko Prasetyo &bull; Eskalasi dalam 07:16 mnt &bull; Menunggu tindakan</p>
+            </div>
+          </li>
+          <li class="qir-audit-item">
+            <div class="qir-audit-timeline" aria-hidden="true">
+              <span class="qir-audit-dot qir-audit-dot-escalated"></span>
+            </div>
+            <div class="qir-audit-content">
+              <div class="qir-audit-header">
+                <span class="qir-audit-action qir-action-escalated">ESCALATED — Anomali Suhu Cold-Chain (6.2°C)</span>
+                <time class="qir-audit-time" datetime="2026-09-24T14:22:10">14:22:10 WIB</time>
+              </div>
+              <p class="qir-audit-meta">Resi <strong class="qir-audit-resi">#100024000009</strong> (Frozen) &bull; Rizky Pratama &bull; Tersisa 01:59 mnt ke Level 2 &bull; <strong class="qir-action-escalated">Butuh tindakan segera</strong></p>
+            </div>
+          </li>
+        </ol>
+      </section>
+      <footer class="qir-modal-footer">
+        <span style="font-size:var(--font-size-body-sm);color:var(--text-muted);">Total 22 insiden tercatat hari ini</span>
+        <a href="#_" class="btn btn-secondary btn-sm">Tutup</a>
+      </footer>
+    </article>
+  </section>
+
+  <!-- =================================================================
+       APP SHELL: HEADER
+  ================================================================= -->
+  <header class="app-header" role="banner">
+    <div style="display:flex;align-items:center;gap:var(--space-md);">
+      <a href="live-monitoring-map.html" class="brand-logo-link" aria-label="Beranda Anteraja" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
+        <img src="../assets/anteraja_logo.png" alt="Logo Anteraja" style="width:34px;height:34px;object-fit:contain;">
+        <div style="display:flex;flex-direction:column;line-height:1.05;">
+          <span style="font-size:18px;font-weight:800;color:var(--color-primary);letter-spacing:-0.03em;">Anteraja</span>
+          <span style="font-size:8.5px;font-weight:700;color:var(--color-slate-500);letter-spacing:0.12em;text-transform:uppercase;">DISPATCH</span>
+        </div>
+      </a>
+      <span style="width:1px;height:24px;background-color:var(--border-subtle);" aria-hidden="true"></span>
+      <div class="hub-selector" role="group" aria-label="Identitas Hub Aktif">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <div style="display:flex;flex-direction:column;line-height:1.1;">
+          <span style="font-size:8.5px;color:var(--color-primary);font-weight:var(--font-weight-bold);text-transform:uppercase;letter-spacing:0.06em;">ACTIVE HUB</span>
+          <span style="font-size:var(--font-size-body-sm);font-weight:var(--font-weight-bold);color:var(--text-main);">Hub Tebet &ndash; Jakarta Selatan</span>
+        </div>
+      </div>
+    </div>
+    <div class="header-satria-stats" role="status" aria-label="Statistik Satria">
+      <span class="stat-pill-label">TOTAL SATRIA <strong class="stat-val stat-val-total">38</strong></span>
+      <span class="stat-pill-divider" aria-hidden="true"></span>
+      <span class="stat-pill-item stat-online"><span class="stat-dot dot-online" aria-hidden="true"></span> ONLINE <strong class="stat-val">32</strong></span>
+      <span class="stat-pill-divider" aria-hidden="true"></span>
+      <span class="stat-pill-item stat-idle"><span class="stat-dot dot-idle" aria-hidden="true"></span> IDLE <strong class="stat-val">4</strong></span>
+      <span class="stat-pill-divider" aria-hidden="true"></span>
+      <span class="stat-pill-item stat-offline"><span class="stat-dot dot-offline" aria-hidden="true"></span> OFFLINE <strong class="stat-val">2</strong></span>
+    </div>
+    <div class="header-user-block" style="display:flex;align-items:center;gap:var(--space-sm);">
+      <div style="display:flex;flex-direction:column;text-align:right;">
+        <span class="sidebar-user-name">Reza Bramantyo</span>
+        <span class="sidebar-user-role">Dispatch Supervisor</span>
+      </div>
+      <div class="sidebar-user-avatar" aria-hidden="true">RB</div>
+    </div>
+  </header>
+
+  <!-- =================================================================
+       APP SHELL: SIDEBAR NAV
+  ================================================================= -->
+  <nav aria-label="Navigasi Modul Hub" class="app-sidebar">
+    <div class="sidebar-header">
+      <span class="nav-section-title" style="padding:0;font-size:10px;font-weight:700;letter-spacing:0.08em;color:var(--color-slate-500);text-transform:uppercase;">DISPATCH MODULES</span>
+    </div>
+    <div class="sidebar-menu">
+      <div class="nav-section">
+        <a href="live-monitoring-map.html" class="nav-link">
+          <span class="nav-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+          </span>
+          <span>Live Monitoring Map</span>
+          <span class="nav-live-dot" aria-label="Live"></span>
+        </a>
+        <a href="sla-risk-indicator-panel.html" class="nav-link">
+          <span class="nav-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </span>
+          <span>SLA Risk Panel</span>
+          <span class="nav-badge-count">3</span>
+        </a>
+        <a href="one-click-task-reassignment.html" class="nav-link">
+          <span class="nav-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          </span>
+          <span>One-Click Reassign</span>
+        </a>
+        <a href="quick-incident-reporting.html" class="nav-link active" aria-current="page">
+          <span class="nav-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </span>
+          <span>Incident Reports</span>
+          <span class="nav-badge-count">4</span>
+        </a>
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="hub-capacity-widget">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <span style="font-size:10px;font-weight:700;letter-spacing:0.06em;color:var(--color-slate-500);text-transform:uppercase;">KAPASITAS HUB (TEBET)</span>
+          <span style="font-family:var(--font-family-mono);font-size:var(--font-size-mono-sm);font-weight:800;color:var(--color-primary);">84%</span>
+        </div>
+        <div style="width:100%;height:6px;background-color:#FCE7F3;border-radius:var(--radius-full);overflow:hidden;">
+          <div style="width:84%;height:100%;background-color:var(--color-primary);border-radius:var(--radius-full);"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--color-slate-500);margin-top:6px;">
+          <span>2.410 / 2.850 Paket</span>
+          <span style="font-weight:700;color:#10B981;">&#9679; Normal</span>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- =================================================================
+       MAIN CONTENT
+  ================================================================= -->
+  <main id="main-content" class="app-main qir-main" aria-label="Quick Incident Reporting & Response">
+
+    <!-- ── HERO CARD ───────────────────────────────────────────────── -->
+    <article class="qir-hero-card">
+      <div class="qir-hero-left">
+        <div class="qir-hero-text">
+          <div class="qir-hero-title-row">
+            <h1 class="qir-hero-title">Quick Incident Reporting &amp; Response</h1>
+            <span class="qir-hero-modul-badge">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              Modul F-04
+            </span>
+          </div>
+          <p class="qir-hero-subtitle">Pusat Penerimaan &amp; Tindak Lanjut Kendala Lapangan SATRIA &bull; Siklus Siang (13:00 &ndash; 18:00 WIB)</p>
+        </div>
+      </div>
+      <div class="qir-hero-actions">
+        <a href="#modal-audit-log" class="btn btn-secondary btn-sm">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Audit Log &amp; Riwayat
+        </a>
+        <a href="#_" class="btn btn-primary btn-sm">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          Segarkan Data
+        </a>
+      </div>
+    </article>
+
+    <!-- ── KPI ROW ─────────────────────────────────────────────────── -->
+    <section class="qir-kpi-row" aria-label="Ringkasan KPI Insiden Lapangan">
+
+      <article class="qir-kpi-card qir-kpi-laporan" aria-label="Total laporan insiden aktif">
+        <div class="qir-kpi-label">
+          <span>LAPORAN AKTIF</span>
+          <span class="qir-kpi-icon-wrap qir-icon-red" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </span>
+        </div>
+        <div class="qir-kpi-val-row">
+          <strong class="qir-kpi-val">4</strong>
+          <span class="qir-kpi-unit">Kasus</span>
+        </div>
+        <div class="qir-kpi-foot">
+          <span class="qir-kpi-tag qir-ktag-kritis">&#9679; 1 Kritis</span>
+          <span class="qir-kpi-note">3 Dalam Penanganan</span>
+        </div>
+      </article>
+
+      <article class="qir-kpi-card qir-kpi-waktu" aria-label="Waktu respons rata-rata">
+        <div class="qir-kpi-label">
+          <span>WAKTU RESPONS RATA-RATA</span>
+          <span class="qir-kpi-icon-wrap qir-icon-amber" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </span>
+        </div>
+        <div class="qir-kpi-val-row">
+          <strong class="qir-kpi-val">1.8</strong>
+          <span class="qir-kpi-unit">Menit</span>
+        </div>
+        <div class="qir-kpi-foot">
+          <span class="qir-kpi-green-note">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            Target SOP &lt;3.0 Menit
+          </span>
+        </div>
+      </article>
+
+      <article class="qir-kpi-card qir-kpi-eskalasi" aria-label="Jumlah eskalasi otomatis">
+        <div class="qir-kpi-label">
+          <span>ESKALASI OTOMATIS</span>
+          <span class="qir-kpi-icon-wrap qir-icon-orange" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          </span>
+        </div>
+        <div class="qir-kpi-val-row">
+          <strong class="qir-kpi-val">0</strong>
+          <span class="qir-kpi-unit">Kasus</span>
+        </div>
+        <div class="qir-kpi-foot">
+          <span class="qir-kpi-green-note">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            Batas Eskalasi &gt;10 Menit Aman
+          </span>
+        </div>
+      </article>
+
+      <article class="qir-kpi-card qir-kpi-selesai" aria-label="Tingkat penyelesaian 1-klik">
+        <div class="qir-kpi-label">
+          <span>PENYELESAIAN 1-KLIK</span>
+          <span class="qir-kpi-icon-wrap qir-icon-green" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </span>
+        </div>
+        <div class="qir-kpi-val-row">
+          <strong class="qir-kpi-val qir-val-green">96.4%</strong>
+        </div>
+        <div class="qir-kpi-foot">
+          <span class="qir-kpi-green-note">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Target &gt;95% Terpenuhi
+          </span>
+        </div>
+      </article>
+
+    </section>
+
+    <!-- ── KRITIS DARURAT BANNER ────────────────────────────────────── -->
+    <section class="qir-critical-banner" aria-label="Peringatan insiden kritis darurat" role="alert" aria-live="polite">
+      <div class="qir-critical-left">
+        <div class="qir-critical-icon-wrap" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <div class="qir-critical-info">
+          <div class="qir-critical-top">
+            <span class="qir-critical-badge">KRITIS DARURAT</span>
+          </div>
+          <p class="qir-critical-title">Resi #100024000009 &mdash; Anomali Suhu Cold-Chain (6.2°C)</p>
+          <div class="qir-critical-tags">
+            <span class="qir-svc-badge qir-svc-frozen">FROZEN −2°C s/d 5°C</span>
+          </div>
+          <p class="qir-critical-desc">Kurir SATRIA Rizky Pratama (Hub Tebet) terhenti di Jl. Gatot Subroto Kav. 22 akibat kemacetan total. Batas suhu aman tersisa 18 menit sebelum kualitas kargo rusak.</p>
+        </div>
+      </div>
+      <div class="qir-critical-actions">
+        <a href="#modal-inc-009" class="btn btn-primary qir-btn-pengalihan">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Pengalihan Rute Instan (&lt;30s)
+        </a>
+        <a href="#_" class="btn btn-secondary qir-btn-hubungi">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.68 13.6a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.41 3h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.4a16 16 0 0 0 6 6l.77-.77a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.5 18h.42z"/></svg>
+          Hubungi Kurir
+        </a>
+      </div>
+    </section>
+
+    <!-- ── SEARCH + STATUS TABS ─────────────────────────────────────── -->
+    <div class="qir-search-status-bar">
+      <div class="qir-search-wrap">
+        <svg class="qir-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input
+          type="search"
+          class="qir-search-input"
+          placeholder="Cari nomor resi, kurir, atau kendala lapangan..."
+          aria-label="Cari insiden berdasarkan resi, kurir, atau kendala"
+        >
+        <span class="qir-search-kbd" aria-hidden="true">⌘K</span>
+      </div>
+      <nav class="qir-status-tabs" aria-label="Filter status insiden">
+        <span class="qir-status-label">Status:</span>
+        <a href="#_" class="qir-status-tab qir-tab-active" aria-current="true">Semua (4)</a>
+        <a href="#_" class="qir-status-tab">Kritis (1)</a>
+        <a href="#_" class="qir-status-tab">Waspada (2)</a>
+        <a href="#_" class="qir-status-tab">Selesai (18)</a>
+      </nav>
+    </div>
+
+    <!-- ── KATEGORI PILLS ───────────────────────────────────────────── -->
+    <nav class="qir-kategori-bar" aria-label="Filter kategori kendala">
+      <span class="qir-kategori-label">Kategori:</span>
+      <a href="#_" class="qir-kat-pill qir-kat-active">Semua</a>
+      <a href="#_" class="qir-kat-pill">Anomali Suhu (1)</a>
+      <a href="#_" class="qir-kat-pill">Ban Bocor (1)</a>
+      <a href="#_" class="qir-kat-pill">Banjir / Macet (1)</a>
+      <a href="#_" class="qir-kat-pill">Segel Rusak (1)</a>
+    </nav>
+
+    <!-- ── TABEL ANTRIAN LAPORAN ────────────────────────────────────── -->
+    <section class="qir-table-card" aria-label="Antrian laporan kendala lapangan aktif">
+
+      <header class="qir-table-card-header">
+        <div class="qir-table-card-title-group">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          <h2 class="qir-table-card-title">Antrean Laporan Kendala Lapangan</h2>
+          <span class="qir-active-badge">4 Kendala Aktif</span>
+        </div>
+        <span class="qir-live-sla">Live SLA Countdown Aktif</span>
+      </header>
+
+      <!-- Column Headers -->
+      <div class="qir-table-cols" role="rowgroup" aria-hidden="true">
+        <span class="qir-col-header">WAKTU &amp; RESI</span>
+        <span class="qir-col-header">LAYANAN &amp; KURIR</span>
+        <span class="qir-col-header">JENIS KENDALA &amp; LOKASI</span>
+        <span class="qir-col-header">STATUS &amp; TIMER RESPON</span>
+        <span class="qir-col-header">AKSI RESPON CEPAT</span>
+      </div>
+
+      <!-- Incident Rows -->
+      <ol class="qir-incident-list" aria-label="Daftar laporan insiden lapangan">
+
+        <!-- ROW 1: ESCALATED — Rizky Pratama — Frozen — Anomali Suhu -->
+        <li class="qir-incident-row qir-row-escalated">
+          <div class="qir-waktu-col">
+            <span class="qir-resi-num">
+              100024000009
+              <svg class="qir-copy-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </span>
+            <time class="qir-waktu-text" datetime="2026-09-24T14:22:10">14:22:10 WIB (8 mnt lalu)</time>
+          </div>
+          <div class="qir-layanan-col">
+            <div class="qir-kurir-row">
+              <span class="qir-avatar qir-av-rp" aria-hidden="true">RP</span>
+              <div>
+                <span class="qir-kurir-name-cell">Rizky Pratama</span>
+                <span class="qir-svc-badge qir-svc-frozen">FROZEN</span>
+                <p class="qir-kurir-meta-cell">Hub Tebet &bull; Motor Chiller Box</p>
+              </div>
+            </div>
+          </div>
+          <div class="qir-kendala-col">
+            <span class="qir-kendala-row-item qir-kendala-coldchain">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2v20M4.93 5.5l14.14 13M4.93 18.5l14.14-13M2 12h20"/></svg>
+              Anomali Suhu (6.2°C &gt; 5.0°C)
+            </span>
+            <span class="qir-lokasi-cell">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Jl. Gatot Subroto Kav. 22 (Macet Total)
+            </span>
+          </div>
+          <div class="qir-status-col">
+            <span class="qir-status-badge qir-status-escalated">
+              <span class="qir-sdot qir-sdot-escalated" aria-hidden="true"></span>
+              ESCALATED
+            </span>
+            <span class="qir-timer-text qir-timer-danger">Tersisa 01:59 mnt ke Level 2</span>
+          </div>
+          <div class="qir-aksi-col">
+            <a href="#modal-inc-009" class="btn btn-primary btn-sm qir-btn-alihkan" aria-label="Alihkan insiden resi 100024000009">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              Alihkan
+            </a>
+            <a href="#_" class="qir-icon-btn" aria-label="Hubungi kurir Rizky Pratama">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.68 13.6a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.41 3h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.4a16 16 0 0 0 6 6l.77-.77a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.5 18h.42z"/></svg>
+            </a>
+          </div>
+        </li>
+
+        <!-- ROW 2: REPORTED — Eko Prasetyo — Same Day — Banjir -->
+        <li class="qir-incident-row qir-row-reported">
+          <div class="qir-waktu-col">
+            <span class="qir-resi-num">
+              100024000000
+              <svg class="qir-copy-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </span>
+            <time class="qir-waktu-text" datetime="2026-09-24T14:28:44">14:28:44 WIB (2 mnt lalu)</time>
+          </div>
+          <div class="qir-layanan-col">
+            <div class="qir-kurir-row">
+              <span class="qir-avatar qir-av-ep" aria-hidden="true">EP</span>
+              <div>
+                <span class="qir-kurir-name-cell">Eko Prasetyo</span>
+                <span class="qir-svc-badge qir-svc-sameday">SAME DAY</span>
+                <p class="qir-kurir-meta-cell">Motor Vario &bull; B 4129 SGF</p>
+              </div>
+            </div>
+          </div>
+          <div class="qir-kendala-col">
+            <span class="qir-kendala-row-item qir-kendala-banjir">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="8" y1="19" x2="8" y2="21"/><line x1="8" y1="13" x2="8" y2="15"/><line x1="16" y1="19" x2="16" y2="21"/><line x1="16" y1="13" x2="16" y2="15"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="12" y1="15" x2="12" y2="17"/><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/></svg>
+              Akses Banjir (Genangan 40cm)
+            </span>
+            <span class="qir-lokasi-cell">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Jl. Panjang No. 18, Kebon Jeruk
+            </span>
+          </div>
+          <div class="qir-status-col">
+            <span class="qir-status-badge qir-status-reported">
+              <span class="qir-sdot qir-sdot-reported" aria-hidden="true"></span>
+              REPORTED
+            </span>
+            <span class="qir-timer-text qir-timer-warn">Eskalasi dalam 07:16 mnt</span>
+          </div>
+          <div class="qir-aksi-col">
+            <a href="#modal-inc-000" class="btn btn-secondary btn-sm" aria-label="Tinjau insiden resi 100024000000">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              Tinjau
+            </a>
+            <a href="#_" class="qir-icon-btn" aria-label="Hubungi kurir Eko Prasetyo">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.68 13.6a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.41 3h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.4a16 16 0 0 0 6 6l.77-.77a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.5 18h.42z"/></svg>
+            </a>
+          </div>
+        </li>
+
+        <!-- ROW 3: ACKNOWLEDGED — Teguh Wibowo — Cargo — Kendaraan Mogok -->
+        <li class="qir-incident-row qir-row-ack">
+          <div class="qir-waktu-col">
+            <span class="qir-resi-num">
+              100024000012
+              <svg class="qir-copy-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </span>
+            <time class="qir-waktu-text" datetime="2026-09-24T14:15:30">14:15:30 WIB (15 mnt lalu)</time>
+          </div>
+          <div class="qir-layanan-col">
+            <div class="qir-kurir-row">
+              <span class="qir-avatar qir-av-tw" aria-hidden="true">TW</span>
+              <div>
+                <span class="qir-kurir-name-cell">Teguh Wibowo</span>
+                <span class="qir-svc-badge qir-svc-cargo">CARGO</span>
+                <p class="qir-kurir-meta-cell">Truk Canter &bull; B 9301 TX</p>
+              </div>
+            </div>
+          </div>
+          <div class="qir-kendala-col">
+            <span class="qir-kendala-row-item qir-kendala-vehicle">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+              Kendaraan Mogok (Kopling Slip)
+            </span>
+            <span class="qir-lokasi-cell">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Tol Dalam Kota KM 14 (Bahu Jalan)
+            </span>
+          </div>
+          <div class="qir-status-col">
+            <span class="qir-status-badge qir-status-acknowledged">
+              <span class="qir-sdot qir-sdot-ack" aria-hidden="true"></span>
+              ACKNOWLEDGED
+            </span>
+            <span class="qir-timer-text qir-timer-ok">Truk Pengganti Dikirim</span>
+          </div>
+          <div class="qir-aksi-col">
+            <a href="#modal-inc-012" class="btn btn-secondary btn-sm" aria-label="Respon insiden resi 100024000012">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+              Respon
+            </a>
+            <a href="#_" class="qir-icon-btn" aria-label="Hubungi kurir Teguh Wibowo">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.68 13.6a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.41 3h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.4a16 16 0 0 0 6 6l.77-.77a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.5 18h.42z"/></svg>
+            </a>
+          </div>
+        </li>
+
+        <!-- ROW 4: RESOLVED — Bambang Sudiro — Regular — Ban Bocor -->
+        <li class="qir-incident-row qir-row-resolved">
+          <div class="qir-waktu-col">
+            <span class="qir-resi-num">
+              100024000015
+              <svg class="qir-copy-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </span>
+            <time class="qir-waktu-text" datetime="2026-09-24T14:02:11">14:02:11 WIB (28 mnt lalu)</time>
+          </div>
+          <div class="qir-layanan-col">
+            <div class="qir-kurir-row">
+              <span class="qir-avatar qir-av-bs" aria-hidden="true">BS</span>
+              <div>
+                <span class="qir-kurir-name-cell">Bambang Sudiro</span>
+                <span class="qir-svc-badge qir-svc-regular">REGULAR</span>
+                <p class="qir-kurir-meta-cell">Motor &bull; B 3081 PXR</p>
+              </div>
+            </div>
+          </div>
+          <div class="qir-kendala-col">
+            <span class="qir-kendala-row-item qir-kendala-vehicle">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+              Ban Belakang Bocor (Tambal Ban)
+            </span>
+            <span class="qir-lokasi-cell">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Jl. Casablanca Depan Mal Kota Kasablanka
+            </span>
+          </div>
+          <div class="qir-status-col">
+            <span class="qir-status-badge qir-status-resolved">
+              <span class="qir-sdot qir-sdot-resolved" aria-hidden="true"></span>
+              RESOLVED
+            </span>
+            <span class="qir-timer-text qir-timer-resolved">Selesai via Buffer +15 mnt</span>
+          </div>
+          <div class="qir-aksi-col">
+            <a href="#modal-inc-015" class="btn btn-secondary btn-sm qir-btn-selesai" aria-label="Lihat detail insiden resi 100024000015">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              Selesai
+            </a>
+          </div>
+        </li>
+
+      </ol>
+
+      <footer class="qir-table-footer">
+        <span class="qir-table-footer-info">Menampilkan <strong>4 kendala lapangan aktif</strong> dari total 22 insiden hari ini</span>
+        <nav class="qir-pagination" aria-label="Navigasi halaman">
+          <a href="#_" class="qir-page-btn" aria-label="Halaman sebelumnya">&#8249;</a>
+          <span class="qir-page-info">1 / 1</span>
+          <a href="#_" class="qir-page-btn" aria-label="Halaman berikutnya">&#8250;</a>
+        </nav>
+      </footer>
+    </section>
+
+  </main>
+
+</body>
+</html>
