@@ -773,12 +773,6 @@ main:has(#full-map:target) .manifest-drawer-open-btn {
 .map-marker-hotspot {
   cursor: pointer;
   outline: none;
-  transition: transform var(--transition-fast);
-}
-
-.map-marker-hotspot:hover,
-.map-marker-hotspot:focus-visible {
-  transform: scale(1.12);
 }
 
 .map-marker-hotspot:focus-visible {
@@ -1524,31 +1518,10 @@ main:has(#full-map:target) .manifest-drawer-open-btn {
   padding-left: var(--space-md);
 }
 
-body:has(#sidebar-collapsed:target) {
-  grid-template-columns: 56px minmax(0, 1fr);
-}
-
-body:has(#sidebar-collapsed:target) .app-sidebar {
-  width: 56px;
-}
-
-body:has(#sidebar-collapsed:target) .sidebar-menu,
-body:has(#sidebar-collapsed:target) .sidebar-footer,
-body:has(#sidebar-collapsed:target) .nav-section-title,
-body:has(#sidebar-collapsed:target) .sidebar-collapse-control {
-  display: none;
-}
-
-body:has(#sidebar-collapsed:target) .sidebar-header {
-  justify-content: center;
-}
+/* Sidebar selalu statis — logika collapse dihapus */
 
 .sidebar-expand-control {
   display: none;
-}
-
-body:has(#sidebar-collapsed:target) .sidebar-expand-control {
-  display: inline-flex;
 }
 
 .courier-manifest-content {
@@ -1559,42 +1532,14 @@ body:has(#sidebar-collapsed:target) .sidebar-expand-control {
 }
 
 body:has(#manifest-collapsed:target) .live-map-workspace {
-  grid-template-columns: 56px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
 }
 
 body:has(#manifest-collapsed:target) .courier-telemetry-aside {
-  width: 56px;
-  min-width: 56px;
-}
-
-body:has(#manifest-collapsed:target) .courier-telemetry-aside .manifest-search-box,
-body:has(#manifest-collapsed:target) .courier-telemetry-aside .manifest-filter-tabs,
-body:has(#manifest-collapsed:target) .courier-telemetry-aside .courier-manifest-content,
-body:has(#manifest-collapsed:target) .courier-telemetry-aside h2 {
   display: none;
 }
 
-body:has(#manifest-collapsed:target) .courier-telemetry-aside .manifest-filter-header {
-  padding: 12px 10px;
-}
-
-body:has(#manifest-collapsed:target) .courier-telemetry-aside .manifest-search-row {
-  justify-content: center;
-}
-
-body:has(#manifest-collapsed:target) .courier-telemetry-aside .btn-search-tool:first-of-type {
-  display: none;
-}
-
-body:has(#manifest-collapsed:target) .courier-telemetry-aside .manifest-toggle-btn svg {
-  transform: rotate(180deg);
-}
-
-.manifest-open-btn {
-  display: none;
-}
-
-body:has(#manifest-collapsed:target) .manifest-open-btn {
+body:has(#manifest-collapsed:target) .manifest-drawer-open-btn {
   display: inline-flex;
 }
 
@@ -1736,16 +1681,8 @@ body:has(#fokus-rute-aktif:target) .courier-card.is-selected .tag-pink::after {
 }
 
 @media (max-width: 1023px) {
-  body:has(#sidebar-collapsed:target) {
+  body:has(#manifest-collapsed:target) .live-map-workspace {
     grid-template-columns: 1fr;
-  }
-
-  body:has(#manifest-collapsed:target) .live-map-workspace,
-  body:has(#manifest-collapsed:target) .courier-telemetry-aside {
-    grid-template-columns: 1fr;
-    width: 100%;
-    min-width: 0;
-    height: auto;
   }
 
   body:has(#fokus-rute-aktif:target) .courier-popup-overlay {
@@ -1774,6 +1711,15 @@ main:has(#full-map:target) .full-map-exit-control {
 main:has(#full-map:target) .courier-telemetry-aside,
 main:has(#full-map:target) .courier-popup-overlay {
   display: none;
+}
+
+/* Manifest collapsed: tombol header ikut state peta penuh */
+body:has(#manifest-collapsed:target) .full-map-enter-control {
+  display: none;
+}
+
+body:has(#manifest-collapsed:target) .full-map-exit-control {
+  display: inline-flex;
 }
 
 /* Modal pengalihan mengikuti hirarki alert kritis pada referensi. */

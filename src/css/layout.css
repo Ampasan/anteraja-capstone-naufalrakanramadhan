@@ -323,6 +323,162 @@ main#main-content {
   min-height: calc(100vh - var(--header-height));
 }
 
+/* ==========================================================================
+   Shared App Header Blocks
+   (digunakan di semua halaman: live-monitoring-map, sla-risk-panel, dsb.)
+   ========================================================================== */
+
+/* CSS-only interaction — URL fragments & hidden checkboxes untuk prototype tanpa JS */
+.css-state-anchor,
+.css-state-toggle {
+  position: fixed;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  top: 0;
+  left: 0;
+}
+
+/* Header right: user block */
+.header-user-block {
+  border-left: 1px solid var(--border-subtle);
+  padding-left: var(--space-md);
+}
+
+/* Header center: stat pills  */
+.header-satria-stats {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background-color: var(--color-white);
+  padding: 5px 18px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-subtle);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  white-space: nowrap;
+}
+
+.stat-pill-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-caps);
+  color: var(--color-slate-500);
+}
+
+.stat-pill-divider {
+  width: 1px;
+  height: 14px;
+  background-color: var(--border-subtle);
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.stat-pill-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-caps);
+  color: var(--color-slate-500);
+}
+
+.stat-val {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-mono-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-main);
+  margin-left: 3px;
+}
+
+.stat-val-total { color: var(--color-primary); }
+
+.stat-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+/* Shared stat dot colours */
+.dot-online  { background-color: var(--status-online); }
+.dot-idle    { background-color: var(--status-idle); }
+.dot-offline { background-color: var(--status-offline); }
+
+/* Stat-item accent colours */
+.stat-pill-item.stat-online  { color: var(--status-online-text); }
+.stat-pill-item.stat-idle    { color: var(--status-idle-text); }
+.stat-pill-item.stat-offline { color: var(--status-offline-text); }
+
+/* Hub selector pill in header */
+.hub-selector {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 5px 12px;
+  background-color: #FFF5F8;
+  border: 1.5px solid #FBCFE8;
+  border-radius: var(--radius-default);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.hub-selector:hover {
+  background-color: #FFF0F5;
+  border-color: #F9A8D4;
+}
+
+/* Sidebar: live nav dot */
+.nav-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-full);
+  background-color: var(--status-online);
+  margin-left: auto;
+  flex-shrink: 0;
+  animation: nav-live-pulse 2.2s ease-in-out infinite;
+}
+
+@keyframes nav-live-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-live-dot { animation: none; }
+}
+
+/* Sidebar: hub capacity widget */
+.hub-capacity-widget {
+  background-color: #FDF8FF;
+  border: 1px solid #F3E8FF;
+  border-radius: var(--radius-default);
+  padding: var(--space-md);
+}
+
+/* Sidebar: badge count (red pill) */
+.nav-badge-count {
+  margin-left: auto;
+  padding: 2px 6px;
+  font-size: var(--font-size-mono-sm);
+  font-family: var(--font-family-mono);
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-full);
+  background-color: #FEE2E2;
+  color: #DC2626;
+  flex-shrink: 0;
+}
+
+.nav-link.active .nav-badge-count {
+  background-color: rgba(255, 255, 255, 0.25);
+  color: var(--color-white);
+}
+
 .content-container {
   width: 100%;
   max-width: 1600px;

@@ -482,10 +482,13 @@
   transition: opacity var(--transition-base), visibility var(--transition-base);
 }
 
-.modal-overlay:target {
+.modal-overlay:target,
+section.modal-overlay:target {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 dialog.modal-card {
@@ -515,7 +518,8 @@ dialog.modal-card::backdrop {
   transition: transform var(--transition-base);
 }
 
-.modal-overlay:target .modal-card {
+.modal-overlay:target .modal-card,
+section.modal-overlay:target .modal-card {
   transform: translateY(0) scale(1);
 }
 
