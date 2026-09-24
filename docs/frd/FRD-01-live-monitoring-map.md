@@ -94,7 +94,7 @@ graph TD
 * **F-01.1 Telemetry Receiver Service:** Menerima dan memvalidasi paket data koordinat GPS dan suhu dari seluler kurir via WebSocket.
 * **F-01.2 Interactive Map Renderer:** Menampilkan peta berbasis React-Leaflet dengan *custom marker* kurir dan *drop point*.
 * **F-01.3 Info Popup Window Component:** Menampilkan detail paket, kendaraan, cuaca, dan suhu secara instan saat penanda peta diklik.
-* **F-01.4 Connection & Offline Handler:** Mengelola status indikator sinyal kurir dan sinkronisasi data *local buffering*.
+* **F-01.4 Connection Handler:** Mengelola status indikator sinyal kurir dan sinkronisasi data *local buffering*.
 
 ---
 

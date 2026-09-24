@@ -149,10 +149,6 @@
   color: var(--color-slate-600);
 }
 
-/* ==========================================================================
-   2. Split-Screen Layout (40% Manifest List / 60% Map Canvas)
-   ========================================================================== */
-
 .live-map-workspace {
   display: grid;
   grid-template-columns: 360px minmax(0, 1fr);
@@ -181,10 +177,6 @@
 main:has(#full-map:target) .live-map-workspace {
   grid-template-columns: minmax(0, 1fr);
 }
-
-/* ==========================================================================
-   3. Telemetry Manifest Aside (Left Pane - 40%)
-   ========================================================================== */
 
 .courier-telemetry-aside {
   display: flex;
@@ -573,10 +565,6 @@ main:has(#full-map:target) .live-map-workspace {
   text-decoration: underline;
 }
 
-/* ==========================================================================
-   4. Map Viewport Canvas (Right Pane - 60%)
-   ========================================================================== */
-
 .map-viewport-section {
   display: flex;
   flex-direction: column;
@@ -765,10 +753,6 @@ main:has(#full-map:target) .manifest-drawer-open-btn {
 .legend-dot.dot-coldchain {
   background-color: var(--status-breach);
 }
-
-/* ==========================================================================
-   5. Interactive Hotspot Markers (SVG or Overlay)
-   ========================================================================== */
 
 .map-marker-hotspot {
   cursor: pointer;
@@ -1105,10 +1089,6 @@ main:has(#full-map:target) .manifest-drawer-open-btn {
   background-color: #ECFDF5;
 }
 
-/* ==========================================================================
-   7. Actionable Toast Banner: Cold-Chain Anomaly (BR-06 & Skenario 2)
-   ========================================================================== */
-
 .actionable-coldchain-toast {
   position: absolute;
   bottom: 16px;
@@ -1247,10 +1227,6 @@ main:has(#full-map:target) .manifest-drawer-open-btn {
   color: var(--text-main);
 }
 
-/* ==========================================================================
-   8. State 3: Emergency Reassignment Modal (#modal-emergency-reassign:target)
-   ========================================================================== */
-
 #modal-emergency-reassign:target {
   opacity: 1;
   visibility: visible;
@@ -1353,10 +1329,6 @@ main:has(#full-map:target) .manifest-drawer-open-btn {
   color: var(--color-slate-700);
 }
 
-/* ==========================================================================
-   9. Screen-Reader & Accessibility Utilities
-   ========================================================================== */
-
 .sr-only {
   position: absolute;
   width: 1px;
@@ -1396,10 +1368,6 @@ main:has(#full-map:target) .manifest-drawer-open-btn {
     align-items: flex-start;
   }
 }
-
-/* ==========================================================================
-   10. Sidebar Extra Helpers
-   ========================================================================== */
 
 .sidebar-collapse-btn {
   display: inline-flex;
@@ -1475,10 +1443,6 @@ main:has(#full-map:target) .manifest-drawer-open-btn {
   padding: 1px 4px;
   pointer-events: none;
 }
-
-/* ==========================================================================
-   11. Header Polished Tokens & Stat Pill
-   ========================================================================== */
 
 .hub-selector {
   display: inline-flex;

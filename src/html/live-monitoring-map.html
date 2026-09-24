@@ -1,650 +1,1997 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Live Monitoring Map - Anteraja Courier Ops Pulse</title>
-  <meta name="description" content="Peta Pemantauan Posisi Kurir SATRIA, Titik Penyerahan Paket, dan Telemetri Suhu Cold-Chain secara Real-Time.">
-  <link rel="stylesheet" href="../css/global.css">
-  <link rel="stylesheet" href="../css/layout.css">
-  <link rel="stylesheet" href="../css/components.css">
-  <link rel="stylesheet" href="../css/pages/live-monitoring-map.css">
-</head>
-<body class="app-shell" id="_">
-  <!-- State anchors keep the prototype interactive without JavaScript. -->
-  <span class="css-state-anchor" id="sidebar-collapsed" aria-hidden="true"></span>
-  <span class="css-state-anchor" id="manifest-collapsed" aria-hidden="true"></span>
-  <span class="css-state-anchor" id="dismiss-courier" aria-hidden="true"></span>
-  <input class="css-state-toggle" type="checkbox" id="dismiss-coldchain" aria-label="Sembunyikan peringatan cold-chain">
-  <input class="css-state-toggle" type="checkbox" id="open-emergency-reassign" aria-label="Buka pengalihan darurat">
-  <span class="css-state-anchor" id="fokus-rute-aktif" aria-hidden="true"></span>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Live Monitoring Map - Anteraja Courier Ops Pulse</title>
+    <meta
+      name="description"
+      content="Peta Pemantauan Posisi Kurir SATRIA, Titik Penyerahan Paket, dan Telemetri Suhu Cold-Chain secara Real-Time."
+    />
+    <link rel="stylesheet" href="../css/global.css" />
+    <link rel="stylesheet" href="../css/layout.css" />
+    <link rel="stylesheet" href="../css/components.css" />
+    <link rel="stylesheet" href="../css/pages/live-monitoring-map.css" />
+  </head>
+  <body class="app-shell" id="_">
+    <!-- State anchors keep the prototype interactive without JavaScript. -->
+    <span
+      class="css-state-anchor"
+      id="sidebar-collapsed"
+      aria-hidden="true"
+    ></span>
+    <span
+      class="css-state-anchor"
+      id="manifest-collapsed"
+      aria-hidden="true"
+    ></span>
+    <span
+      class="css-state-anchor"
+      id="dismiss-courier"
+      aria-hidden="true"
+    ></span>
+    <input
+      class="css-state-toggle"
+      type="checkbox"
+      id="dismiss-coldchain"
+      aria-label="Sembunyikan peringatan cold-chain"
+    />
+    <input
+      class="css-state-toggle"
+      type="checkbox"
+      id="open-emergency-reassign"
+      aria-label="Buka pengalihan darurat"
+    />
+    <span
+      class="css-state-anchor"
+      id="fokus-rute-aktif"
+      aria-hidden="true"
+    ></span>
 
-  <!-- 1. App Header: spans full width -->
-  <header class="app-header" role="banner">
-    <div style="display:flex;align-items:center;gap:var(--space-md);">
-      <a href="live-monitoring-map.html" class="brand-logo-link" aria-label="Beranda Anteraja" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
-        <img src="../assets/anteraja_logo.png" alt="Logo Anteraja" style="width:34px;height:34px;object-fit:contain;">
-        <div style="display:flex;flex-direction:column;line-height:1.05;">
-          <span style="font-size:18px;font-weight:800;color:var(--color-primary);letter-spacing:-0.03em;">Anteraja</span>
-          <span style="font-size:8.5px;font-weight:700;color:var(--color-slate-500);letter-spacing:0.12em;text-transform:uppercase;">DISPATCH</span>
-        </div>
-      </a>
-      <span style="width:1px;height:24px;background-color:var(--border-subtle);" aria-hidden="true"></span>
-      <div class="hub-selector" role="group" aria-label="Identitas Hub Aktif">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        <div style="display:flex;flex-direction:column;line-height:1.1;">
-          <span style="font-size:8.5px;color:var(--color-primary);font-weight:var(--font-weight-bold);text-transform:uppercase;letter-spacing:0.06em;">ACTIVE HUB</span>
-          <span style="font-size:var(--font-size-body-sm);font-weight:var(--font-weight-bold);color:var(--text-main);">Hub Tebet &ndash; Jakarta Selatan</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="header-satria-stats" role="status" aria-label="Statistik Satria">
-      <span class="stat-pill-label">TOTAL SATRIA <strong class="stat-val stat-val-total">38</strong></span>
-      <span class="stat-pill-divider" aria-hidden="true"></span>
-      <span class="stat-pill-item stat-online"><span class="stat-dot dot-online" aria-hidden="true"></span> ONLINE <strong class="stat-val">32</strong></span>
-      <span class="stat-pill-divider" aria-hidden="true"></span>
-      <span class="stat-pill-item stat-idle"><span class="stat-dot dot-idle" aria-hidden="true"></span> IDLE <strong class="stat-val">4</strong></span>
-      <span class="stat-pill-divider" aria-hidden="true"></span>
-      <span class="stat-pill-item stat-offline"><span class="stat-dot dot-offline" aria-hidden="true"></span> OFFLINE <strong class="stat-val">2</strong></span>
-    </div>
-
-    <div class="header-user-block" style="display:flex;align-items:center;gap:var(--space-sm);">
-      <div style="display:flex;flex-direction:column;text-align:right;">
-        <span class="sidebar-user-name">Reza Bramantyo</span>
-        <span class="sidebar-user-role">Dispatch Supervisor</span>
-      </div>
-      <div class="sidebar-user-avatar" aria-hidden="true">RB</div>
-    </div>
-  </header>
-
-  <!-- 2. Sidebar Navigation (light theme) -->
-  <nav aria-label="Navigasi Modul Hub" class="app-sidebar">
-    <div class="sidebar-header">
-      <span class="nav-section-title" style="padding:0;font-size:10px;font-weight:700;letter-spacing:0.08em;color:var(--color-slate-500);text-transform:uppercase;">DISPATCH MODULES</span>
-    </div>
-
-    <div class="sidebar-menu" id="dispatch-modules">
-      <div class="nav-section">
-        <a href="live-monitoring-map.html" class="nav-link active" aria-current="page">
-          <span class="nav-icon" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
-          </span>
-          <span>Live Monitoring Map</span>
-          <span class="nav-live-dot" aria-label="Live"></span>
+    <!-- 1. App Header: spans full width -->
+    <header class="app-header" role="banner">
+      <div style="display: flex; align-items: center; gap: var(--space-md)">
+        <a
+          href="live-monitoring-map.html"
+          class="brand-logo-link"
+          aria-label="Beranda Anteraja"
+          style="
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+          "
+        >
+          <img
+            src="../assets/anteraja_logo.png"
+            alt="Logo Anteraja"
+            style="width: 34px; height: 34px; object-fit: contain"
+          />
+          <div style="display: flex; flex-direction: column; line-height: 1.05">
+            <span
+              style="
+                font-size: 18px;
+                font-weight: 800;
+                color: var(--color-primary);
+                letter-spacing: -0.03em;
+              "
+              >Anteraja</span
+            >
+            <span
+              style="
+                font-size: 8.5px;
+                font-weight: 700;
+                color: var(--color-slate-500);
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+              "
+              >DISPATCH</span
+            >
+          </div>
         </a>
-
-        <a href="sla-risk-indicator-panel.html" class="nav-link">
-          <span class="nav-icon" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          </span>
-          <span>SLA Risk Panel</span>
-          <span class="nav-badge-count">3</span>
-        </a>
-
-        <a href="one-click-task-reassignment.html" class="nav-link">
-          <span class="nav-icon" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-          </span>
-          <span>One-Click Reassign</span>
-        </a>
-
-        <a href="quick-incident-reporting.html" class="nav-link">
-          <span class="nav-icon" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          </span>
-          <span>Incident Reports</span>
-          <span class="nav-badge-count">3</span>
-        </a>
-      </div>
-    </div>
-
-    <!-- Hub Capacity Widget -->
-    <div class="sidebar-footer">
-      <div class="hub-capacity-widget">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-          <span style="font-size:10px;font-weight:700;letter-spacing:0.06em;color:var(--color-slate-500);text-transform:uppercase;">HUB CAPACITY</span>
-          <span style="font-family:var(--font-family-mono);font-size:var(--font-size-mono-sm);font-weight:800;color:var(--color-primary);">84%</span>
-        </div>
-        <div style="width:100%;height:6px;background-color:#FCE7F3;border-radius:var(--radius-full);overflow:hidden;">
-          <div style="width:84%;height:100%;background-color:var(--color-primary);border-radius:var(--radius-full);"></div>
-        </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--color-slate-500);margin-top:6px;">
-          <span>2,410 / 2,850 Parcels</span>
-          <span style="font-weight:700;color:var(--color-primary);">Tebet</span>
-        </div>
-      </div>
-    </div>
-  </nav>
-
-  <!-- 3. Main Content -->
-  <main id="main-content" class="app-main" style="padding:0;min-height:0;height:calc(100vh - var(--header-height));overflow:hidden;display:flex;flex-direction:column;">
-
-    <!-- Sub-Header & Service Filter -->
-    <header class="map-page-topbar">
-      <div class="map-control-strip">
-        <div class="map-headline-group">
-          <h1 class="map-view-title">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/><circle cx="12" cy="10" r="3"/></svg>
-            Monitoring Armada Aktif
-          </h1>
-          <span style="width:1px;height:16px;background-color:var(--border-subtle);" aria-hidden="true"></span>
-          <span class="map-shift-info">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            Siklus Siang (13:00 &ndash; 18:00 WIB)
-          </span>
-          <span class="badge-route-count">34 Rute Aktif</span>
-        </div>
-        <div class="map-topbar-actions">
-          <a href="#pusatkan" class="btn btn-secondary btn-sm">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
-            Pusatkan Hub
-          </a>
-          <a href="#full-map" class="btn btn-secondary btn-sm full-map-enter-control">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
-            Peta Penuh
-          </a>
-          <a href="#_" class="btn btn-primary btn-sm full-map-exit-control">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
-            Keluar Peta Penuh
-          </a>
+        <span
+          style="
+            width: 1px;
+            height: 24px;
+            background-color: var(--border-subtle);
+          "
+          aria-hidden="true"
+        ></span>
+        <div class="hub-selector" role="group" aria-label="Identitas Hub Aktif">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="var(--color-primary)"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
+          </svg>
+          <div style="display: flex; flex-direction: column; line-height: 1.1">
+            <span
+              style="
+                font-size: 8.5px;
+                color: var(--color-primary);
+                font-weight: var(--font-weight-bold);
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+              "
+              >ACTIVE HUB</span
+            >
+            <span
+              style="
+                font-size: var(--font-size-body-sm);
+                font-weight: var(--font-weight-bold);
+                color: var(--text-main);
+              "
+              >Hub Tebet &ndash; Jakarta Selatan</span
+            >
+          </div>
         </div>
       </div>
 
-      <nav class="service-filter-bar" aria-label="Filter Layanan Pengiriman">
-        <span class="service-filter-label">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-          LAYANAN:
-        </span>
-        <ul class="service-filter-pills">
-          <li><a href="#filter-all" class="service-pill-btn active" aria-current="true">Semua Layanan <span class="pill-count">(38)</span></a></li>
-          <li><a href="#filter-frozen" class="service-pill-btn service-pill-frozen"><span aria-hidden="true">&#10052;</span> Frozen <span class="pill-count">(1)</span></a></li>
-          <li><a href="#filter-sameday" class="service-pill-btn">Same Day <span class="pill-count">(18)</span></a></li>
-          <li><a href="#filter-instant" class="service-pill-btn">Instant <span class="pill-count">(9)</span></a></li>
-          <li><a href="#filter-cargo" class="service-pill-btn">Cargo <span class="pill-count">(6)</span></a></li>
-          <li><a href="#filter-regular" class="service-pill-btn">Regular <span class="pill-count">(4)</span></a></li>
-          <li><a href="#filter-nextday" class="service-pill-btn">Next Day</a></li>
-          <li><a href="#filter-dokumen" class="service-pill-btn">Dokumen</a></li>
-          <li><a href="#filter-minicargo" class="service-pill-btn">Mini Cargo</a></li>
-        </ul>
-      </nav>
+      <div
+        class="header-satria-stats"
+        role="status"
+        aria-label="Statistik Satria"
+      >
+        <span class="stat-pill-label"
+          >TOTAL SATRIA
+          <strong class="stat-val stat-val-total">38</strong></span
+        >
+        <span class="stat-pill-divider" aria-hidden="true"></span>
+        <span class="stat-pill-item stat-online"
+          ><span class="stat-dot dot-online" aria-hidden="true"></span> ONLINE
+          <strong class="stat-val">32</strong></span
+        >
+        <span class="stat-pill-divider" aria-hidden="true"></span>
+        <span class="stat-pill-item stat-idle"
+          ><span class="stat-dot dot-idle" aria-hidden="true"></span> IDLE
+          <strong class="stat-val">4</strong></span
+        >
+        <span class="stat-pill-divider" aria-hidden="true"></span>
+        <span class="stat-pill-item stat-offline"
+          ><span class="stat-dot dot-offline" aria-hidden="true"></span> OFFLINE
+          <strong class="stat-val">2</strong></span
+        >
+      </div>
+
+      <div
+        class="header-user-block"
+        style="display: flex; align-items: center; gap: var(--space-sm)"
+      >
+        <div style="display: flex; flex-direction: column; text-align: right">
+          <span class="sidebar-user-name">Reza Bramantyo</span>
+          <span class="sidebar-user-role">Dispatch Supervisor</span>
+        </div>
+        <div class="sidebar-user-avatar" aria-hidden="true">RB</div>
+      </div>
     </header>
 
-    <div id="full-map" aria-hidden="true"></div>
+    <!-- 2. Sidebar Navigation (light theme) -->
+    <nav aria-label="Navigasi Modul Hub" class="app-sidebar">
+      <div class="sidebar-header">
+        <span
+          class="nav-section-title"
+          style="
+            padding: 0;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            color: var(--color-slate-500);
+            text-transform: uppercase;
+          "
+          >DISPATCH MODULES</span
+        >
+      </div>
 
-    <!-- Split View Workspace -->
-    <div class="live-map-workspace">
+      <div class="sidebar-menu" id="dispatch-modules">
+        <div class="nav-section">
+          <a
+            href="live-monitoring-map.html"
+            class="nav-link active"
+            aria-current="page"
+          >
+            <span class="nav-icon" aria-hidden="true">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
+                <line x1="8" y1="2" x2="8" y2="18" />
+                <line x1="16" y1="6" x2="16" y2="22" />
+              </svg>
+            </span>
+            <span>Live Monitoring Map</span>
+            <span class="nav-live-dot" aria-label="Live"></span>
+          </a>
 
-      <!-- Left Pane: Courier Manifest Aside -->
-      <aside aria-label="Daftar Telemetri Kurir" class="courier-telemetry-aside">
-        <h2 class="sr-only">Daftar Status dan Manifest Kurir Lapangan</h2>
+          <a href="sla-risk-indicator-panel.html" class="nav-link">
+            <span class="nav-icon" aria-hidden="true">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+                />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            </span>
+            <span>SLA Risk Panel</span>
+            <span class="nav-badge-count">3</span>
+          </a>
 
-        <div class="manifest-filter-header">
-          <div class="manifest-search-row">
-            <div class="manifest-search-box">
-              <svg class="manifest-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              <input type="search" class="manifest-search-input" placeholder="Cari resi atau Satria..." aria-label="Cari berdasarkan nomor resi atau nama kurir Satria">
-            </div>
-            <a href="#manifest-collapsed" class="btn-search-tool manifest-toggle-btn" aria-label="Ciutkan daftar kurir" aria-controls="courier-manifest-content">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 19 2 12 11 5"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
-            </a>
+          <a href="one-click-task-reassignment.html" class="nav-link">
+            <span class="nav-icon" aria-hidden="true">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="17 1 21 5 17 9" />
+                <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                <polyline points="7 23 3 19 7 15" />
+                <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+              </svg>
+            </span>
+            <span>One-Click Reassign</span>
+          </a>
+
+          <a href="quick-incident-reporting.html" class="nav-link">
+            <span class="nav-icon" aria-hidden="true">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+            </span>
+            <span>Incident Reports</span>
+            <span class="nav-badge-count">3</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Hub Capacity Widget -->
+      <div class="sidebar-footer">
+        <div class="hub-capacity-widget">
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 6px;
+            "
+          >
+            <span
+              style="
+                font-size: 10px;
+                font-weight: 700;
+                letter-spacing: 0.06em;
+                color: var(--color-slate-500);
+                text-transform: uppercase;
+              "
+              >HUB CAPACITY</span
+            >
+            <span
+              style="
+                font-family: var(--font-family-mono);
+                font-size: var(--font-size-mono-sm);
+                font-weight: 800;
+                color: var(--color-primary);
+              "
+              >84%</span
+            >
           </div>
-          <div class="manifest-filter-tabs" role="tablist" aria-label="Filter status kurir">
-            <a href="#tab-semua" class="manifest-tab-btn active" role="tab" aria-selected="true">Semua (38)</a>
-            <a href="#tab-online" class="manifest-tab-btn" role="tab" aria-selected="false">Online (32)</a>
-            <a href="#tab-idle" class="manifest-tab-btn" role="tab" aria-selected="false">Idle (4)</a>
-            <a href="#tab-offline" class="manifest-tab-btn" role="tab" aria-selected="false">Offline (2)</a>
+          <div
+            style="
+              width: 100%;
+              height: 6px;
+              background-color: #fce7f3;
+              border-radius: var(--radius-full);
+              overflow: hidden;
+            "
+          >
+            <div
+              style="
+                width: 84%;
+                height: 100%;
+                background-color: var(--color-primary);
+                border-radius: var(--radius-full);
+              "
+            ></div>
+          </div>
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              font-size: 11px;
+              color: var(--color-slate-500);
+              margin-top: 6px;
+            "
+          >
+            <span>2,410 / 2,850 Parcels</span>
+            <span style="font-weight: 700; color: var(--color-primary)"
+              >Tebet</span
+            >
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- 3. Main Content -->
+    <main
+      id="main-content"
+      class="app-main"
+      style="
+        padding: 0;
+        min-height: 0;
+        height: calc(100vh - var(--header-height));
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      "
+    >
+      <!-- Sub-Header & Service Filter -->
+      <header class="map-page-topbar">
+        <div class="map-control-strip">
+          <div class="map-headline-group">
+            <h1 class="map-view-title">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path
+                  d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"
+                />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+              Monitoring Armada Aktif
+            </h1>
+            <span
+              style="
+                width: 1px;
+                height: 16px;
+                background-color: var(--border-subtle);
+              "
+              aria-hidden="true"
+            ></span>
+            <span class="map-shift-info">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+              Siklus Siang (13:00 &ndash; 18:00 WIB)
+            </span>
+            <span class="badge-route-count">34 Rute Aktif</span>
+          </div>
+          <div class="map-topbar-actions">
+            <a href="#pusatkan" class="btn btn-secondary btn-sm">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="22" y1="12" x2="18" y2="12" />
+                <line x1="6" y1="12" x2="2" y2="12" />
+                <line x1="12" y1="6" x2="12" y2="2" />
+                <line x1="12" y1="22" x2="12" y2="18" />
+              </svg>
+              Pusatkan Hub
+            </a>
+            <a
+              href="#full-map"
+              class="btn btn-secondary btn-sm full-map-enter-control"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <polyline points="15 3 21 3 21 9" />
+                <polyline points="9 21 3 21 3 15" />
+                <line x1="21" y1="3" x2="14" y2="10" />
+                <line x1="3" y1="21" x2="10" y2="14" />
+              </svg>
+              Peta Penuh
+            </a>
+            <a href="#_" class="btn btn-primary btn-sm full-map-exit-control">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <polyline points="4 14 10 14 10 20" />
+                <polyline points="20 10 14 10 14 4" />
+                <line x1="14" y1="10" x2="21" y2="3" />
+                <line x1="3" y1="21" x2="10" y2="14" />
+              </svg>
+              Keluar Peta Penuh
+            </a>
           </div>
         </div>
 
-        <div id="courier-manifest-content" class="courier-manifest-content">
-        <div class="courier-card-list">
+        <nav class="service-filter-bar" aria-label="Filter Layanan Pengiriman">
+          <span class="service-filter-label">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+            </svg>
+            LAYANAN:
+          </span>
+          <ul class="service-filter-pills">
+            <li>
+              <a
+                href="#filter-all"
+                class="service-pill-btn active"
+                aria-current="true"
+                >Semua Layanan <span class="pill-count">(38)</span></a
+              >
+            </li>
+            <li>
+              <a
+                href="#filter-frozen"
+                class="service-pill-btn service-pill-frozen"
+                ><span aria-hidden="true">&#10052;</span> Frozen
+                <span class="pill-count">(1)</span></a
+              >
+            </li>
+            <li>
+              <a href="#filter-sameday" class="service-pill-btn"
+                >Same Day <span class="pill-count">(18)</span></a
+              >
+            </li>
+            <li>
+              <a href="#filter-instant" class="service-pill-btn"
+                >Instant <span class="pill-count">(9)</span></a
+              >
+            </li>
+            <li>
+              <a href="#filter-cargo" class="service-pill-btn"
+                >Cargo <span class="pill-count">(6)</span></a
+              >
+            </li>
+            <li>
+              <a href="#filter-regular" class="service-pill-btn"
+                >Regular <span class="pill-count">(4)</span></a
+              >
+            </li>
+            <li>
+              <a href="#filter-nextday" class="service-pill-btn">Next Day</a>
+            </li>
+            <li>
+              <a href="#filter-dokumen" class="service-pill-btn">Dokumen</a>
+            </li>
+            <li>
+              <a href="#filter-minicargo" class="service-pill-btn"
+                >Mini Cargo</a
+              >
+            </li>
+          </ul>
+        </nav>
+      </header>
 
-          <!-- KARTU 1: Budi Santoso — AKTIF / Online -->
-          <a href="#popup-courier-budi" class="courier-card is-selected" id="courier-str001" aria-label="Buka detail kurir Budi Santoso">
-            <div class="courier-card-head">
-              <div class="courier-avatar avatar-primary" aria-hidden="true">BD</div>
-              <div class="courier-meta-primary">
-                <div class="courier-name-row">
-                  <h3 class="courier-name">Budi Santoso</h3>
-                  <span class="tag-service-type tag-pink">AKTIF</span>
-                </div>
-                <div class="courier-vehicle-info">B 4821 SGC &bull; Sepeda Motor</div>
+      <div id="full-map" aria-hidden="true"></div>
+
+      <!-- Split View Workspace -->
+      <div class="live-map-workspace">
+        <!-- Left Pane: Courier Manifest Aside -->
+        <aside
+          aria-label="Daftar Telemetri Kurir"
+          class="courier-telemetry-aside"
+        >
+          <h2 class="sr-only">Daftar Status dan Manifest Kurir Lapangan</h2>
+
+          <div class="manifest-filter-header">
+            <div class="manifest-search-row">
+              <div class="manifest-search-box">
+                <svg
+                  class="manifest-search-icon"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                <input
+                  type="search"
+                  class="manifest-search-input"
+                  placeholder="Cari resi atau Satria..."
+                  aria-label="Cari berdasarkan nomor resi atau nama kurir Satria"
+                />
               </div>
-              <div class="status-badge-container">
-                <span class="badge badge-online"><span class="badge-dot" aria-hidden="true"></span> Online</span>
-              </div>
+              <a
+                href="#manifest-collapsed"
+                class="btn-search-tool manifest-toggle-btn"
+                aria-label="Ciutkan daftar kurir"
+                aria-controls="courier-manifest-content"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="11 19 2 12 11 5" />
+                  <line x1="2" y1="12" x2="22" y2="12" />
+                </svg>
+              </a>
             </div>
-            <div class="courier-card-body">
-              <div class="courier-data-row">
-                <span class="resi-code-badge">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            <div
+              class="manifest-filter-tabs"
+              role="tablist"
+              aria-label="Filter status kurir"
+            >
+              <a
+                href="#tab-semua"
+                class="manifest-tab-btn active"
+                role="tab"
+                aria-selected="true"
+                >Semua (38)</a
+              >
+              <a
+                href="#tab-online"
+                class="manifest-tab-btn"
+                role="tab"
+                aria-selected="false"
+                >Online (32)</a
+              >
+              <a
+                href="#tab-idle"
+                class="manifest-tab-btn"
+                role="tab"
+                aria-selected="false"
+                >Idle (4)</a
+              >
+              <a
+                href="#tab-offline"
+                class="manifest-tab-btn"
+                role="tab"
+                aria-selected="false"
+                >Offline (2)</a
+              >
+            </div>
+          </div>
+
+          <div id="courier-manifest-content" class="courier-manifest-content">
+            <div class="courier-card-list">
+              <!-- KARTU 1: Budi Santoso — AKTIF / Online -->
+              <a
+                href="#popup-courier-budi"
+                class="courier-card is-selected"
+                id="courier-str001"
+                aria-label="Buka detail kurir Budi Santoso"
+              >
+                <div class="courier-card-head">
+                  <div class="courier-avatar avatar-primary" aria-hidden="true">
+                    BD
+                  </div>
+                  <div class="courier-meta-primary">
+                    <div class="courier-name-row">
+                      <h3 class="courier-name">Budi Santoso</h3>
+                      <span class="tag-service-type tag-pink">AKTIF</span>
+                    </div>
+                    <div class="courier-vehicle-info">
+                      B 4821 SGC &bull; Sepeda Motor
+                    </div>
+                  </div>
+                  <div class="status-badge-container">
+                    <span class="badge badge-online"
+                      ><span class="badge-dot" aria-hidden="true"></span>
+                      Online</span
+                    >
+                  </div>
+                </div>
+                <div class="courier-card-body">
+                  <div class="courier-data-row">
+                    <span class="resi-code-badge">
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <rect x="1" y="3" width="15" height="13" />
+                        <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+                        <circle cx="5.5" cy="18.5" r="2.5" />
+                        <circle cx="18.5" cy="18.5" r="2.5" />
+                      </svg>
+                      100024000000
+                    </span>
+                    <span class="sla-countdown sla-warning">
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                      </svg>
+                      Sisa SLA: 18m
+                    </span>
+                  </div>
+                  <div class="courier-cargo-desc">
+                    <span>Muatan: 14/20 Paket (70%)</span>
+                    <span class="tag-service-type tag-sameday">Frozen</span>
+                  </div>
+                </div>
+              </a>
+
+              <!-- KARTU 2: Rizky Pratama — SUHU / Cold-Chain Alert -->
+              <article
+                class="courier-card courier-card--alert"
+                id="courier-str009"
+              >
+                <div class="courier-card-head">
+                  <div class="courier-avatar avatar-alert" aria-hidden="true">
+                    RP
+                  </div>
+                  <div class="courier-meta-primary">
+                    <div class="courier-name-row">
+                      <h3 class="courier-name">Rizky Pratama</h3>
+                      <span class="tag-service-type tag-red">SUHU</span>
+                    </div>
+                    <div class="courier-vehicle-info">
+                      B 5932 KOP &bull; Tas Termal IoT
+                    </div>
+                  </div>
+                  <div class="status-badge-container">
+                    <span class="badge badge-breach"
+                      ><span aria-hidden="true" style="font-size: 11px"
+                        >&#127777;</span
+                      >
+                      6.2&deg;C Alert</span
+                    >
+                  </div>
+                </div>
+                <div class="courier-card-body courier-card-body--alert">
+                  <div class="courier-data-row">
+                    <span class="resi-code-badge" style="color: #991b1b">
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <rect x="1" y="3" width="15" height="13" />
+                        <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+                        <circle cx="5.5" cy="18.5" r="2.5" />
+                        <circle cx="18.5" cy="18.5" r="2.5" />
+                      </svg>
+                      100024000089
+                    </span>
+                    <span class="sla-countdown sla-danger">
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                      </svg>
+                      SLA: 12m
+                    </span>
+                  </div>
+                  <div class="courier-cargo-desc">
+                    <span style="color: #b91c1c"
+                      >Daging Segar Beku (Frozen Food)</span
+                    >
+                    <span
+                      class="tag-service-type"
+                      style="background-color: #dbeafe; color: #1e40af"
+                      >Frozen</span
+                    >
+                  </div>
+                </div>
+              </article>
+
+              <!-- KARTU 3: Rama Pratama — IDLE 12m -->
+              <article class="courier-card" id="courier-str004">
+                <div class="courier-card-head">
+                  <div class="courier-avatar avatar-idle" aria-hidden="true">
+                    RM
+                  </div>
+                  <div class="courier-meta-primary">
+                    <div class="courier-name-row">
+                      <h3 class="courier-name">Rama Pratama</h3>
+                      <span class="tag-service-type tag-yellow">IDLE 12m</span>
+                    </div>
+                    <div class="courier-vehicle-info">
+                      B 3910 TAA &bull; Regular
+                    </div>
+                  </div>
+                  <div class="status-badge-container">
+                    <span
+                      class="sla-countdown"
+                      style="font-size: var(--font-size-caps)"
+                    >
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                      </svg>
+                      SLA: 28m
+                    </span>
+                  </div>
+                </div>
+                <div class="courier-card-body">
+                  <div class="courier-data-row">
+                    <span
+                      style="
+                        font-size: var(--font-size-body-sm);
+                        color: var(--color-slate-700);
+                      "
+                      >Jl. Gatot Subroto No. 88</span
+                    >
+                    <span
+                      style="
+                        font-family: var(--font-family-mono);
+                        font-size: var(--font-size-mono-sm);
+                        color: var(--text-muted);
+                      "
+                      >9 / 20 Paket</span
+                    >
+                  </div>
+                </div>
+              </article>
+
+              <!-- KARTU 4: Agus Setiawan — OFFLINE -->
+              <article
+                class="courier-card courier-card--offline"
+                id="courier-str007"
+              >
+                <div class="courier-card-head">
+                  <div class="courier-avatar avatar-offline" aria-hidden="true">
+                    AG
+                  </div>
+                  <div class="courier-meta-primary">
+                    <div class="courier-name-row">
+                      <h3 class="courier-name">Agus Setiawan</h3>
+                      <span class="tag-service-type tag-offline">OFFLINE</span>
+                    </div>
+                    <div class="courier-vehicle-info">
+                      B 6128 KLP &bull; Tebet Barat
+                    </div>
+                  </div>
+                  <div class="status-badge-container">
+                    <span class="badge badge-offline">
+                      <time
+                        datetime="PT18S"
+                        style="
+                          color: #ef4444;
+                          font-weight: var(--font-weight-semibold);
+                        "
+                        >18 detik lalu</time
+                      >
+                    </span>
+                  </div>
+                </div>
+                <div class="offline-alert-row">
+                  <span
+                    style="
+                      display: inline-flex;
+                      align-items: center;
+                      gap: 4px;
+                      color: var(--color-slate-600);
+                      font-size: var(--font-size-body-sm);
+                    "
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <line x1="1" y1="1" x2="23" y2="23" />
+                      <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55" />
+                      <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39" />
+                      <path d="M10.71 5.05A16 16 0 0 1 22.58 9" />
+                      <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88" />
+                      <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
+                      <line x1="12" y1="20" x2="12.01" y2="20" />
+                    </svg>
+                    Sinyal GPS terputus
+                  </span>
+                  <span
+                    style="
+                      font-family: var(--font-family-mono);
+                      font-size: var(--font-size-mono-sm);
+                      color: var(--color-primary);
+                      font-weight: var(--font-weight-semibold);
+                    "
+                    >4 titik tersimpan</span
+                  >
+                </div>
+              </article>
+            </div>
+
+            <footer class="manifest-footer">
+              <span>Menampilkan 4 dari 38 Satria</span>
+              <a href="#lihat-semua-kurir" class="manifest-link-all"
+                >Lihat Semua &rsaquo;</a
+              >
+            </footer>
+          </div>
+        </aside>
+
+        <!-- Right Pane: Map Section -->
+        <section
+          aria-labelledby="map-view-heading"
+          class="map-viewport-section"
+        >
+          <h2 id="map-view-heading" class="sr-only">
+            Kanvas Pemantauan Posisi Kurir dan Rute
+          </h2>
+
+          <!-- Floating Filter Panel (top-left of map) -->
+          <div
+            class="map-floating-filter-panel"
+            role="region"
+            aria-label="Opsi Lapisan Peta"
+          >
+            <a
+              href="#_"
+              class="manifest-drawer-open-btn manifest-open-btn"
+              aria-label="Buka Kembali Manifest Daftar Kurir"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <polyline points="13 17 18 12 13 7" />
+                <polyline points="6 17 11 12 6 7" />
+              </svg>
+              Tampilkan Daftar Kurir (38)
+            </a>
+            <div class="hub-radius-badge">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              Radius Hub: <strong>5 KM</strong>
+            </div>
+            <div class="map-layer-options">
+              <label class="map-layer-item map-layer-item--route">
+                <span
+                  style="display: inline-flex; align-items: center; gap: 6px"
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <circle cx="5" cy="19" r="2" />
+                    <circle cx="19" cy="5" r="2" />
+                    <path d="M7 19h3a3 3 0 0 0 3-3v-5a3 3 0 0 1 3-3h1" />
+                  </svg>
+                  Rute Aktif
+                </span>
+                <input
+                  type="checkbox"
+                  checked
+                  aria-label="Tampilkan rute aktif kurir"
+                />
+              </label>
+              <label class="map-layer-item map-layer-item--drop">
+                <span
+                  style="display: inline-flex; align-items: center; gap: 6px"
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="var(--color-slate-600)"
+                    stroke-width="2"
+                    aria-hidden="true"
+                  >
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                  Drop Points
+                </span>
+                <input
+                  type="checkbox"
+                  checked
+                  aria-label="Tampilkan titik penyerahan paket"
+                />
+              </label>
+              <label class="map-layer-item map-layer-item--coldchain">
+                <span
+                  style="display: inline-flex; align-items: center; gap: 6px"
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M12 2v20M4.93 5.5l14.14 13M4.93 18.5l14.14-13M2 12h20M5.5 4.93l13 14.14M5.5 19.07l13-14.14"
+                    />
+                  </svg>
+                  Cold-Chain Alert
+                </span>
+                <input
+                  type="checkbox"
+                  checked
+                  aria-label="Tampilkan peringatan cold-chain"
+                />
+              </label>
+            </div>
+          </div>
+
+          <!-- SVG Map Canvas -->
+          <figure class="map-canvas-figure">
+            <svg
+              class="interactive-svg-map"
+              viewBox="0 0 960 640"
+              xmlns="http://www.w3.org/2000/svg"
+              role="img"
+              aria-label="Peta Interaktif Hub Tebet dan Sebaran Posisi Kurir SATRIA"
+            >
+              <rect width="960" height="640" fill="#EBF3F9" />
+              <polygon
+                points="120,40 450,20 540,240 180,260"
+                fill="#E2EDF5"
+                opacity="0.7"
+              />
+              <polygon
+                points="560,260 880,180 940,540 600,620"
+                fill="#DEEBF4"
+                opacity="0.6"
+              />
+              <polygon
+                points="80,360 480,320 420,620 40,580"
+                fill="#E5EFF6"
+                opacity="0.7"
+              />
+              <path
+                d="M-20,180 Q180,220 340,360 T680,660"
+                fill="none"
+                stroke="#C5E0F2"
+                stroke-width="22"
+                stroke-linecap="round"
+              />
+              <path
+                d="M-10,480 L980,560"
+                fill="none"
+                stroke="#475569"
+                stroke-width="14"
+              />
+              <path
+                d="M-10,480 L980,560"
+                fill="none"
+                stroke="#64748B"
+                stroke-width="10"
+              />
+              <path
+                d="M-10,480 L980,560"
+                fill="none"
+                stroke="#FFFFFF"
+                stroke-width="2"
+                stroke-dasharray="14 10"
+              />
+              <text
+                x="32"
+                y="470"
+                fill="#475569"
+                font-family="'Plus Jakarta Sans', sans-serif"
+                font-size="10"
+                font-weight="700"
+                letter-spacing="1"
+              >
+                JL. GATOT SUBROTO (TOLL DALAM KOTA)
+              </text>
+              <path
+                d="M420,40 L440,300 L680,530"
+                fill="none"
+                stroke="#CBD5E1"
+                stroke-width="12"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M420,40 L440,300 L680,530"
+                fill="none"
+                stroke="#FFFFFF"
+                stroke-width="8"
+                stroke-linejoin="round"
+              />
+              <text
+                x="450"
+                y="220"
+                fill="#64748B"
+                font-family="'Plus Jakarta Sans', sans-serif"
+                font-size="10"
+                font-weight="700"
+              >
+                JL. TEBET RAYA
+              </text>
+              <path
+                d="M120,220 L440,300 L760,250"
+                fill="none"
+                stroke="#FFFFFF"
+                stroke-width="6"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M440,300 L280,480"
+                fill="none"
+                stroke="#FFFFFF"
+                stroke-width="6"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M760,250 L840,460"
+                fill="none"
+                stroke="#FFFFFF"
+                stroke-width="6"
+                stroke-linejoin="round"
+              />
+              <text
+                x="610"
+                y="370"
+                fill="#94A3B8"
+                font-family="'Plus Jakarta Sans', sans-serif"
+                font-size="11"
+                font-weight="600"
+              >
+                Tebet Barat Zone-3
+              </text>
+              <text
+                x="740"
+                y="210"
+                fill="#94A3B8"
+                font-family="'Plus Jakarta Sans', sans-serif"
+                font-size="10"
+                font-weight="600"
+              >
+                Pancoran Timur
+              </text>
+              <circle
+                cx="430"
+                cy="270"
+                r="180"
+                fill="none"
+                stroke="#ED0677"
+                stroke-width="1.5"
+                stroke-dasharray="6 6"
+                opacity="0.35"
+              />
+              <path
+                d="M430,270 L440,300 L510,360 L730,230"
+                fill="none"
+                stroke="#ED0677"
+                stroke-width="3"
+                stroke-dasharray="6 4"
+                stroke-linecap="round"
+                opacity="0.85"
+              />
+              <!-- HUB TEBET -->
+              <g transform="translate(405,245)">
+                <rect
+                  x="0"
+                  y="0"
+                  width="52"
+                  height="34"
+                  rx="6"
+                  fill="#0F172A"
+                />
+                <path d="M16 14 h20 v12 h-20 z" fill="#FFBE00" />
+                <path d="M12 14 l14 -9 l14 9 z" fill="#FFBE00" />
+                <rect
+                  x="0"
+                  y="24"
+                  width="52"
+                  height="16"
+                  rx="4"
+                  fill="#1E293B"
+                />
+                <text
+                  x="26"
+                  y="35"
+                  fill="#FFFFFF"
+                  font-family="'Plus Jakarta Sans', sans-serif"
+                  font-size="8"
+                  font-weight="700"
+                  text-anchor="middle"
+                >
+                  HUB TEBET
+                </text>
+              </g>
+              <!-- MARKER BUDI SANTOSO (Online) -->
+              <a
+                href="#popup-courier-budi"
+                class="map-marker-hotspot"
+                aria-label="Lihat Telemetri Budi Santoso"
+              >
+                <g transform="translate(510,360)">
+                  <circle
+                    cx="0"
+                    cy="0"
+                    r="24"
+                    fill="#10B981"
+                    opacity="0.2"
+                    class="pulse-ring-online"
+                  />
+                  <circle cx="0" cy="0" r="18" fill="#C91076" />
+                  <circle cx="0" cy="0" r="14" fill="#ED0677" />
+                  <path
+                    d="M-6 4 a3 3 0 1 0 6 0 a3 3 0 1 0 -6 0 M2 4 a3 3 0 1 0 6 0 a3 3 0 1 0 -6 0 M-3 4 l3 -6 l3 2 l2 4"
+                    fill="none"
+                    stroke="#FFFFFF"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <g transform="translate(-65,22)">
+                    <rect
+                      x="0"
+                      y="0"
+                      width="136"
+                      height="22"
+                      rx="11"
+                      fill="#0F172A"
+                      opacity="0.9"
+                    />
+                    <circle cx="10" cy="11" r="3.5" fill="#10B981" />
+                    <text
+                      x="18"
+                      y="15"
+                      fill="#FFFFFF"
+                      font-family="'Plus Jakarta Sans', sans-serif"
+                      font-size="9"
+                      font-weight="600"
+                    >
+                      Budi (Motor) &#8226; 100024000000
+                    </text>
+                  </g>
+                </g>
+              </a>
+              <!-- DROP POINT (Ibu Ratna) -->
+              <g transform="translate(730,230)">
+                <path
+                  d="M0 0 C-10 -16, -14 -24, 0 -34 C14 -24, 10 -16, 0 0 Z"
+                  fill="#C91076"
+                />
+                <circle cx="0" cy="-22" r="5" fill="#FFFFFF" />
+                <g transform="translate(-42,-62)">
+                  <rect
+                    x="0"
+                    y="0"
+                    width="94"
+                    height="30"
+                    rx="4"
+                    fill="#FFFFFF"
+                    stroke="#E2E8F0"
+                    filter="drop-shadow(0 2px 4px rgba(0,0,0,0.08))"
+                  />
+                  <text
+                    x="6"
+                    y="10"
+                    fill="#C91076"
+                    font-family="'Plus Jakarta Sans', sans-serif"
+                    font-size="7"
+                    font-weight="800"
+                  >
+                    DROP POINT TUJUAN
+                  </text>
+                  <text
+                    x="6"
+                    y="22"
+                    fill="#0F172A"
+                    font-family="'Plus Jakarta Sans', sans-serif"
+                    font-size="9"
+                    font-weight="600"
+                  >
+                    Ibu Ratna (Kav. 22)
+                  </text>
+                </g>
+              </g>
+              <!-- MARKER RIZKY (Cold-Chain Alert) -->
+              <label
+                for="open-emergency-reassign"
+                class="map-marker-hotspot"
+                aria-label="Peringatan Anomali Suhu Rizky Pratama"
+              >
+                <g transform="translate(650,340)">
+                  <circle
+                    cx="0"
+                    cy="0"
+                    r="26"
+                    fill="#EF4444"
+                    opacity="0.25"
+                    class="pulse-ring-alert"
+                  />
+                  <circle cx="0" cy="0" r="18" fill="#DC2626" />
+                  <path
+                    d="M0 -7 v8 M-4 -2 l8 0 M-3 -5 l6 6 M3 -5 l-6 6"
+                    stroke="#FFFFFF"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  />
+                  <g transform="translate(-50,22)">
+                    <rect
+                      x="0"
+                      y="0"
+                      width="112"
+                      height="20"
+                      rx="4"
+                      fill="#DC2626"
+                    />
+                    <text
+                      x="6"
+                      y="14"
+                      fill="#FFFFFF"
+                      font-family="'Plus Jakarta Sans', sans-serif"
+                      font-size="9"
+                      font-weight="700"
+                    >
+                      &#10052; Rizky &#8226; 6.2&#176;C ALERT
+                    </text>
+                  </g>
+                </g>
+              </label>
+              <!-- MARKER RAMA (Idle) -->
+              <g transform="translate(370,420)">
+                <circle cx="0" cy="0" r="16" fill="#F59E0B" />
+                <path
+                  d="M-5 3 a2.5 2.5 0 1 0 5 0 M1 3 a2.5 2.5 0 1 0 5 0 M-2 3 l2.5 -5 l2.5 2 l1.5 3"
+                  fill="none"
+                  stroke="#FFFFFF"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                />
+                <g transform="translate(-40,20)">
+                  <rect
+                    x="0"
+                    y="0"
+                    width="84"
+                    height="18"
+                    rx="4"
+                    fill="#FFFFFF"
+                    stroke="#FDE68A"
+                  />
+                  <text
+                    x="6"
+                    y="13"
+                    fill="#D97706"
+                    font-family="'Plus Jakarta Sans', sans-serif"
+                    font-size="9"
+                    font-weight="600"
+                  >
+                    Rama &#8226; Idle 12m
+                  </text>
+                </g>
+              </g>
+              <!-- MARKER AGUS (Offline) -->
+              <g transform="translate(590,520)">
+                <circle cx="0" cy="0" r="16" fill="#64748B" />
+                <path
+                  d="M-6 -6 l12 12 M-4 3 a6 6 0 0 1 8 0"
+                  fill="none"
+                  stroke="#FFFFFF"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                />
+                <g transform="translate(-42,20)">
+                  <rect
+                    x="0"
+                    y="0"
+                    width="88"
+                    height="18"
+                    rx="4"
+                    fill="#FFFFFF"
+                    stroke="#CBD5E1"
+                  />
+                  <text
+                    x="6"
+                    y="13"
+                    fill="#475569"
+                    font-family="'Plus Jakarta Sans', sans-serif"
+                    font-size="9"
+                    font-weight="600"
+                  >
+                    Agus &#8226; Offline 18s
+                  </text>
+                </g>
+              </g>
+              <!-- CLUSTER MARKER -->
+              <g transform="translate(316,548)">
+                <rect
+                  x="0"
+                  y="0"
+                  width="108"
+                  height="24"
+                  rx="12"
+                  fill="#FFFFFF"
+                  stroke="#CBD5E1"
+                  filter="drop-shadow(0 2px 4px rgba(0,0,0,0.06))"
+                />
+                <svg
+                  x="8"
+                  y="5"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#64748B"
+                  stroke-width="2"
+                >
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+                <text
+                  x="56"
+                  y="16"
+                  fill="#1E293B"
+                  font-family="'JetBrains Mono', monospace"
+                  font-size="10"
+                  font-weight="600"
+                  text-anchor="middle"
+                >
+                  +12 Drop Points
+                </text>
+              </g>
+            </svg>
+
+            <div class="map-bottom-controls-bar">
+              <div
+                class="map-zoom-buttons"
+                role="group"
+                aria-label="Kontrol Perbesaran Peta"
+              >
+                <button
+                  type="button"
+                  class="zoom-btn"
+                  aria-label="Perbesar Peta"
+                >
+                  +
+                </button>
+                <button
+                  type="button"
+                  class="zoom-btn"
+                  aria-label="Perkecil Peta"
+                >
+                  &#8722;
+                </button>
+                <a
+                  href="#pusatkan"
+                  class="zoom-btn"
+                  aria-label="Pusatkan Ulang Peta"
+                  style="font-size: 0.85rem"
+                  >&#8982;</a
+                >
+              </div>
+              <figcaption class="map-legend-bar">
+                <span class="legend-item"
+                  ><span
+                    class="legend-dot dot-online"
+                    aria-hidden="true"
+                  ></span>
+                  Online Bergerak</span
+                >
+                <span class="legend-item"
+                  ><span class="legend-dot dot-idle" aria-hidden="true"></span>
+                  Idle &gt;10 Menit</span
+                >
+                <span class="legend-item"
+                  ><span
+                    class="legend-dot dot-offline"
+                    aria-hidden="true"
+                  ></span>
+                  Offline &gt;15 Detik</span
+                >
+                <span class="legend-item"
+                  ><span
+                    class="legend-dot dot-coldchain"
+                    aria-hidden="true"
+                  ></span>
+                  Cold-Chain Anomali</span
+                >
+              </figcaption>
+            </div>
+          </figure>
+
+          <!-- Courier Detail Popup (Normal State: selalu tampil) -->
+          <aside
+            class="courier-popup-overlay"
+            id="popup-courier-budi"
+            aria-label="Detail Telemetri Kurir Budi Santoso"
+          >
+            <div class="focus-route-banner">
+              <span
+                ><svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  aria-hidden="true"
+                >
+                  <path d="M3 17l6-6 4 4 8-8" />
+                  <path d="M16 7h5v5" />
+                </svg>
+                Fokus Rute Aktif</span
+              >
+              <span class="live-tracking-label"
+                ><span aria-hidden="true"></span> Live Tracking</span
+              >
+            </div>
+            <div class="courier-popup-head">
+              <div class="popup-profile-group">
+                <div class="popup-avatar" aria-hidden="true">BD</div>
+                <div class="popup-title-area">
+                  <div class="popup-name-row">
+                    <h3 class="popup-courier-name">Budi Santoso</h3>
+                    <span class="badge badge-online"
+                      ><span class="badge-dot" aria-hidden="true"></span>
+                      Online</span
+                    >
+                  </div>
+                  <span class="popup-courier-details"
+                    >B 4821 SGC &bull; Hub Jakarta Selatan &ndash; Tebet</span
+                  >
+                </div>
+              </div>
+              <a
+                href="#dismiss-courier"
+                class="popup-close-btn"
+                aria-label="Tutup Panel Detail Kurir"
+                >&#10005;</a
+              >
+            </div>
+
+            <div class="courier-popup-body">
+              <div class="popup-section-label">
+                <span>Paket Sedang Diantar</span>
+                <span
+                  class="tag-service-type tag-pink"
+                  style="font-size: var(--font-size-caps)"
+                  >Same Day</span
+                >
+              </div>
+
+              <div class="popup-resi-card">
+                <span class="popup-resi-num">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <rect x="1" y="3" width="15" height="13" />
+                    <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+                    <circle cx="5.5" cy="18.5" r="2.5" />
+                    <circle cx="18.5" cy="18.5" r="2.5" />
+                  </svg>
                   100024000000
                 </span>
-                <span class="sla-countdown sla-warning">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                  Sisa SLA: 18m
-                </span>
+                <span class="popup-resi-weight">1.4 Kg</span>
               </div>
-              <div class="courier-cargo-desc">
-                <span>Muatan: 14/20 Paket (70%)</span>
-                <span class="tag-service-type tag-sameday">Same Day</span>
-              </div>
-            </div>
-          </a>
 
-          <!-- KARTU 2: Rizky Pratama — SUHU / Cold-Chain Alert -->
-          <article class="courier-card courier-card--alert" id="courier-str009">
-            <div class="courier-card-head">
-              <div class="courier-avatar avatar-alert" aria-hidden="true">RP</div>
-              <div class="courier-meta-primary">
-                <div class="courier-name-row">
-                  <h3 class="courier-name">Rizky Pratama</h3>
-                  <span class="tag-service-type tag-red">SUHU</span>
+              <div class="popup-recipient-box">
+                <svg
+                  class="popup-recipient-icon"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+                <div class="popup-recipient-info">
+                  <span class="popup-recipient-name">Ibu Ratna (Penerima)</span>
+                  <span class="popup-recipient-address"
+                    >Jl. Gatot Subroto Kav. 22, Tebet, Jakarta Selatan</span
+                  >
                 </div>
-                <div class="courier-vehicle-info">B 5932 KOP &bull; Tas Termal IoT</div>
               </div>
-              <div class="status-badge-container">
-                <span class="badge badge-breach"><span aria-hidden="true" style="font-size:11px;">&#127777;</span> 6.2&deg;C Alert</span>
-              </div>
-            </div>
-            <div class="courier-card-body courier-card-body--alert">
-              <div class="courier-data-row">
-                <span class="resi-code-badge" style="color:#991B1B;">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-                  100024000089
-                </span>
-                <span class="sla-countdown sla-danger">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                  SLA: 12m
-                </span>
-              </div>
-              <div class="courier-cargo-desc">
-                <span style="color:#B91C1C;">Daging Segar Beku (Frozen Food)</span>
-                <span class="tag-service-type" style="background-color:#DBEAFE;color:#1E40AF;">Frozen</span>
-              </div>
-            </div>
-          </article>
 
-          <!-- KARTU 3: Rama Pratama — IDLE 12m -->
-          <article class="courier-card" id="courier-str004">
-            <div class="courier-card-head">
-              <div class="courier-avatar avatar-idle" aria-hidden="true">RM</div>
-              <div class="courier-meta-primary">
-                <div class="courier-name-row">
-                  <h3 class="courier-name">Rama Pratama</h3>
-                  <span class="tag-service-type tag-yellow">IDLE 12m</span>
+              <div class="popup-sla-gauge-box">
+                <div class="popup-sla-text-row">
+                  <span
+                    style="display: inline-flex; align-items: center; gap: 4px"
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                    Sisa SLA: 18 Menit
+                  </span>
+                  <span>72% Menuju Batas</span>
                 </div>
-                <div class="courier-vehicle-info">B 3910 TAA &bull; Regular</div>
-              </div>
-              <div class="status-badge-container">
-                <span class="sla-countdown" style="font-size:var(--font-size-caps);">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                  SLA: 28m
-                </span>
-              </div>
-            </div>
-            <div class="courier-card-body">
-              <div class="courier-data-row">
-                <span style="font-size:var(--font-size-body-sm);color:var(--color-slate-700);">Jl. Gatot Subroto No. 88</span>
-                <span style="font-family:var(--font-family-mono);font-size:var(--font-size-mono-sm);color:var(--text-muted);">9 / 20 Paket</span>
-              </div>
-            </div>
-          </article>
-
-          <!-- KARTU 4: Agus Setiawan — OFFLINE -->
-          <article class="courier-card courier-card--offline" id="courier-str007">
-            <div class="courier-card-head">
-              <div class="courier-avatar avatar-offline" aria-hidden="true">AG</div>
-              <div class="courier-meta-primary">
-                <div class="courier-name-row">
-                  <h3 class="courier-name">Agus Setiawan</h3>
-                  <span class="tag-service-type tag-offline">OFFLINE</span>
+                <div class="sla-progress-track">
+                  <div class="sla-progress-fill"></div>
                 </div>
-                <div class="courier-vehicle-info">B 6128 KLP &bull; Tebet Barat</div>
               </div>
-              <div class="status-badge-container">
-                <span class="badge badge-offline">
-                  <time datetime="PT18S" style="color:#EF4444;font-weight:var(--font-weight-semibold);">18 detik lalu</time>
+            </div>
+
+            <div class="courier-popup-footer">
+              <a
+                href="#fokus-rute-aktif"
+                class="btn btn-primary btn-sm focus-route-btn"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <polygon points="3 11 22 2 13 21 11 13 3 11" />
+                </svg>
+                Fokus Rute
+              </a>
+              <a href="tel:+628123456789" class="btn btn-secondary btn-sm">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"
+                  />
+                </svg>
+                Hubungi
+              </a>
+            </div>
+          </aside>
+
+          <!-- Cold-Chain Toast (Normal State: selalu tampil) -->
+          <aside
+            class="actionable-coldchain-toast"
+            role="alert"
+            aria-label="Peringatan Anomali Suhu Cold-Chain"
+          >
+            <div class="toast-icon-wrapper" aria-hidden="true">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"
+                />
+              </svg>
+            </div>
+            <div class="toast-content">
+              <div class="toast-header-row">
+                <span class="toast-title">
+                  <span
+                    class="badge-dot"
+                    style="background-color: var(--status-breach)"
+                    aria-hidden="true"
+                  ></span>
+                  Anomali Suhu Cold-Chain: 6.2&deg;C
                 </span>
+                <span class="toast-time">Baru Saja</span>
+              </div>
+              <p class="toast-message">
+                Resi
+                <strong style="font-family: var(--font-family-mono)"
+                  >100024000009</strong
+                >
+                (Rizky Pratama) melebihi batas aman frozen food (maks. 5&deg;C).
+              </p>
+              <div class="toast-actions-row">
+                <label
+                  for="open-emergency-reassign"
+                  class="btn btn-destructive btn-sm"
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <polyline points="17 1 21 5 17 9" />
+                    <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                    <polyline points="7 23 3 19 7 15" />
+                    <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+                  </svg>
+                  Alihkan Kurir
+                </label>
+                <label for="dismiss-coldchain" class="btn btn-secondary btn-sm"
+                  >Abaikan</label
+                >
               </div>
             </div>
-            <div class="offline-alert-row">
-              <span style="display:inline-flex;align-items:center;gap:4px;color:var(--color-slate-600);font-size:var(--font-size-body-sm);">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
-                Sinyal GPS terputus
-              </span>
-              <span style="font-family:var(--font-family-mono);font-size:var(--font-size-mono-sm);color:var(--color-primary);font-weight:var(--font-weight-semibold);">4 titik tersimpan</span>
+            <label
+              for="dismiss-coldchain"
+              class="toast-close-link"
+              aria-label="Tutup Notifikasi"
+              >&#10005;</label
+            >
+          </aside>
+        </section>
+      </div>
+      <!-- .live-map-workspace -->
+    </main>
+
+    <!-- Modal Pengalihan Darurat -->
+    <aside
+      class="modal-overlay"
+      id="modal-emergency-reassign"
+      aria-labelledby="modal-reassign-title"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div class="modal-card emergency-reassign-modal" style="max-width: 576px">
+        <div class="modal-header emergency-modal-header">
+          <div class="emergency-modal-icon" aria-hidden="true">&#10052;</div>
+          <div class="emergency-modal-title-group">
+            <div class="emergency-modal-flags">
+              <span>Pengalihan Darurat (&lt;30s)</span
+              ><span>6.2&deg;C &gt; 5.0&deg;C (Kritis)</span>
             </div>
-          </article>
-
-        </div>
-
-        <footer class="manifest-footer">
-          <span>Menampilkan 4 dari 38 Satria</span>
-          <a href="#lihat-semua-kurir" class="manifest-link-all">Lihat Semua &rsaquo;</a>
-        </footer>
-        </div>
-      </aside>
-
-      <!-- Right Pane: Map Section -->
-      <section aria-labelledby="map-view-heading" class="map-viewport-section">
-        <h2 id="map-view-heading" class="sr-only">Kanvas Pemantauan Posisi Kurir dan Rute</h2>
-
-        <!-- Floating Filter Panel (top-left of map) -->
-        <div class="map-floating-filter-panel" role="region" aria-label="Opsi Lapisan Peta">
-          <a href="#_" class="manifest-drawer-open-btn manifest-open-btn" aria-label="Buka Kembali Manifest Daftar Kurir">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
-            Tampilkan Daftar Kurir (38)
-          </a>
-          <div class="hub-radius-badge">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
-            Radius Hub: <strong>5 KM</strong>
-          </div>
-          <div class="map-layer-options">
-            <label class="map-layer-item map-layer-item--route">
-              <span style="display:inline-flex;align-items:center;gap:6px;">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="19" r="2"/><circle cx="19" cy="5" r="2"/><path d="M7 19h3a3 3 0 0 0 3-3v-5a3 3 0 0 1 3-3h1"/></svg>
-                Rute Aktif
-              </span>
-              <input type="checkbox" checked aria-label="Tampilkan rute aktif kurir">
-            </label>
-            <label class="map-layer-item map-layer-item--drop">
-              <span style="display:inline-flex;align-items:center;gap:6px;">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-slate-600)" stroke-width="2" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                Drop Points
-              </span>
-              <input type="checkbox" checked aria-label="Tampilkan titik penyerahan paket">
-            </label>
-            <label class="map-layer-item map-layer-item--coldchain">
-              <span style="display:inline-flex;align-items:center;gap:6px;">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2v20M4.93 5.5l14.14 13M4.93 18.5l14.14-13M2 12h20M5.5 4.93l13 14.14M5.5 19.07l13-14.14"/></svg>
-                Cold-Chain Alert
-              </span>
-              <input type="checkbox" checked aria-label="Tampilkan peringatan cold-chain">
-            </label>
-          </div>
-        </div>
-
-        <!-- SVG Map Canvas -->
-        <figure class="map-canvas-figure">
-          <svg class="interactive-svg-map" viewBox="0 0 960 640" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Peta Interaktif Hub Tebet dan Sebaran Posisi Kurir SATRIA">
-            <rect width="960" height="640" fill="#EBF3F9"/>
-            <polygon points="120,40 450,20 540,240 180,260" fill="#E2EDF5" opacity="0.7"/>
-            <polygon points="560,260 880,180 940,540 600,620" fill="#DEEBF4" opacity="0.6"/>
-            <polygon points="80,360 480,320 420,620 40,580" fill="#E5EFF6" opacity="0.7"/>
-            <path d="M-20,180 Q180,220 340,360 T680,660" fill="none" stroke="#C5E0F2" stroke-width="22" stroke-linecap="round"/>
-            <path d="M-10,480 L980,560" fill="none" stroke="#475569" stroke-width="14"/>
-            <path d="M-10,480 L980,560" fill="none" stroke="#64748B" stroke-width="10"/>
-            <path d="M-10,480 L980,560" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-dasharray="14 10"/>
-            <text x="32" y="470" fill="#475569" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="700" letter-spacing="1">JL. GATOT SUBROTO (TOLL DALAM KOTA)</text>
-            <path d="M420,40 L440,300 L680,530" fill="none" stroke="#CBD5E1" stroke-width="12" stroke-linejoin="round"/>
-            <path d="M420,40 L440,300 L680,530" fill="none" stroke="#FFFFFF" stroke-width="8" stroke-linejoin="round"/>
-            <text x="450" y="220" fill="#64748B" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="700">JL. TEBET RAYA</text>
-            <path d="M120,220 L440,300 L760,250" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linejoin="round"/>
-            <path d="M440,300 L280,480" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linejoin="round"/>
-            <path d="M760,250 L840,460" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linejoin="round"/>
-            <text x="610" y="370" fill="#94A3B8" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="600">Tebet Barat Zone-3</text>
-            <text x="740" y="210" fill="#94A3B8" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="600">Pancoran Timur</text>
-            <circle cx="430" cy="270" r="180" fill="none" stroke="#ED0677" stroke-width="1.5" stroke-dasharray="6 6" opacity="0.35"/>
-            <path d="M430,270 L440,300 L510,360 L730,230" fill="none" stroke="#ED0677" stroke-width="3" stroke-dasharray="6 4" stroke-linecap="round" opacity="0.85"/>
-            <!-- HUB TEBET -->
-            <g transform="translate(405,245)">
-              <rect x="0" y="0" width="52" height="34" rx="6" fill="#0F172A"/>
-              <path d="M16 14 h20 v12 h-20 z" fill="#FFBE00"/>
-              <path d="M12 14 l14 -9 l14 9 z" fill="#FFBE00"/>
-              <rect x="0" y="24" width="52" height="16" rx="4" fill="#1E293B"/>
-              <text x="26" y="35" fill="#FFFFFF" font-family="'Plus Jakarta Sans', sans-serif" font-size="8" font-weight="700" text-anchor="middle">HUB TEBET</text>
-            </g>
-            <!-- MARKER BUDI SANTOSO (Online) -->
-            <a href="#popup-courier-budi" class="map-marker-hotspot" aria-label="Lihat Telemetri Budi Santoso">
-              <g transform="translate(510,360)">
-                <circle cx="0" cy="0" r="24" fill="#10B981" opacity="0.2" class="pulse-ring-online"/>
-                <circle cx="0" cy="0" r="18" fill="#C91076"/>
-                <circle cx="0" cy="0" r="14" fill="#ED0677"/>
-                <path d="M-6 4 a3 3 0 1 0 6 0 a3 3 0 1 0 -6 0 M2 4 a3 3 0 1 0 6 0 a3 3 0 1 0 -6 0 M-3 4 l3 -6 l3 2 l2 4" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                <g transform="translate(-65,22)">
-                  <rect x="0" y="0" width="136" height="22" rx="11" fill="#0F172A" opacity="0.9"/>
-                  <circle cx="10" cy="11" r="3.5" fill="#10B981"/>
-                  <text x="18" y="15" fill="#FFFFFF" font-family="'Plus Jakarta Sans', sans-serif" font-size="9" font-weight="600">Budi (Motor) &#8226; 100024000000</text>
-                </g>
-              </g>
-            </a>
-            <!-- DROP POINT (Ibu Ratna) -->
-            <g transform="translate(730,230)">
-              <path d="M0 0 C-10 -16, -14 -24, 0 -34 C14 -24, 10 -16, 0 0 Z" fill="#C91076"/>
-              <circle cx="0" cy="-22" r="5" fill="#FFFFFF"/>
-              <g transform="translate(-42,-62)">
-                <rect x="0" y="0" width="94" height="30" rx="4" fill="#FFFFFF" stroke="#E2E8F0" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.08))"/>
-                <text x="6" y="10" fill="#C91076" font-family="'Plus Jakarta Sans', sans-serif" font-size="7" font-weight="800">DROP POINT TUJUAN</text>
-                <text x="6" y="22" fill="#0F172A" font-family="'Plus Jakarta Sans', sans-serif" font-size="9" font-weight="600">Ibu Ratna (Kav. 22)</text>
-              </g>
-            </g>
-            <!-- MARKER RIZKY (Cold-Chain Alert) -->
-            <label for="open-emergency-reassign" class="map-marker-hotspot" aria-label="Peringatan Anomali Suhu Rizky Pratama">
-              <g transform="translate(650,340)">
-                <circle cx="0" cy="0" r="26" fill="#EF4444" opacity="0.25" class="pulse-ring-alert"/>
-                <circle cx="0" cy="0" r="18" fill="#DC2626"/>
-                <path d="M0 -7 v8 M-4 -2 l8 0 M-3 -5 l6 6 M3 -5 l-6 6" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
-                <g transform="translate(-50,22)">
-                  <rect x="0" y="0" width="112" height="20" rx="4" fill="#DC2626"/>
-                  <text x="6" y="14" fill="#FFFFFF" font-family="'Plus Jakarta Sans', sans-serif" font-size="9" font-weight="700">&#10052; Rizky &#8226; 6.2&#176;C ALERT</text>
-                </g>
-              </g>
-            </label>
-            <!-- MARKER RAMA (Idle) -->
-            <g transform="translate(370,420)">
-              <circle cx="0" cy="0" r="16" fill="#F59E0B"/>
-              <path d="M-5 3 a2.5 2.5 0 1 0 5 0 M1 3 a2.5 2.5 0 1 0 5 0 M-2 3 l2.5 -5 l2.5 2 l1.5 3" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round"/>
-              <g transform="translate(-40,20)">
-                <rect x="0" y="0" width="84" height="18" rx="4" fill="#FFFFFF" stroke="#FDE68A"/>
-                <text x="6" y="13" fill="#D97706" font-family="'Plus Jakarta Sans', sans-serif" font-size="9" font-weight="600">Rama &#8226; Idle 12m</text>
-              </g>
-            </g>
-            <!-- MARKER AGUS (Offline) -->
-            <g transform="translate(590,520)">
-              <circle cx="0" cy="0" r="16" fill="#64748B"/>
-              <path d="M-6 -6 l12 12 M-4 3 a6 6 0 0 1 8 0" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round"/>
-              <g transform="translate(-42,20)">
-                <rect x="0" y="0" width="88" height="18" rx="4" fill="#FFFFFF" stroke="#CBD5E1"/>
-                <text x="6" y="13" fill="#475569" font-family="'Plus Jakarta Sans', sans-serif" font-size="9" font-weight="600">Agus &#8226; Offline 18s</text>
-              </g>
-            </g>
-            <!-- CLUSTER MARKER -->
-            <g transform="translate(316,548)">
-              <rect x="0" y="0" width="108" height="24" rx="12" fill="#FFFFFF" stroke="#CBD5E1" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.06))"/>
-              <svg x="8" y="5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              <text x="56" y="16" fill="#1E293B" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="600" text-anchor="middle">+12 Drop Points</text>
-            </g>
-          </svg>
-
-          <div class="map-bottom-controls-bar">
-            <div class="map-zoom-buttons" role="group" aria-label="Kontrol Perbesaran Peta">
-              <button type="button" class="zoom-btn" aria-label="Perbesar Peta">+</button>
-              <button type="button" class="zoom-btn" aria-label="Perkecil Peta">&#8722;</button>
-              <a href="#pusatkan" class="zoom-btn" aria-label="Pusatkan Ulang Peta" style="font-size:0.85rem;">&#8982;</a>
-            </div>
-            <figcaption class="map-legend-bar">
-              <span class="legend-item"><span class="legend-dot dot-online" aria-hidden="true"></span> Online Bergerak</span>
-              <span class="legend-item"><span class="legend-dot dot-idle" aria-hidden="true"></span> Idle &gt;10 Menit</span>
-              <span class="legend-item"><span class="legend-dot dot-offline" aria-hidden="true"></span> Offline &gt;15 Detik</span>
-              <span class="legend-item"><span class="legend-dot dot-coldchain" aria-hidden="true"></span> Cold-Chain Anomali</span>
-            </figcaption>
-          </div>
-        </figure>
-
-        <!-- Courier Detail Popup (Normal State: selalu tampil) -->
-        <aside class="courier-popup-overlay" id="popup-courier-budi" aria-label="Detail Telemetri Kurir Budi Santoso">
-          <div class="focus-route-banner">
-            <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M16 7h5v5"/></svg> Fokus Rute Aktif</span>
-            <span class="live-tracking-label"><span aria-hidden="true"></span> Live Tracking</span>
-          </div>
-          <div class="courier-popup-head">
-            <div class="popup-profile-group">
-              <div class="popup-avatar" aria-hidden="true">BD</div>
-              <div class="popup-title-area">
-                <div class="popup-name-row">
-                  <h3 class="popup-courier-name">Budi Santoso</h3>
-                  <span class="badge badge-online"><span class="badge-dot" aria-hidden="true"></span> Online</span>
-                </div>
-                <span class="popup-courier-details">B 4821 SGC &bull; Hub Jakarta Selatan &ndash; Tebet</span>
-              </div>
-            </div>
-            <a href="#dismiss-courier" class="popup-close-btn" aria-label="Tutup Panel Detail Kurir">&#10005;</a>
-          </div>
-
-          <div class="courier-popup-body">
-            <div class="popup-section-label">
-              <span>Paket Sedang Diantar</span>
-              <span class="tag-service-type tag-pink" style="font-size:var(--font-size-caps);">Same Day</span>
-            </div>
-
-            <div class="popup-resi-card">
-              <span class="popup-resi-num">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-                100024000000
-              </span>
-              <span class="popup-resi-weight">1.4 Kg</span>
-            </div>
-
-            <div class="popup-recipient-box">
-              <svg class="popup-recipient-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              <div class="popup-recipient-info">
-                <span class="popup-recipient-name">Ibu Ratna (Penerima)</span>
-                <span class="popup-recipient-address">Jl. Gatot Subroto Kav. 22, Tebet, Jakarta Selatan</span>
-              </div>
-            </div>
-
-            <div class="popup-sla-gauge-box">
-              <div class="popup-sla-text-row">
-                <span style="display:inline-flex;align-items:center;gap:4px;">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                  Sisa SLA: 18 Menit
-                </span>
-                <span>72% Menuju Batas</span>
-              </div>
-              <div class="sla-progress-track"><div class="sla-progress-fill"></div></div>
-            </div>
-          </div>
-
-          <div class="courier-popup-footer">
-            <a href="#fokus-rute-aktif" class="btn btn-primary btn-sm focus-route-btn">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-              Fokus Rute
-            </a>
-            <a href="tel:+628123456789" class="btn btn-secondary btn-sm">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-              Hubungi
-            </a>
-          </div>
-        </aside>
-
-        <!-- Cold-Chain Toast (Normal State: selalu tampil) -->
-        <aside class="actionable-coldchain-toast" role="alert" aria-label="Peringatan Anomali Suhu Cold-Chain">
-          <div class="toast-icon-wrapper" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
-          </div>
-          <div class="toast-content">
-            <div class="toast-header-row">
-              <span class="toast-title">
-                <span class="badge-dot" style="background-color:var(--status-breach);" aria-hidden="true"></span>
-                Anomali Suhu Cold-Chain: 6.2&deg;C
-              </span>
-              <span class="toast-time">Baru Saja</span>
-            </div>
-            <p class="toast-message">
-              Resi <strong style="font-family:var(--font-family-mono);">100024000009</strong> (Rizky Pratama) melebihi batas aman frozen food (maks. 5&deg;C).
+            <h2 id="modal-reassign-title" class="modal-title">
+              Alihkan Tugas Paket #100024000009
+            </h2>
+            <p
+              style="
+                font-size: var(--font-size-body-sm);
+                color: var(--text-muted);
+                margin: 2px 0 0 0;
+              "
+            >
+              Layanan Frozen Cold-Chain &bull; Ambang Batas Suhu Kritis
             </p>
-            <div class="toast-actions-row">
-              <label for="open-emergency-reassign" class="btn btn-destructive btn-sm">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-                Alihkan Kurir
-              </label>
-              <label for="dismiss-coldchain" class="btn btn-secondary btn-sm">Abaikan</label>
+          </div>
+          <label
+            for="open-emergency-reassign"
+            class="modal-close"
+            aria-label="Tutup jendela pengalihan darurat"
+            >&#10005;</label
+          >
+        </div>
+        <div class="modal-body">
+          <div class="current-courier-summary-box">
+            <div class="origin-courier-heading">
+              <span>&#9432; Kendala Kurir Asal</span>
+              <span>Sisa Batas Suhu: 12 Menit</span>
+            </div>
+            <div class="origin-courier-card">
+              <div class="courier-avatar avatar-alert" aria-hidden="true">
+                RP
+              </div>
+              <div style="display: flex; flex-direction: column">
+                <span
+                  style="
+                    font-size: var(--font-size-body-sm);
+                    font-weight: var(--font-weight-bold);
+                    color: var(--text-main);
+                  "
+                  >Rizky Pratama <small>(Hub Tebet)</small></span
+                >
+                <span
+                  style="
+                    font-size: var(--font-size-body-sm);
+                    color: var(--text-muted);
+                  "
+                  >&#127949; Motor Chiller Box &bull; B 4129 SGF</span
+                >
+              </div>
+              <div class="origin-courier-location">
+                <span>Macet Total</span>
+                <small>Jl. Gatot Subroto Kav. 22</small>
+              </div>
             </div>
           </div>
-          <label for="dismiss-coldchain" class="toast-close-link" aria-label="Tutup Notifikasi">&#10005;</label>
-        </aside>
-
-      </section>
-    </div><!-- .live-map-workspace -->
-  </main>
-
-
-  <!-- Modal Pengalihan Darurat -->
-  <aside class="modal-overlay" id="modal-emergency-reassign" aria-labelledby="modal-reassign-title" role="dialog" aria-modal="true">
-    <div class="modal-card emergency-reassign-modal" style="max-width:576px;">
-      <div class="modal-header emergency-modal-header">
-        <div class="emergency-modal-icon" aria-hidden="true">&#10052;</div>
-        <div class="emergency-modal-title-group">
-          <div class="emergency-modal-flags"><span>Pengalihan Darurat (&lt;30s)</span><span>6.2&deg;C &gt; 5.0&deg;C (Kritis)</span></div>
-          <h2 id="modal-reassign-title" class="modal-title">Alihkan Tugas Paket #100024000009</h2>
-          <p style="font-size:var(--font-size-body-sm);color:var(--text-muted);margin:2px 0 0 0;">Layanan Frozen Cold-Chain &bull; Ambang Batas Suhu Kritis</p>
-        </div>
-        <label for="open-emergency-reassign" class="modal-close" aria-label="Tutup jendela pengalihan darurat">&#10005;</label>
-      </div>
-      <div class="modal-body">
-        <div class="current-courier-summary-box">
-          <div class="origin-courier-heading">
-            <span>&#9432; Kendala Kurir Asal</span>
-            <span>Sisa Batas Suhu: 12 Menit</span>
+          <span class="compatibility-heading"
+            >Compatibility Matching Engine Aktif
+            <span>Filter: Tas Termal + Beban &lt;20 Paket</span></span
+          >
+          <div class="replacement-courier-options">
+            <label class="courier-reassign-option">
+              <input
+                type="radio"
+                name="target_courier"
+                value="STR-JKT-003"
+                class="radio-input"
+                checked
+                style="margin-top: 4px"
+              />
+              <div class="reassign-option-info">
+                <div class="reassign-name-row">
+                  <strong
+                    style="
+                      font-size: var(--font-size-body-sm);
+                      color: var(--text-main);
+                    "
+                    >Doni Kurniawan</strong
+                  >
+                  <span class="tag-service-type tag-pink">TERBAIK</span>
+                  <span class="badge badge-online"
+                    ><span class="badge-dot" aria-hidden="true"></span> Tas
+                    Termal Aktif</span
+                  >
+                </div>
+                <div class="reassign-meta-row">
+                  <span class="reassign-metric-pill"
+                    ><svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      aria-hidden="true"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                    800 m (4 menit)</span
+                  >
+                  <span>&bull;</span>
+                  <span class="reassign-metric-pill">Muatan: 8/20 Paket</span>
+                </div>
+              </div>
+              <span class="reassign-eta"
+                >~4 Menit<small>Estimasi Intersep</small></span
+              >
+            </label>
+            <label class="courier-reassign-option">
+              <input
+                type="radio"
+                name="target_courier"
+                value="STR-JKT-012"
+                class="radio-input"
+                style="margin-top: 4px"
+              />
+              <div class="reassign-option-info">
+                <div class="reassign-name-row">
+                  <strong
+                    style="
+                      font-size: var(--font-size-body-sm);
+                      color: var(--text-main);
+                    "
+                    >Hendra Wijaya</strong
+                  >
+                  <span class="badge badge-online"
+                    ><span class="badge-dot" aria-hidden="true"></span> Thermal
+                    Box Motor</span
+                  >
+                </div>
+                <div class="reassign-meta-row">
+                  <span class="reassign-metric-pill"
+                    ><svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      aria-hidden="true"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                    1.4 km (8 menit)</span
+                  >
+                  <span>&bull;</span>
+                  <span class="reassign-metric-pill">Muatan: 12/20 Paket</span>
+                </div>
+              </div>
+              <span class="reassign-eta"
+                >~8 Menit<small>Estimasi Intersep</small></span
+              >
+            </label>
           </div>
-          <div class="origin-courier-card">
-            <div class="courier-avatar avatar-alert" aria-hidden="true">RP</div>
-            <div style="display:flex;flex-direction:column;">
-              <span style="font-size:var(--font-size-body-sm);font-weight:var(--font-weight-bold);color:var(--text-main);">Rizky Pratama <small>(Hub Tebet)</small></span>
-              <span style="font-size:var(--font-size-body-sm);color:var(--text-muted);">&#127949; Motor Chiller Box &bull; B 4129 SGF</span>
-            </div>
-            <div class="origin-courier-location">
-              <span>Macet Total</span>
-              <small>Jl. Gatot Subroto Kav. 22</small>
-            </div>
-          </div>
         </div>
-        <span class="compatibility-heading">Compatibility Matching Engine Aktif <span>Filter: Tas Termal + Beban &lt;20 Paket</span></span>
-        <div class="replacement-courier-options">
-          <label class="courier-reassign-option">
-            <input type="radio" name="target_courier" value="STR-JKT-003" class="radio-input" checked style="margin-top:4px;">
-            <div class="reassign-option-info">
-              <div class="reassign-name-row">
-                <strong style="font-size:var(--font-size-body-sm);color:var(--text-main);">Doni Kurniawan</strong>
-                <span class="tag-service-type tag-pink">TERBAIK</span>
-                <span class="badge badge-online"><span class="badge-dot" aria-hidden="true"></span> Tas Termal Aktif</span>
-              </div>
-              <div class="reassign-meta-row">
-                <span class="reassign-metric-pill"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 800 m (4 menit)</span>
-                <span>&bull;</span>
-                <span class="reassign-metric-pill">Muatan: 8/20 Paket</span>
-              </div>
-            </div>
-            <span class="reassign-eta">~4 Menit<small>Estimasi Intersep</small></span>
-          </label>
-          <label class="courier-reassign-option">
-            <input type="radio" name="target_courier" value="STR-JKT-012" class="radio-input" style="margin-top:4px;">
-            <div class="reassign-option-info">
-              <div class="reassign-name-row">
-                <strong style="font-size:var(--font-size-body-sm);color:var(--text-main);">Hendra Wijaya</strong>
-                <span class="badge badge-online"><span class="badge-dot" aria-hidden="true"></span> Thermal Box Motor</span>
-              </div>
-              <div class="reassign-meta-row">
-                <span class="reassign-metric-pill"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 1.4 km (8 menit)</span>
-                <span>&bull;</span>
-                <span class="reassign-metric-pill">Muatan: 12/20 Paket</span>
-              </div>
-            </div>
-            <span class="reassign-eta">~8 Menit<small>Estimasi Intersep</small></span>
-          </label>
+        <div class="modal-footer">
+          <label for="open-emergency-reassign" class="btn btn-secondary"
+            >Batalkan</label
+          >
+          <a href="#sukses-dialihkan" class="btn btn-primary">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            Konfirmasi Pengalihan Satu-Klik (&lt;30s)
+          </a>
         </div>
       </div>
-      <div class="modal-footer">
-        <label for="open-emergency-reassign" class="btn btn-secondary">Batalkan</label>
-        <a href="#sukses-dialihkan" class="btn btn-primary">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-          Konfirmasi Pengalihan Satu-Klik (&lt;30s)
-        </a>
-      </div>
-    </div>
-  </aside>
-
-</body>
+    </aside>
+  </body>
 </html>

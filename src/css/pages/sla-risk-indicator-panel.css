@@ -1,12 +1,3 @@
-/* ==========================================================================
-   SLA Risk Indicator Panel — Page Styles
-   Selaras dengan design system Anteraja & live-monitoring-map.css
-   ========================================================================== */
-
-/* ==========================================================================
-   1. Main Layout Override
-   ========================================================================== */
-
 .sla-main {
   padding: 0;
   overflow-y: auto;
@@ -15,10 +6,6 @@
   gap: 0;
   background-color: var(--color-slate-50);
 }
-
-/* ==========================================================================
-   2. Panel Header
-   ========================================================================== */
 
 .sla-panel-header {
   display: flex;
@@ -78,10 +65,6 @@
 .sla-btn-ambang {
   color: var(--color-slate-700);
 }
-
-/* ==========================================================================
-   3. KPI Cards Row
-   ========================================================================== */
 
 .sla-kpi-row {
   display: grid;
@@ -300,10 +283,6 @@
   border-radius: var(--radius-full);
 }
 
-/* ==========================================================================
-   4. Priority Alert Banner
-   ========================================================================== */
-
 .sla-priority-banner {
   display: flex;
   align-items: center;
@@ -454,10 +433,6 @@
   border-color: var(--color-primary-hover);
 }
 
-/* ==========================================================================
-   5. Search + Status Filter Bar
-   ========================================================================== */
-
 .sla-search-status-bar {
   display: flex;
   align-items: center;
@@ -563,10 +538,6 @@
   display: inline-block;
 }
 
-/* ==========================================================================
-   6. Service Filter Pills
-   ========================================================================== */
-
 .sla-service-filter-row {
   display: flex;
   align-items: center;
@@ -648,10 +619,6 @@
   border-color: var(--color-primary-hover);
   color: var(--color-white);
 }
-
-/* ==========================================================================
-   7. Delivery Table
-   ========================================================================== */
 
 .sla-table-section {
   padding: 0 var(--space-xl) var(--space-xl);
@@ -1008,10 +975,6 @@ a.sla-resi-code:hover {
   background-color: var(--color-slate-100);
 }
 
-/* ==========================================================================
-   8. Table Footer / Pagination
-   ========================================================================== */
-
 .sla-table-footer {
   display: flex;
   align-items: center;
@@ -1078,10 +1041,6 @@ a.sla-resi-code:hover {
   border-color: var(--color-primary-hover);
   color: var(--color-white);
 }
-
-/* ==========================================================================
-   9. Modal Overlay Base (section:target)
-   ========================================================================== */
 
 .sla-modal-overlay {
   position: fixed;
@@ -1639,10 +1598,6 @@ a.sla-resi-code:hover {
   line-height: 1.5;
 }
 
-/* ==========================================================================
-   10. Shared Components — dipastikan ada di semua halaman
-   ========================================================================== */
-
 /* .stat-dot warna (dipakai di header) */
 .dot-online  { background-color: var(--status-online); }
 .dot-idle    { background-color: var(--status-idle); }
@@ -1651,10 +1606,6 @@ a.sla-resi-code:hover {
 .stat-pill-item.stat-online  { color: var(--status-online-text); }
 .stat-pill-item.stat-idle    { color: var(--status-idle-text); }
 .stat-pill-item.stat-offline { color: var(--status-offline-text); }
-
-/* ==========================================================================
-   11. Responsive
-   ========================================================================== */
 
 @media (max-width: 1279px) {
   .sla-panel-header,
@@ -1709,10 +1660,6 @@ a.sla-resi-code:hover {
 
   .sla-modal-card { max-width: calc(100vw - 2rem); }
 }
-
-/* ==========================================================================
-   MODAL: Ambang Batas — Konfigurasi SLA Hub
-   ========================================================================== */
 
 .sla-modal-ambang-card {
   max-width: 660px;
@@ -2105,10 +2052,6 @@ a.sla-resi-code:hover {
   background-color: var(--color-primary-hover);
   border-color: var(--color-primary-hover);
 }
-
-/* ==========================================================================
-   MODAL: Detail Resi & SLA
-   ========================================================================== */
 
 .sla-modal-detail-card {
   max-width: 680px;
@@ -2599,10 +2542,6 @@ a.sla-resi-code:hover {
 .sla-mdetail-btn-cetak:hover {
   background-color: #FDF2F8;
 }
-
-/* ==========================================================================
-   MODAL: Pantau Pengiriman & Rute Kurir
-   ========================================================================== */
 
 .sla-modal-overlay-wide {
   align-items: flex-start;
