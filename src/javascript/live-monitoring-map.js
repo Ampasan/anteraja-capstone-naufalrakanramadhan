@@ -1,31 +1,5 @@
-/**
- * live-monitoring-map.js
- * Modul interaktivitas untuk halaman Live Monitoring Map
- *
- * Struktur modul:
- *  - StateManager      : State machine terpusat (satu sumber kebenaran)
- *  - PopupManager      : Buka / tutup / dismiss popup detail kurir
- *  - FocusRouteManager : Aktifkan / nonaktifkan mode fokus rute
- *  - ManifestManager   : Ciutkan / buka kembali sidebar daftar kurir
- *  - FullMapManager    : Masuk / keluar mode peta penuh
- *  - ToastManager      : Tutup cold-chain toast
- *  - ModalManager      : Buka / tutup modal pengalihan darurat
- *  - FilterManager     : Filter tab status kurir (Semua / Online / Idle / Offline)
- *  - ServiceFilter     : Filter pills layanan di topbar
- *  - SearchManager     : Live-search daftar kurir
- *  - ClockManager      : Jam live & timestamp siklus
- *  - Init              : Bootstrap semua modul
- */
-
 'use strict';
 
-/* ============================================================
-   STATE MANAGER
-   Satu-satunya yang boleh membaca/menulis state global.
-   State ditulis sebagai data-attribute di <body> supaya
-   CSS selector body:has([data-state~="..."]) tetap bisa
-   dipakai untuk styling jika diperlukan.
-   ============================================================ */
 const StateManager = (() => {
   // Nilai state yang mungkin aktif bersamaan
   const _states = new Set();
@@ -56,10 +30,6 @@ const StateManager = (() => {
   return { activate, deactivate, isActive, reset };
 })();
 
-/* ============================================================
-   POPUP MANAGER
-   Mengelola popup detail kurir di atas peta.
-   ============================================================ */
 const PopupManager = (() => {
   const POPUP_ID = 'popup-courier-budi';
 
@@ -127,11 +97,6 @@ const PopupManager = (() => {
   return { init, open, dismiss, isOpen };
 })();
 
-/* ============================================================
-   FOCUS ROUTE MANAGER
-   Mode fokus rute: memperluas popup, highlight card kurir,
-   dan menampilkan banner "Fokus Rute Aktif".
-   ============================================================ */
 const FocusRouteManager = (() => {
   function activate() {
     if (!PopupManager.isOpen()) PopupManager.open();
@@ -250,10 +215,6 @@ const FocusRouteManager = (() => {
   return { init, activate, deactivate };
 })();
 
-/* ============================================================
-   MANIFEST MANAGER
-   Ciutkan / tampilkan kembali sidebar daftar kurir.
-   ============================================================ */
 const ManifestManager = (() => {
   function _getAside() {
     return document.querySelector('.courier-telemetry-aside');
@@ -333,10 +294,6 @@ const ManifestManager = (() => {
   return { init, collapse, expand };
 })();
 
-/* ============================================================
-   FULL MAP MANAGER
-   Masuk / keluar mode peta penuh.
-   ============================================================ */
 const FullMapManager = (() => {
   function _getWorkspace() {
     return document.querySelector('.live-map-workspace');
@@ -424,10 +381,6 @@ const FullMapManager = (() => {
   return { init, enter, exit };
 })();
 
-/* ============================================================
-   TOAST MANAGER
-   Tutup cold-chain alert toast.
-   ============================================================ */
 const ToastManager = (() => {
   function _getToast() {
     return document.querySelector('.actionable-coldchain-toast');
@@ -466,10 +419,6 @@ const ToastManager = (() => {
   return { init, dismiss, show };
 })();
 
-/* ============================================================
-   MODAL MANAGER
-   Buka / tutup modal pengalihan darurat.
-   ============================================================ */
 const ModalManager = (() => {
   function _getModal() {
     return document.getElementById('modal-emergency-reassign');
@@ -537,10 +486,6 @@ const ModalManager = (() => {
   return { init, open, close };
 })();
 
-/* ============================================================
-   FILTER MANAGER
-   Filter tab status kurir: Semua / Online / Idle / Offline
-   ============================================================ */
 const FilterManager = (() => {
   function init() {
     const tabs = document.querySelectorAll('.manifest-tab-btn');
@@ -597,10 +542,6 @@ const FilterManager = (() => {
   return { init };
 })();
 
-/* ============================================================
-   SERVICE FILTER
-   Filter pills layanan di topbar (Semua / Frozen / Same Day …)
-   ============================================================ */
 const ServiceFilter = (() => {
   function init() {
     const pills = document.querySelectorAll('.service-pill-btn');
@@ -623,10 +564,6 @@ const ServiceFilter = (() => {
   return { init };
 })();
 
-/* ============================================================
-   SEARCH MANAGER
-   Live-search daftar kurir di sidebar.
-   ============================================================ */
 const SearchManager = (() => {
   function init() {
     const input = document.querySelector('.manifest-search-input');
@@ -664,10 +601,6 @@ const SearchManager = (() => {
   return { init };
 })();
 
-/* ============================================================
-   CLOCK MANAGER
-   Update timestamp "Siklus Siang" dan live dot di nav.
-   ============================================================ */
 const ClockManager = (() => {
   function _pad(n) {
     return String(n).padStart(2, '0');
@@ -684,19 +617,11 @@ const ClockManager = (() => {
   }
 
   function init() {
-    // Tidak ada clock display di halaman ini yang perlu di-update secara real-time.
-    // Nav live dot sudah punya animasi CSS (nav-live-pulse), tidak perlu JS.
-    // Placeholder ini siap diisi jika ada komponen jam yang ditambahkan.
   }
 
   return { init };
 })();
 
-/* ============================================================
-   CSS INJECTION
-   Tambahkan rule untuk state yang dikelola JS menggantikan
-   rule CSS :target dan :checked yang sudah di-comment.
-   ============================================================ */
 function _injectDynamicStyles() {
   const style = document.createElement('style');
   style.id = 'lmm-dynamic-styles';
@@ -727,9 +652,6 @@ function _injectDynamicStyles() {
   document.head.appendChild(style);
 }
 
-/* ============================================================
-   INIT — bootstrap semua modul saat DOM siap
-   ============================================================ */
 function init() {
   _injectDynamicStyles();
 

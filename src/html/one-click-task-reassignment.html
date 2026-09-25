@@ -14,7 +14,7 @@
 
   <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
 
-  <section class="ocr-modal-overlay" id="modal-assign-012" role="dialog" aria-modal="true" aria-labelledby="modal-assign-012-title">
+  <section class="ocr-modal-overlay" id="modal-assign-012" role="dialog" aria-modal="true" aria-labelledby="modal-assign-012-title" aria-hidden="true">
     <article class="ocr-modal-card">
       <header class="ocr-modal-head">
         <div class="ocr-modal-head-meta">
@@ -139,7 +139,7 @@
     </article>
   </section>
 
-  <section class="ocr-modal-overlay" id="modal-sukses-012" role="dialog" aria-modal="true" aria-labelledby="modal-sukses-012-title">
+  <section class="ocr-modal-overlay" id="modal-sukses-012" role="dialog" aria-modal="true" aria-labelledby="modal-sukses-012-title" aria-hidden="true">
     <article class="ocr-modal-card ocr-modal-card-sm">
       <header class="ocr-modal-head">
         <span class="ocr-modal-tag ocr-modal-tag-success">
@@ -184,7 +184,7 @@
     </article>
   </section>
 
-  <section class="ocr-modal-overlay" id="modal-assign-015" role="dialog" aria-modal="true" aria-labelledby="modal-assign-015-title">
+  <section class="ocr-modal-overlay" id="modal-assign-015" role="dialog" aria-modal="true" aria-labelledby="modal-assign-015-title" aria-hidden="true">
     <article class="ocr-modal-card">
       <header class="ocr-modal-head">
         <div class="ocr-modal-head-meta">
@@ -296,7 +296,7 @@
     </article>
   </section>
 
-  <section class="ocr-modal-overlay" id="modal-sukses-015" role="dialog" aria-modal="true" aria-labelledby="modal-sukses-015-title">
+  <section class="ocr-modal-overlay" id="modal-sukses-015" role="dialog" aria-modal="true" aria-labelledby="modal-sukses-015-title" aria-hidden="true">
     <article class="ocr-modal-card ocr-modal-card-sm">
       <header class="ocr-modal-head">
         <span class="ocr-modal-tag ocr-modal-tag-success">
@@ -341,7 +341,7 @@
     </article>
   </section>
 
-  <section class="ocr-modal-overlay" id="modal-audit-log" role="dialog" aria-modal="true" aria-labelledby="modal-audit-log-title">
+  <section class="ocr-modal-overlay" id="modal-audit-log" role="dialog" aria-modal="true" aria-labelledby="modal-audit-log-title" aria-hidden="true">
     <article class="ocr-modal-card">
       <header class="ocr-modal-head">
         <div class="ocr-modal-head-meta">
@@ -644,112 +644,449 @@
       >
     </div>
 
-    <section class="ocr-table-card" aria-label="Daftar insiden lapangan kendala aktif">
+    <!-- =================================================================
+         WORKSPACE: Tabel Insiden + Panel Eksekusi (split via :target)
+    ================================================================== -->
+    <div class="ocr-workspace">
 
-      <!-- Card Header -->
-      <header class="ocr-table-card-header">
-        <h2 class="ocr-table-card-title">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-          Daftar Insiden Lapangan (Kendala Aktif)
-        </h2>
-        <span class="ocr-urgent-badge" role="alert" aria-live="polite">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          2 Kasus Membutuhkan Tindakan Segera
-        </span>
-      </header>
+      <!-- ---------------------------------------------------------------
+           KIRI: Incident Table Card
+      --------------------------------------------------------------- -->
+      <section class="ocr-table-card" aria-label="Daftar insiden lapangan kendala aktif">
 
-      <!-- Column Headers -->
-      <div class="ocr-table-cols" role="rowgroup" aria-hidden="true">
-        <span class="ocr-col-header">NO. RESI &amp; LAYANAN</span>
-        <span class="ocr-col-header">KURIR TERKENDALA &amp; KENDALA</span>
-        <span class="ocr-col-header">SYARAT ARMADA / SOP</span>
-      </div>
+        <!-- Card Header -->
+        <header class="ocr-table-card-header">
+          <h2 class="ocr-table-card-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            Daftar Insiden Lapangan (Kendala Aktif)
+          </h2>
+          <span class="ocr-urgent-badge" role="alert" aria-live="polite">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            2 Kasus Membutuhkan Tindakan Segera
+          </span>
+        </header>
 
-      <!-- Incident Rows -->
-      <ol class="ocr-incident-list" aria-label="Daftar insiden lapangan">
+        <!-- Column Headers -->
+        <div class="ocr-table-cols" role="rowgroup" aria-hidden="true">
+          <span class="ocr-col-header">NO. RESI &amp; LAYANAN</span>
+          <span class="ocr-col-header">KURIR TERKENDALA &amp; KENDALA</span>
+          <span class="ocr-col-header">SYARAT ARMADA / SOP</span>
+        </div>
 
-        <!-- ROW 1: Cargo — Teguh Wibowo — Kopling Jebol -->
-        <li class="ocr-incident-row">
-          <div class="ocr-resi-col">
-            <div>
-              <a href="#modal-assign-012" class="ocr-resi-num" style="text-decoration:none;color:var(--text-main);" aria-label="Buka detail insiden resi #100024000012">#100024000012</a>
-              <span class="ocr-resi-tag ocr-tag-cargo">CARGO</span>
+        <!-- Incident Rows -->
+        <ol class="ocr-incident-list" aria-label="Daftar insiden lapangan">
+
+          <!-- ROW 1: Cargo — Teguh Wibowo — Kopling Jebol -->
+          <li class="ocr-incident-row ocr-row-012">
+            <div class="ocr-resi-col">
+              <div>
+                <a href="#panel-012" class="ocr-resi-num" style="text-decoration:none;color:var(--text-main);" aria-label="Buka panel eksekusi pengalihan resi #100024000012">#100024000012</a>
+                <span class="ocr-resi-tag ocr-tag-cargo">CARGO</span>
+              </div>
+              <span class="ocr-resi-desc">186.8 kg &bull; Mesin Pabrik</span>
             </div>
-            <span class="ocr-resi-desc">186.8 kg &bull; Mesin Pabrik</span>
+            <div class="ocr-kurir-col">
+              <a href="#panel-012" style="text-decoration:none;color:inherit;" aria-label="Pilih Teguh Wibowo untuk panel eksekusi">
+                <span class="ocr-kurir-name">Teguh Wibowo</span>
+              </a>
+              <span class="ocr-kurir-vehicle">Truk CDD &bull; B 9281 KXT</span>
+              <span class="ocr-kendala-row ocr-kendala-merah">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                Kopling Jebol di Jl. Panjang
+              </span>
+            </div>
+            <div class="ocr-sop-col">
+              <span class="ocr-sop-pill ocr-sop-pill-outline">Wajib Van / Truk</span>
+              <span class="ocr-sop-plain">Kurir disaring berstatus online</span>
+            </div>
+          </li>
+
+          <!-- ROW 2: PHARMA — Budi Santoso — Mesin Mogok -->
+          <li class="ocr-incident-row ocr-row-015">
+            <div class="ocr-resi-col">
+              <div>
+                <a href="#panel-015" class="ocr-resi-num" style="text-decoration:none;color:var(--text-main);" aria-label="Buka panel eksekusi pengalihan resi #100024000015">#100024000015</a>
+                <span class="ocr-resi-tag ocr-tag-pharma">PHARMA</span>
+              </div>
+              <span class="ocr-resi-desc">1.2 kg &bull; Vaksin RS Siloam</span>
+            </div>
+            <div class="ocr-kurir-col">
+              <a href="#panel-015" style="text-decoration:none;color:inherit;" aria-label="Pilih Budi Santoso untuk panel eksekusi">
+                <span class="ocr-kurir-name">Budi Santoso</span>
+              </a>
+              <span class="ocr-kurir-vehicle">Motor Beat &bull; B 4821 SGC</span>
+              <span class="ocr-kendala-row ocr-kendala-kuning">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                Mesin Mogok di Pancoran
+              </span>
+            </div>
+            <div class="ocr-sop-col">
+              <span class="ocr-sop-pill ocr-sop-pill-bpom">Wajib Sertifikasi BPOM</span>
+              <span class="ocr-sop-note">Tas Termal Suhu Khusus</span>
+              <span class="ocr-sop-plain">Kurir disaring berstatus online</span>
+            </div>
+          </li>
+
+          <!-- ROW 3: Frozen — Rizky Pratama — Sudah Dialihkan -->
+          <li class="ocr-incident-row">
+            <div class="ocr-resi-col">
+              <div>
+                <span class="ocr-resi-num">#100024000009</span>
+                <span class="ocr-resi-tag ocr-tag-frozen">FROZEN</span>
+              </div>
+              <span class="ocr-resi-desc">4.5 kg (-2°C)</span>
+            </div>
+            <div class="ocr-kurir-col">
+              <span class="ocr-kurir-name" style="color:var(--text-muted);">Rizky Pratama (Motor)</span>
+              <span class="ocr-kendala-row ocr-kendala-hijau">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                Dialihkan ke Doni Kurniawan
+              </span>
+            </div>
+            <div class="ocr-sop-col">
+              <span class="ocr-sop-note-success" style="color:var(--text-muted);">Tas Termal Terverifikasi</span>
+            </div>
+          </li>
+
+        </ol>
+
+        <!-- Table Footer -->
+        <footer class="ocr-table-footer">
+          <span class="ocr-table-footer-info">Menampilkan 2 insiden aktif memerlukan keputusan reassign</span>
+          <nav class="ocr-pagination" aria-label="Navigasi halaman">
+            <a href="#_" class="ocr-page-btn" aria-label="Halaman sebelumnya">Prev</a>
+            <a href="#_" class="ocr-page-btn ocr-page-num ocr-page-active" aria-current="page" aria-label="Halaman 1">1</a>
+            <a href="#_" class="ocr-page-btn" aria-label="Halaman berikutnya">Next</a>
+          </nav>
+        </footer>
+      </section>
+
+      <!-- ---------------------------------------------------------------
+           KANAN: Panel Eksekusi — Teguh Wibowo / Cargo #100024000012
+           Muncul saat href="#panel-012" diklik
+      --------------------------------------------------------------- -->
+      <section class="ocr-exec-panel" id="panel-012" aria-label="Panel eksekusi pengalihan Teguh Wibowo">
+
+        <!-- Head -->
+        <header class="ocr-exec-head">
+          <div class="ocr-exec-head-left">
+            <span class="ocr-exec-head-icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </span>
+            <div class="ocr-exec-head-text">
+              <h3 class="ocr-exec-head-title">Panel Eksekusi Pengalihan<br>(1-Klik)</h3>
+              <div class="ocr-exec-resi-row">
+                <span class="ocr-exec-resi-label">EVALUASI RESI:</span>
+                <span class="ocr-exec-resi-val">#100024000012</span>
+              </div>
+            </div>
           </div>
-          <div class="ocr-kurir-col">
-            <span class="ocr-kurir-name">Teguh Wibowo</span>
-            <span class="ocr-kurir-vehicle">Truk CDD &bull; B 9281 KXT</span>
-            <span class="ocr-kendala-row ocr-kendala-merah">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-              Kopling Jebol di Jl. Panjang
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+            <a href="#_" class="ocr-exec-close" aria-label="Tutup panel eksekusi">&#215;</a>
+            <span class="ocr-exec-siap-badge">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              Siap Eksekusi
             </span>
           </div>
-          <div class="ocr-sop-col">
-            <span class="ocr-sop-pill ocr-sop-pill-outline">Wajib Van / Truk</span>
-            <span class="ocr-sop-plain">Kurir disaring berstatus online</span>
-          </div>
-        </li>
+        </header>
 
-        <!-- ROW 2: PHARMA — Budi Santoso — Mesin Mogok -->
-        <li class="ocr-incident-row">
-          <div class="ocr-resi-col">
-            <div>
-              <a href="#modal-assign-015" class="ocr-resi-num" style="text-decoration:none;color:var(--text-main);" aria-label="Buka detail insiden resi #100024000015">#100024000015</a>
-              <span class="ocr-resi-tag ocr-tag-pharma">PHARMA</span>
-            </div>
-            <span class="ocr-resi-desc">1.2 kg &bull; Vaksin RS Siloam</span>
+        <!-- Rangkuman Insiden -->
+        <div class="ocr-exec-section">
+          <div class="ocr-exec-section-label">
+            <span class="ocr-exec-section-title">Rangkuman Insiden Aktif</span>
+            <span class="ocr-exec-section-badge ocr-exec-badge-cargo">Cargo Berat &bull; 186.8 kg</span>
           </div>
-          <div class="ocr-kurir-col">
-            <span class="ocr-kurir-name">Budi Santoso</span>
-            <span class="ocr-kurir-vehicle">Motor Beat &bull; B 4821 SGC</span>
-            <span class="ocr-kendala-row ocr-kendala-kuning">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-              Mesin Mogok di Pancoran
+          <div class="ocr-exec-info-list">
+            <div class="ocr-exec-info-row">
+              <span class="ocr-exec-info-icon" aria-hidden="true">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>
+              </span>
+              <span>Kurir Asal: <strong>Teguh Wibowo</strong> (Truk B 9281 KXT – Kendala Kopling Jebol)</span>
+            </div>
+            <div class="ocr-exec-info-row">
+              <span class="ocr-exec-info-icon" aria-hidden="true">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/><circle cx="12" cy="10" r="3"/></svg>
+              </span>
+              <span>Rute Tujuan: Jl. Kebon Jeruk Raya No. 88 (Cargo Berat 186.8 kg)</span>
+            </div>
+          </div>
+          <div class="ocr-exec-warning" style="margin-top:10px;">
+            <span class="ocr-exec-warning-icon" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </span>
+            <span>5 Kurir Sepeda Motor di sekitar radius otomatis <strong>didiskualifikasi</strong> (Bobot &gt;40 kg wajib armada Van/Truk sesuai BR-08).</span>
+          </div>
+        </div>
+
+        <!-- Pilihan Kurir Pengganti -->
+        <div class="ocr-exec-section">
+          <div class="ocr-exec-section-label">
+            <span class="ocr-exec-section-title">Pilihan Kurir Pengganti Layak</span>
+            <span class="ocr-exec-kurir-count">2 Kandidat Terverifikasi</span>
+          </div>
+          <fieldset class="ocr-exec-kurir-options" aria-label="Pilih kurir pengganti untuk Cargo #100024000012">
+            <legend class="sr-only">Pilih kurir pengganti untuk pengalihan tugas</legend>
+
+            <!-- Opsi 1 — Rekomendasi Utama -->
+            <label class="ocr-exec-option">
+              <input type="radio" name="exec-kurir-012" value="fr" checked aria-label="Pilih Fajar Ramadhan, Blind Van, rekomendasi utama">
+              <div class="ocr-exec-option-body">
+                <div class="ocr-exec-option-row1">
+                  <span class="ocr-exec-option-name">Fajar Ramadhan</span>
+                  <span class="ocr-exec-rek-badge">Rekomendasi Utama</span>
+                  <span class="ocr-exec-option-dist">800 m (4 mnt)</span>
+                </div>
+                <div class="ocr-exec-option-row2">Armada Blind Van &bull; B 9382 PF6</div>
+                <div class="ocr-exec-option-row3">
+                  <span class="ocr-exec-stat">Beban: 8/20 Paket (Aman)</span>
+                  <span class="ocr-exec-stat-ok">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                    Kapasitas Sisa: 800 kg Lolos
+                  </span>
+                </div>
+              </div>
+            </label>
+
+            <!-- Opsi 2 — Alternatif -->
+            <label class="ocr-exec-option">
+              <input type="radio" name="exec-kurir-012" value="af" aria-label="Pilih Ahmad Fauzi, Cargo Truck, alternatif">
+              <div class="ocr-exec-option-body">
+                <div class="ocr-exec-option-row1">
+                  <span class="ocr-exec-option-name">Ahmad Fauzi</span>
+                  <span class="ocr-exec-alt-badge">Alternatif</span>
+                  <span class="ocr-exec-option-dist">1.4 km (7 mnt)</span>
+                </div>
+                <div class="ocr-exec-option-row2">Cargo Truck &bull; B 9481 KXZ</div>
+                <div class="ocr-exec-option-row3">
+                  <span class="ocr-exec-stat">Beban: 12/20 Paket</span>
+                  <span class="ocr-exec-stat-ok">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                    Kapasitas: 1.500 kg Lolos
+                  </span>
+                </div>
+              </div>
+            </label>
+          </fieldset>
+        </div>
+
+        <!-- Rute Evakuasi -->
+        <div class="ocr-exec-section">
+          <div class="ocr-exec-rute-header">
+            <span class="ocr-exec-section-title">Rute Evakuasi &amp; Koordinat Intersep</span>
+            <span class="ocr-exec-radius-badge">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/><circle cx="12" cy="10" r="3"/></svg>
+              Radius 1.3 km
             </span>
           </div>
-          <div class="ocr-sop-col">
-            <span class="ocr-sop-pill ocr-sop-pill-bpom">Wajib Sertifikasi BPOM</span>
-            <span class="ocr-sop-note">Tas Termal Suhu Khusus</span>
-            <span class="ocr-sop-plain">Kurir disaring berstatus online</span>
-          </div>
-        </li>
-
-        <!-- ROW 3: Frozen — Rizky Pratama — Sudah Dialihkan -->
-        <li class="ocr-incident-row">
-          <div class="ocr-resi-col">
-            <div>
-              <span class="ocr-resi-num">#100024000009</span>
-              <span class="ocr-resi-tag ocr-tag-frozen">FROZEN</span>
+          <div class="ocr-exec-rute-card">
+            <span class="ocr-exec-rute-icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            </span>
+            <div class="ocr-exec-rute-node">
+              <span class="ocr-exec-rute-name">Teguh W. (Mogok)</span>
+              <span class="ocr-exec-rute-sub">Jl. Panjang Arteri</span>
             </div>
-            <span class="ocr-resi-desc">4.5 kg (-2°C)</span>
+            <div class="ocr-exec-rute-arrow">
+              <div class="ocr-exec-rute-arrow-line">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                800 m &bull; 4 mnt
+              </div>
+            </div>
+            <span class="ocr-exec-rute-icon-dest" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            </span>
+            <div class="ocr-exec-rute-node-dest">
+              <span class="ocr-exec-rute-dest-name">Fajar R. (Blind Van)</span>
+              <span class="ocr-exec-rute-dest-sub">Siap Menuju Lokasi</span>
+            </div>
           </div>
-          <div class="ocr-kurir-col">
-            <span class="ocr-kurir-name" style="color:var(--text-muted);">Rizky Pratama (Motor)</span>
-            <span class="ocr-kendala-row ocr-kendala-hijau">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-              Dialihkan ke Doni Kurniawan
+        </div>
+
+        <!-- Footer: Konfirmasi -->
+        <footer class="ocr-exec-footer">
+          <a href="#modal-sukses-012" class="ocr-exec-confirm-btn" aria-label="Konfirmasi pengalihan satu klik untuk resi #100024000012">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Konfirmasi Pengalihan 1-Klik (&lt; 30 dtk)
+          </a>
+          <a href="#_" class="ocr-exec-cancel-link">Batalkan / Pilih Kurir Lain</a>
+          <div class="ocr-exec-footer-meta">
+            <span class="ocr-exec-meta-item">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              Auto SLA Update Aktif
+            </span>
+            <span class="ocr-exec-meta-item">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.49 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.4 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.63a16 16 0 0 0 6 6l1.27-.75a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73 16z"/></svg>
+              Push Notif ke Satria Terhubung
             </span>
           </div>
-          <div class="ocr-sop-col">
-            <span class="ocr-sop-note-success" style="color:var(--text-muted);">Tas Termal Terverifikasi</span>
+        </footer>
+      </section>
+
+      <!-- ---------------------------------------------------------------
+           KANAN: Panel Eksekusi — Budi Santoso / PHARMA #100024000015
+           Muncul saat href="#panel-015" diklik
+      --------------------------------------------------------------- -->
+      <section class="ocr-exec-panel" id="panel-015" aria-label="Panel eksekusi pengalihan Budi Santoso">
+
+        <!-- Head -->
+        <header class="ocr-exec-head">
+          <div class="ocr-exec-head-left">
+            <span class="ocr-exec-head-icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </span>
+            <div class="ocr-exec-head-text">
+              <h3 class="ocr-exec-head-title">Panel Eksekusi Pengalihan<br>(1-Klik)</h3>
+              <div class="ocr-exec-resi-row">
+                <span class="ocr-exec-resi-label">EVALUASI RESI:</span>
+                <span class="ocr-exec-resi-val">#100024000015</span>
+              </div>
+            </div>
           </div>
-        </li>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+            <a href="#_" class="ocr-exec-close" aria-label="Tutup panel eksekusi">&#215;</a>
+            <span class="ocr-exec-siap-badge">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              Siap Eksekusi
+            </span>
+          </div>
+        </header>
 
-      </ol>
+        <!-- Rangkuman Insiden -->
+        <div class="ocr-exec-section">
+          <div class="ocr-exec-section-label">
+            <span class="ocr-exec-section-title">Rangkuman Insiden Aktif</span>
+            <span class="ocr-exec-section-badge ocr-exec-badge-pharma">PHARMA &bull; 1.2 kg</span>
+          </div>
+          <div class="ocr-exec-info-list">
+            <div class="ocr-exec-info-row">
+              <span class="ocr-exec-info-icon" aria-hidden="true">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>
+              </span>
+              <span>Kurir Asal: <strong>Budi Santoso</strong> (Motor Beat B 4821 SGC – Mesin Mogok di Pancoran)</span>
+            </div>
+            <div class="ocr-exec-info-row">
+              <span class="ocr-exec-info-icon" aria-hidden="true">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/><circle cx="12" cy="10" r="3"/></svg>
+              </span>
+              <span>Rute Tujuan: RS Siloam Tb. Simatupang (Vaksin &bull; Wajib Sertifikasi BPOM)</span>
+            </div>
+          </div>
+          <div class="ocr-exec-warning" style="margin-top:10px;">
+            <span class="ocr-exec-warning-icon" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </span>
+            <span>Kurir tanpa <strong>Sertifikasi BPOM</strong> dan armada Tas Termal Suhu Khusus otomatis didiskualifikasi sesuai regulasi PHARMA.</span>
+          </div>
+        </div>
 
-      <!-- Table Footer -->
-      <footer class="ocr-table-footer">
-        <span class="ocr-table-footer-info">Menampilkan 2 insiden aktif memerlukan keputusan reassign</span>
-        <nav class="ocr-pagination" aria-label="Navigasi halaman">
-          <a href="#_" class="ocr-page-btn" aria-label="Halaman sebelumnya">Prev</a>
-          <a href="#_" class="ocr-page-btn ocr-page-num ocr-page-active" aria-current="page" aria-label="Halaman 1">1</a>
-          <a href="#_" class="ocr-page-btn" aria-label="Halaman berikutnya">Next</a>
-        </nav>
-      </footer>
-    </section>
+        <!-- Pilihan Kurir Pengganti -->
+        <div class="ocr-exec-section">
+          <div class="ocr-exec-section-label">
+            <span class="ocr-exec-section-title">Pilihan Kurir Pengganti Layak</span>
+            <span class="ocr-exec-kurir-count">2 Kandidat Terverifikasi</span>
+          </div>
+          <fieldset class="ocr-exec-kurir-options" aria-label="Pilih kurir pengganti untuk PHARMA #100024000015">
+            <legend class="sr-only">Pilih kurir pengganti bersertifikasi BPOM</legend>
+
+            <!-- Opsi 1 — Rekomendasi Utama -->
+            <label class="ocr-exec-option">
+              <input type="radio" name="exec-kurir-015" value="dk" checked aria-label="Pilih Doni Kurniawan, Tas Termal, rekomendasi utama">
+              <div class="ocr-exec-option-body">
+                <div class="ocr-exec-option-row1">
+                  <span class="ocr-exec-option-name">Doni Kurniawan</span>
+                  <span class="ocr-exec-rek-badge">Rekomendasi Utama</span>
+                  <span class="ocr-exec-option-dist">900 m (5 mnt)</span>
+                </div>
+                <div class="ocr-exec-option-row2">Tas Termal Suhu Khusus &bull; B 7821 DNI &bull; Sertifikat BPOM ✓</div>
+                <div class="ocr-exec-option-row3">
+                  <span class="ocr-exec-stat">Beban: 7/20 Paket (Aman)</span>
+                  <span class="ocr-exec-stat-ok">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                    BPOM Lolos
+                  </span>
+                </div>
+              </div>
+            </label>
+
+            <!-- Opsi 2 — Alternatif -->
+            <label class="ocr-exec-option">
+              <input type="radio" name="exec-kurir-015" value="mh" aria-label="Pilih Muhammad Hafidz, Tas Termal, alternatif">
+              <div class="ocr-exec-option-body">
+                <div class="ocr-exec-option-row1">
+                  <span class="ocr-exec-option-name">Muhammad Hafidz</span>
+                  <span class="ocr-exec-alt-badge">Alternatif</span>
+                  <span class="ocr-exec-option-dist">2.3 km (11 mnt)</span>
+                </div>
+                <div class="ocr-exec-option-row2">Tas Termal &bull; B 8812 MHF &bull; Sertifikat BPOM ✓</div>
+                <div class="ocr-exec-option-row3">
+                  <span class="ocr-exec-stat">Beban: 14/20 Paket</span>
+                  <span class="ocr-exec-stat-ok">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                    BPOM Lolos
+                  </span>
+                </div>
+              </div>
+            </label>
+          </fieldset>
+        </div>
+
+        <!-- Rute Evakuasi -->
+        <div class="ocr-exec-section">
+          <div class="ocr-exec-rute-header">
+            <span class="ocr-exec-section-title">Rute Evakuasi &amp; Koordinat Intersep</span>
+            <span class="ocr-exec-radius-badge">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/><circle cx="12" cy="10" r="3"/></svg>
+              Radius 0.9 km
+            </span>
+          </div>
+          <div class="ocr-exec-rute-card">
+            <span class="ocr-exec-rute-icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>
+            </span>
+            <div class="ocr-exec-rute-node">
+              <span class="ocr-exec-rute-name">Budi S. (Mogok)</span>
+              <span class="ocr-exec-rute-sub">Jl. Pancoran Raya</span>
+            </div>
+            <div class="ocr-exec-rute-arrow">
+              <div class="ocr-exec-rute-arrow-line">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                900 m &bull; 5 mnt
+              </div>
+            </div>
+            <span class="ocr-exec-rute-icon-dest" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>
+            </span>
+            <div class="ocr-exec-rute-node-dest">
+              <span class="ocr-exec-rute-dest-name">Doni K. (Tas Termal)</span>
+              <span class="ocr-exec-rute-dest-sub">Siap Menuju Lokasi</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer: Konfirmasi -->
+        <footer class="ocr-exec-footer">
+          <a href="#modal-sukses-015" class="ocr-exec-confirm-btn" aria-label="Konfirmasi pengalihan satu klik untuk resi #100024000015">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Konfirmasi Pengalihan 1-Klik (&lt; 30 dtk)
+          </a>
+          <a href="#_" class="ocr-exec-cancel-link">Batalkan / Pilih Kurir Lain</a>
+          <div class="ocr-exec-footer-meta">
+            <span class="ocr-exec-meta-item">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              Auto SLA Update Aktif
+            </span>
+            <span class="ocr-exec-meta-item">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.49 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.4 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.63a16 16 0 0 0 6 6l1.27-.75a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73 16z"/></svg>
+              Push Notif ke Satria Terhubung
+            </span>
+          </div>
+        </footer>
+      </section>
+
+    </div><!-- /.ocr-workspace -->
 
   </main>
 
+  <script src="../javascript/one-click-task-reassignment.js"></script>
 </body>
 </html>
