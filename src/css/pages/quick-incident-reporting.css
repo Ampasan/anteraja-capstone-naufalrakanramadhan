@@ -1,11 +1,3 @@
-/* ==========================================================================
-   Quick Incident Reporting & Response — Page Styles
-   Prefix: qir-
-   ========================================================================== */
-
-/* --------------------------------------------------------------------------
-   MAIN LAYOUT
-   -------------------------------------------------------------------------- */
 .qir-main {
   padding: var(--canvas-margin);
   overflow-y: auto;
@@ -16,9 +8,6 @@
   min-height: calc(100vh - var(--header-height));
 }
 
-/* --------------------------------------------------------------------------
-   HERO CARD
-   -------------------------------------------------------------------------- */
 .qir-hero-card {
   background-color: var(--color-white);
   border: 1px solid var(--border-subtle);
@@ -81,9 +70,6 @@
   flex-shrink: 0;
 }
 
-/* --------------------------------------------------------------------------
-   KPI ROW
-   -------------------------------------------------------------------------- */
 .qir-kpi-row {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -193,9 +179,6 @@
 .qir-kpi-eskalasi{ border-top: 3px solid #F97316; }
 .qir-kpi-selesai { border-top: 3px solid #10B981; }
 
-/* --------------------------------------------------------------------------
-   KRITIS DARURAT BANNER
-   -------------------------------------------------------------------------- */
 .qir-critical-banner {
   display: flex;
   align-items: center;
@@ -304,9 +287,6 @@
   white-space: nowrap;
 }
 
-/* --------------------------------------------------------------------------
-   SEARCH + STATUS BAR
-   -------------------------------------------------------------------------- */
 .qir-search-status-bar {
   display: flex;
   align-items: center;
@@ -909,7 +889,8 @@
 }
 
 /* --------------------------------------------------------------------------
-   MODAL — CSS :target pattern (tanpa JavaScript)
+   MODAL — dikelola JS (ModalManager via class .qir-modal--open)
+   Rule :target di bawah dinonaktifkan — dipertahankan sebagai referensi.
    -------------------------------------------------------------------------- */
 .qir-modal-overlay {
   position: fixed;
@@ -928,11 +909,13 @@
   transition: opacity var(--transition-base), visibility var(--transition-base);
 }
 
+/* :target rule diambil alih JS.
 .qir-modal-overlay:target {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
 }
+*/
 
 .qir-modal-card {
   width: 100%;
@@ -949,9 +932,11 @@
   scrollbar-width: thin;
 }
 
+/* :target rule diambil alih JS.
 .qir-modal-overlay:target .qir-modal-card {
   transform: translateY(0) scale(1);
 }
+*/
 
 .qir-modal-card-sm { max-width: 460px; }
 
