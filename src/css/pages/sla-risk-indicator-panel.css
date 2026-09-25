@@ -1059,11 +1059,13 @@ a.sla-resi-code:hover {
   transition: opacity var(--transition-base), visibility var(--transition-base);
 }
 
+/* :target rules diambil alih JS (ModalManager).
 .sla-modal-overlay:target {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
 }
+*/
 
 .sla-modal-card {
   width: 100%;
@@ -1080,9 +1082,11 @@ a.sla-resi-code:hover {
   scrollbar-width: thin;
 }
 
+/* :target rule diambil alih JS (ModalManager).
 .sla-modal-overlay:target .sla-modal-card {
   transform: translateY(0) scale(1);
 }
+*/
 
 .sla-modal-card-sm { max-width: 440px; }
 
