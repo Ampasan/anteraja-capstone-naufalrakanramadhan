@@ -173,10 +173,11 @@
   }
 }
 
-/* Fullscreen Map State (:target) */
+/* Fullscreen Map State — diambil alih JS (FullMapManager).
 main:has(#full-map:target) .live-map-workspace {
   grid-template-columns: minmax(0, 1fr);
 }
+*/
 
 .courier-telemetry-aside {
   display: flex;
@@ -344,8 +345,7 @@ main:has(#full-map:target) .live-map-workspace {
   outline-offset: 2px;
 }
 
-.courier-card.is-selected,
-.courier-card:target {
+.courier-card.is-selected {
   border-color: var(--border-subtle);
   border-left: 3.5px solid var(--color-primary);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
@@ -657,9 +657,11 @@ main:has(#full-map:target) .live-map-workspace {
   text-decoration: none;
 }
 
+/* :target rule diambil alih JS (FullMapManager).
 main:has(#full-map:target) .manifest-drawer-open-btn {
   display: inline-flex;
 }
+*/
 
 /* Bottom Controls: Zoom & Legend Bar */
 .map-bottom-controls-bar {
@@ -823,10 +825,12 @@ main:has(#full-map:target) .manifest-drawer-open-btn {
   animation: popup-slide-in 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* :target rule diambil alih JS (PopupManager).
 #popup-courier-budi:target,
 #popup-courier-str001:target {
   display: flex;
 }
+*/
 
 @keyframes popup-slide-in {
   from {
@@ -1227,6 +1231,7 @@ main:has(#full-map:target) .manifest-drawer-open-btn {
   color: var(--text-main);
 }
 
+/* :target dan :checked rules diambil alih JS (ModalManager).
 #modal-emergency-reassign:target {
   opacity: 1;
   visibility: visible;
@@ -1242,6 +1247,7 @@ main:has(#full-map:target) .manifest-drawer-open-btn {
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
 }
+*/
 
 .modal-urgency-banner {
   display: flex;
@@ -1495,6 +1501,7 @@ main:has(#full-map:target) .manifest-drawer-open-btn {
   flex-direction: column;
 }
 
+/* :target rules diambil alih JS (ManifestManager).
 body:has(#manifest-collapsed:target) .live-map-workspace {
   grid-template-columns: minmax(0, 1fr);
 }
@@ -1506,6 +1513,7 @@ body:has(#manifest-collapsed:target) .courier-telemetry-aside {
 body:has(#manifest-collapsed:target) .manifest-drawer-open-btn {
   display: inline-flex;
 }
+*/
 
 .tag-service-type.tag-sameday {
   background-color: #B8005A;
@@ -1550,10 +1558,13 @@ body:has(#manifest-collapsed:target) .manifest-drawer-open-btn {
   display: none;
 }
 
+/* :checked rule diambil alih JS (ToastManager).
 body:has(#dismiss-coldchain:checked) .actionable-coldchain-toast {
   display: none;
 }
+*/
 
+/* :target rules fokus rute diambil alih JS (FocusRouteManager).
 body:has(#fokus-rute-aktif:target) .courier-popup-overlay {
   display: flex;
   width: 385px;
@@ -1572,6 +1583,7 @@ body:has(#fokus-rute-aktif:target) .focus-route-banner {
   font-size: var(--font-size-body-sm);
   font-weight: var(--font-weight-bold);
 }
+*/
 
 .focus-route-banner > span:first-child {
   display: inline-flex;
@@ -1599,6 +1611,7 @@ body:has(#fokus-rute-aktif:target) .focus-route-banner {
   background: #10B981;
 }
 
+/* :target rules fokus rute lanjutan diambil alih JS (FocusRouteManager).
 body:has(#fokus-rute-aktif:target) .popup-avatar {
   background-color: #B8005A;
   color: #FFFFFF;
@@ -1643,27 +1656,24 @@ body:has(#fokus-rute-aktif:target) .courier-card.is-selected .tag-pink::after {
   content: "TERPILIH";
   font-size: var(--font-size-caps);
 }
+*/
 
 @media (max-width: 1023px) {
-  body:has(#manifest-collapsed:target) .live-map-workspace {
-    grid-template-columns: 1fr;
-  }
-
-  body:has(#fokus-rute-aktif:target) .courier-popup-overlay {
-    width: min(385px, calc(100% - 24px));
-  }
+  /* :target rules di media query diambil alih JS. */
 }
 
-/* Close state is deliberately later than focus-route so its X always wins. */
+/* Close state — diambil alih JS (PopupManager.dismiss).
 body:has(#dismiss-courier:target) .courier-popup-overlay {
   display: none;
 }
+*/
 
 /* Peta penuh: daftar dan detail terlepas dari kanvas; tombol header berubah state. */
 .full-map-exit-control {
   display: none;
 }
 
+/* :target rules full-map diambil alih JS (FullMapManager).
 main:has(#full-map:target) .full-map-enter-control {
   display: none;
 }
@@ -1685,6 +1695,7 @@ body:has(#manifest-collapsed:target) .full-map-enter-control {
 body:has(#manifest-collapsed:target) .full-map-exit-control {
   display: inline-flex;
 }
+*/
 
 /* Modal pengalihan mengikuti hirarki alert kritis pada referensi. */
 .emergency-modal-header {

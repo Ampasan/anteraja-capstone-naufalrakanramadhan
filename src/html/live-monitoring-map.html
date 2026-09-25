@@ -14,39 +14,6 @@
     <link rel="stylesheet" href="../css/pages/live-monitoring-map.css" />
   </head>
   <body class="app-shell" id="_">
-    <!-- State anchors keep the prototype interactive without JavaScript. -->
-    <span
-      class="css-state-anchor"
-      id="sidebar-collapsed"
-      aria-hidden="true"
-    ></span>
-    <span
-      class="css-state-anchor"
-      id="manifest-collapsed"
-      aria-hidden="true"
-    ></span>
-    <span
-      class="css-state-anchor"
-      id="dismiss-courier"
-      aria-hidden="true"
-    ></span>
-    <input
-      class="css-state-toggle"
-      type="checkbox"
-      id="dismiss-coldchain"
-      aria-label="Sembunyikan peringatan cold-chain"
-    />
-    <input
-      class="css-state-toggle"
-      type="checkbox"
-      id="open-emergency-reassign"
-      aria-label="Buka pengalihan darurat"
-    />
-    <span
-      class="css-state-anchor"
-      id="fokus-rute-aktif"
-      aria-hidden="true"
-    ></span>
 
     <!-- 1. App Header: spans full width -->
     <header class="app-header" role="banner">
@@ -1339,9 +1306,11 @@
               </g>
               <!-- MARKER RIZKY (Cold-Chain Alert) -->
               <label
-                for="open-emergency-reassign"
+                data-open-emergency-modal
                 class="map-marker-hotspot"
                 aria-label="Peringatan Anomali Suhu Rizky Pratama"
+                role="button"
+                tabindex="0"
               >
                 <g transform="translate(650,340)">
                   <circle
@@ -1762,7 +1731,7 @@
               </p>
               <div class="toast-actions-row">
                 <label
-                  for="open-emergency-reassign"
+                  data-open-emergency-modal
                   class="btn btn-destructive btn-sm"
                 >
                   <svg
@@ -1783,13 +1752,13 @@
                   </svg>
                   Alihkan Kurir
                 </label>
-                <label for="dismiss-coldchain" class="btn btn-secondary btn-sm"
+                <label data-dismiss-toast class="btn btn-secondary btn-sm"
                   >Abaikan</label
                 >
               </div>
             </div>
             <label
-              for="dismiss-coldchain"
+              data-dismiss-toast
               class="toast-close-link"
               aria-label="Tutup Notifikasi"
               >&#10005;</label
@@ -1807,6 +1776,7 @@
       aria-labelledby="modal-reassign-title"
       role="dialog"
       aria-modal="true"
+      aria-hidden="true"
     >
       <div class="modal-card emergency-reassign-modal" style="max-width: 576px">
         <div class="modal-header emergency-modal-header">
@@ -1830,7 +1800,7 @@
             </p>
           </div>
           <label
-            for="open-emergency-reassign"
+            data-close-modal
             class="modal-close"
             aria-label="Tutup jendela pengalihan darurat"
             >&#10005;</label
@@ -1971,7 +1941,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <label for="open-emergency-reassign" class="btn btn-secondary"
+          <label data-close-modal class="btn btn-secondary"
             >Batalkan</label
           >
           <a href="#sukses-dialihkan" class="btn btn-primary">
@@ -1993,5 +1963,6 @@
         </div>
       </div>
     </aside>
+    <script src="../javascript/live-monitoring-map.js"></script>
   </body>
 </html>
