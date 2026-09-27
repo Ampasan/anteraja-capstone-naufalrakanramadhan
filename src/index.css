@@ -1,0 +1,216 @@
+/* Global CSS — Anteraja Dispatch Ops Design System */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Anteraja Design Tokens ── */
+:root {
+  /* Brand */
+  --brand-magenta:         #C91076;
+  --brand-magenta-vibrant: #ED0677;
+  --brand-magenta-hover:   #E51A8A;
+  --brand-magenta-light:   #FFF0F6;
+
+  /* Surface */
+  --surface-bg:            #F8FAFC;
+  --surface-card:          #FFFFFF;
+  --surface-container-low: #FFF0F3;
+
+  /* Slate Navy (Sidebar / Header) */
+  --slate-navy:            #0F172A;
+  --slate-navy-surface:    #1E293B;
+  --slate-navy-muted:      #334155;
+
+  /* Borders */
+  --border-subtle:         #E2E8F0;
+  --border-strong:         #CBD5E1;
+
+  /* Text */
+  --text-primary:          #0F172A;
+  --text-secondary:        #475569;
+  --text-muted:            #94A3B8;
+  --text-on-primary:       #FFFFFF;
+
+  /* Operational Status */
+  --status-online:         #10B981;
+  --status-online-bg:      #ECFDF5;
+  --status-online-border:  #A7F3D0;
+  --status-idle:           #F59E0B;
+  --status-idle-bg:        #FFFBEB;
+  --status-idle-border:    #FDE68A;
+  --status-alert:          #EF4444;
+  --status-alert-bg:       #FEF2F2;
+  --status-alert-border:   #FECACA;
+  --status-offline:        #64748B;
+  --status-offline-bg:     #F1F5F9;
+  --status-offline-border: #CBD5E1;
+
+  /* Shadows */
+  --shadow-sm:   0 1px 3px 0 rgba(15,23,42,0.04), 0 1px 2px -1px rgba(15,23,42,0.02);
+  --shadow-md:   0 4px 6px -1px rgba(15,23,42,0.07), 0 2px 4px -2px rgba(15,23,42,0.05);
+  --shadow-lg:   0 20px 25px -5px rgba(15,23,42,0.12), 0 8px 10px -6px rgba(15,23,42,0.08);
+
+  /* Typography */
+  --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background: var(--surface-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* ─── Reset ──── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  margin: 0;
+  min-height: 100svh;
+  background: var(--surface-bg);
+}
+
+#root {
+  width: 100%;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Leaflet overrides ─── */
+.leaflet-container {
+  font-family: var(--font-sans) !important;
+  background: #e8edf0;
+}
+
+.leaflet-control-zoom {
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.leaflet-control-zoom a {
+  background: #fff !important;
+  color: var(--text-primary) !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+  font-size: 16px !important;
+  line-height: 30px !important;
+  width: 30px !important;
+  height: 30px !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background: var(--surface-bg) !important;
+  color: var(--brand-magenta) !important;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 10px !important;
+  box-shadow: var(--shadow-md) !important;
+  border: 1px solid var(--border-subtle) !important;
+  padding: 0 !important;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+}
+
+.leaflet-popup-tip {
+  display: none;
+}
+
+/* ─── Courier Marker Styles ───*/
+.courier-marker-online {
+  background: var(--status-online);
+  border: 2.5px solid white;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+}
+
+.courier-marker-idle {
+  background: var(--status-idle);
+  border: 2.5px solid white;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3);
+  animation: pulse-idle 2s ease-in-out infinite;
+}
+
+.courier-marker-alert {
+  background: var(--status-alert);
+  border: 2.5px solid white;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3);
+  animation: pulse-alert 1s ease-in-out infinite;
+}
+
+.courier-marker-selected {
+  background: var(--brand-magenta);
+  border: 2.5px solid white;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px rgba(201, 16, 118, 0.4);
+}
+
+@keyframes pulse-idle {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3); }
+  50%       { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.1); }
+}
+
+@keyframes pulse-alert {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.4); }
+  50%       { box-shadow: 0 0 0 7px rgba(239, 68, 68, 0.1); }
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar        { width: 5px; height: 5px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: var(--border-strong); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ─── Utility: hide scrollbar ── */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ─── SLA Progress Bar ─── */
+.sla-bar-track {
+  background: var(--border-subtle);
+  border-radius: 99px;
+  height: 6px;
+  overflow: hidden;
+}
+
+.sla-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.3s ease;
+}
+
+.sla-bar-fill.safe    { background: var(--status-online); }
+.sla-bar-fill.warning { background: var(--status-idle); }
+.sla-bar-fill.danger  { background: var(--status-alert); }
+
+/* ─── Radio custom ─── */
+.radio-option {
+  border: 1.5px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.radio-option.selected {
+  border-color: var(--brand-magenta);
+  background: var(--brand-magenta-light);
+}
+
+
