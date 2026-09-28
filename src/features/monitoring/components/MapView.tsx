@@ -3,6 +3,7 @@ import {
   MapContainer,
   TileLayer,
   Marker,
+  Popup,
   Polyline,
   Circle,
   useMap,
@@ -13,6 +14,7 @@ import type { Courier, Hub } from '../types';
 import iconUrl from 'leaflet/dist/images/marker-icon.png';
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
 import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
+import { useReverseGeocode } from '../../../hooks/useReverseGeocode';
 
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
 L.Icon.Default.mergeOptions({ iconUrl, iconRetinaUrl, shadowUrl });
@@ -105,6 +107,31 @@ function MapRefSetter({ onMapReady }: { onMapReady: (m: L.Map) => void }) {
   return null;
 }
 
+function CourierLocationPopup({ courier }: { courier: Courier }) {
+  const { location, error, isLoading, refetch } = useReverseGeocode(courier.position.lat, courier.position.lng);
+
+  return (
+    <Popup minWidth={220} closeButton={false}>
+      <section aria-label={`Lokasi ${courier.name}`} className="font-sans text-[#0F172A]">
+        <p className="m-0 text-[12px] font-bold">{courier.name}</p>
+        <p className="mt-1 mb-0 text-[11px] leading-snug text-[#475569]">
+          {isLoading && 'Menerjemahkan koordinat GPS…'}
+          {error && 'Lokasi tidak dapat dimuat.'}
+          {location?.label}
+        </p>
+        {error && (
+          <button type="button" onClick={refetch} className="mt-2 text-[11px] font-bold text-[#9F005C] underline">
+            Coba lagi
+          </button>
+        )}
+        <p className="mt-2 mb-0 font-mono text-[10px] text-[#64748B]">
+          {courier.position.lat.toFixed(5)}, {courier.position.lng.toFixed(5)}
+        </p>
+      </section>
+    </Popup>
+  );
+}
+
 // ─ Props ─
 interface MapViewProps {
   couriers: Courier[];
@@ -195,7 +222,9 @@ export function MapView({
               icon={makeCourierIcon(courier.status, isSelected)}
               eventHandlers={{ click: () => onCourierClick(courier) }}
               zIndexOffset={isSelected ? 1000 : isAlert ? 500 : 0}
-            />
+            >
+              {isSelected && <CourierLocationPopup courier={courier} />}
+            </Marker>
           </div>
         );
       })}

@@ -1,8 +1,10 @@
-import { X, Bike, Package, MapPin, Clock, Phone, Navigation, AlertTriangle } from 'lucide-react';
+import { X, Bike, Package, MapPin, Clock, Phone, Navigation, AlertTriangle, CloudSun, RotateCw } from 'lucide-react';
 import { Badge } from '../../../components/ui/Badge';
 import { Button } from '../../../components/ui/Button';
 import { cn } from '../../../lib/utils';
 import type { Courier } from '../types';
+import { getWeatherLabel } from '../../../api/openMeteo';
+import { useWeather } from '../../../hooks/useWeather';
 
 interface CourierDetailPanelProps {
   courier: Courier;
@@ -45,9 +47,13 @@ export function CourierDetailPanel({
   onContact,
 }: CourierDetailPanelProps) {
   const firstPkg = courier.activePackages[0];
+  const { weather, error: weatherError, isLoading: isWeatherLoading, refetch: refetchWeather } = useWeather(
+    courier.position.lat,
+    courier.position.lng,
+  );
 
   return (
-    <div className="flex flex-col w-[290px] bg-white rounded-xl overflow-hidden border-2 border-[#C91076] shadow-[0_4px_24px_rgba(201,16,118,0.18)]">
+    <div className="flex flex-col w-[calc(100vw-24px)] max-w-[310px] bg-white rounded-xl overflow-hidden border-2 border-[#C91076] shadow-[0_4px_24px_rgba(201,16,118,0.18)]">
 
       {/* ── Header ── */}
       <div className={cn(
@@ -139,6 +145,24 @@ export function CourierDetailPanel({
           <SlaBar remainingMinutes={firstPkg.slaRemainingMinutes} elapsedPct={firstPkg.slaElapsedPct} />
         </div>
       )}
+
+      <section className="mx-4 mb-2 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2.5" aria-label="Kondisi cuaca kurir">
+        <div className="flex items-center justify-between gap-2">
+          <span className="flex items-center gap-1.5 text-[12px] font-bold text-sky-900">
+            <CloudSun size={14} aria-hidden="true" /> Cuaca di lokasi kurir
+          </span>
+          {!isWeatherLoading && (weather || weatherError) && (
+            <button type="button" onClick={refetchWeather} className="rounded p-1 text-sky-800 hover:bg-sky-100" aria-label="Muat ulang data cuaca">
+              <RotateCw size={13} aria-hidden="true" />
+            </button>
+          )}
+        </div>
+        <p className="mt-1 mb-0 text-[12px] text-sky-900" aria-live="polite">
+          {isWeatherLoading && 'Memuat kondisi cuaca terkini…'}
+          {weatherError && 'Cuaca tidak dapat dimuat. Gunakan tombol muat ulang.'}
+          {weather && `${getWeatherLabel(weather.weatherCode)} · ${weather.temperatureC}°C · Angin ${weather.windSpeedKmh} km/jam`}
+        </p>
+      </section>
 
       {/* ── Actions ── */}
       <div className="px-4 pb-4 pt-2 grid grid-cols-2 gap-2">
