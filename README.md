@@ -65,6 +65,32 @@ Seluruh isi berkas `docs/data/delivery.csv` adalah **dummy data**. Data ini dibu
 
 Proyek ini direfaktorisasi dari jQuery ke arsitektur berbasis komponen React menggunakan **Vite + TypeScript (TSX)**. Seluruh UI dipecah menjadi *functional components* modular dengan aliran data satu arah (*Unidirectional Data Flow*).
 
+## SPA Routing dengan React Router
+
+Aplikasi menggunakan `BrowserRouter` di `src/main.tsx`. Definisi route berada di `src/App.tsx`, sehingga perpindahan modul terjadi di sisi klien tanpa *full-page refresh*.
+
+### Route Map
+
+| URL | Komponen | Keterangan |
+| --- | --- | --- |
+| `/` | Redirect | Mengarahkan ke login atau monitoring sesuai sesi. |
+| `/login` | `LoginPage` | Halaman autentikasi. Setelah berhasil, `useNavigate` mengarah ke `/monitoring`. |
+| `/monitoring` | `MonitoringPage` | Peta dan daftar kurir aktif. Mendukung query `?courier=:id` dari SLA panel. |
+| `/sla` | `SlaRiskPage` | Indikator risiko SLA. Tombol peta menggunakan `useNavigate` ke monitoring. |
+| `/incidents` | `IncidentsPage` | Penanganan insiden. Setelah reassign berhasil, aplikasi bernavigasi secara programatis ke `/audit`. |
+| `/audit` | `AuditLogsPage` | Riwayat operasional. |
+| `*` | `NotFoundPage` | Fallback 404 untuk URL yang tidak dikenal. |
+
+### Persistent Layout dan Navigasi
+
+`MainLayout` adalah parent route untuk semua modul dashboard. Komponen ini merender `Header`, `Sidebar`, dan `Footer` satu kali, lalu `<Outlet />` me-render halaman aktif di area konten. Dengan struktur nested route ini, shell navigasi tidak dimount ulang ketika pengguna pindah antar-modul.
+
+`Sidebar` menggunakan `<NavLink>` agar status aktif mengikuti URL. `<Link>` dipakai pada halaman 404 untuk kembali ke aplikasi tanpa me-reload dokumen. URL yang sama sekali tidak terdaftar ditangani oleh `NotFoundPage`.
+
+### Programmatic Routing
+
+`useNavigate()` digunakan setelah aksi pengguna: login, logout, membuka lokasi kurir dari SLA panel, dan melanjutkan ke audit setelah reassignment.
+
 ---
 
 ### Struktur Susunan Komponen (Tree of Components)
