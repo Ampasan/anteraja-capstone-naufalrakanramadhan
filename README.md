@@ -219,3 +219,38 @@ State `filteredCouriers` dan `counts` diturunkan dengan **`useMemo`** dari `allC
 | **useMemo** | `filteredCouriers` dan `counts` diturunkan secara *derived* |
 | **TSX Syntax** | `className` (bukan `class`), semua tag ditutup presisi, tidak ada warning konsol |
 
+---
+
+## Asynchronous Data Fetching, Custom Hooks, dan Context API
+
+Fitur Live Monitoring memakai dua Public API secara asynchronous:
+
+| API | Modul | Penggunaan antarmuka |
+| --- | --- | --- |
+| [Open-Meteo](https://open-meteo.com/) | `src/api/openMeteo.ts` | Menampilkan kondisi cuaca, suhu, dan kecepatan angin pada panel detail kurir. |
+| [Nominatim OpenStreetMap](https://nominatim.openstreetmap.org/) | `src/api/nominatim.ts` | Mengubah koordinat GPS kurir menjadi nama jalan/lokasi pada popup marker peta. |
+
+### Struktur Custom Hooks
+
+```
+src/
+├── api/
+│   ├── openMeteo.ts          # Client dan normalisasi respons Open-Meteo
+│   └── nominatim.ts          # Client reverse geocoding Nominatim
+├── hooks/
+│   ├── useAsync.ts           # State reusable: data, loading, error, pembatalan request
+│   ├── useWeather.ts         # useEffect untuk data cuaca berdasarkan latitude/longitude
+│   └── useReverseGeocode.ts  # useEffect untuk nama lokasi berdasarkan latitude/longitude
+└── context/
+    ├── AppContext.tsx        # Provider/store global kurir yang sedang dipilih
+    ├── AppContextStore.ts    # Definisi Context agar Fast Refresh tetap aman
+    └── useAppContext.ts      # Custom Context Hook untuk consumer UI
+```
+
+`useWeather` dan `useReverseGeocode` membungkus client API dan memanggilnya di dalam `useEffect`. Dependency array hanya bergantung pada fungsi `reload` yang stabil dan koordinat, sehingga request baru hanya terjadi ketika posisi kurir berubah. Tiap request memakai `AbortController`; cleanup pada `useEffect` membatalkan request lama ketika komponen unmount atau koordinat berubah. `useAsync` juga memverifikasi ID request aktif sebelum mengubah state, sehingga respons request yang sudah tidak relevan tidak dapat menimpa data terbaru.
+
+Setiap hasil fetch mempunyai state visual yang eksplisit: teks loading yang informatif, data hasil fetch, pesan error, serta aksi **Coba lagi/Muat ulang**. Error dari `fetch` ditangani dengan `try/catch` di `useAsync` dan ditampilkan tanpa menyembunyikan konteks panel kurir.
+
+### Arsitektur Context API
+
+`AppProvider` dipasang di `src/main.tsx` dan menyediakan `selectedCourierId` serta aksi `selectCourier`. Hook `useAppContext()` adalah satu-satunya akses consumer ke Context dan akan memberi error jelas jika dipakai di luar provider. `useMonitoring()` mengonsumsi hook ini untuk menyimpan kurir terpilih secara global; pemilihan dari daftar atau marker peta tetap tersinkron tanpa meneruskan ID kurir melalui hierarchy props yang lebih tinggi.
