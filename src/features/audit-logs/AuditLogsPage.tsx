@@ -37,22 +37,22 @@ export function AuditLogsPage() {
 
   return (
     <div className="h-full overflow-y-auto bg-[#F8FAFC]">
-      <div className="flex flex-col gap-5 p-5">
+      <div className="flex flex-col gap-4 sm:gap-5 p-3 sm:p-5">
 
         {/* ── 0. Header card ── */}
         <FadeUp delay={0}>
-          <div className="bg-white border border-[#E5E7EB] rounded-2xl px-5 py-4 flex items-center justify-between gap-4 shadow-sm">
+          <div className="bg-white border border-[#E5E7EB] rounded-2xl px-4 sm:px-5 py-3 sm:py-4 flex items-center justify-between gap-3 sm:gap-4 shadow-sm">
             {/* Kiri: icon box + judul + deskripsi */}
-            <div className="flex items-center gap-3.5 min-w-0">
-              <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-[#FFF0F6] border border-[#F9A8D4] flex items-center justify-center">
-                <ClipboardList size={22} className="text-[#C91076]" />
+            <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+              <div className="flex-shrink-0 w-10 sm:w-11 h-10 sm:h-11 rounded-xl bg-[#FFF0F6] border border-[#F9A8D4] flex items-center justify-center">
+                <ClipboardList size={20} className="text-[#C91076]" />
               </div>
               <div className="min-w-0">
-                <h1 className="text-[19px] font-extrabold text-[#111827] leading-tight tracking-tight">
+                <h1 className="text-[15px] sm:text-[19px] font-extrabold text-[#111827] leading-tight tracking-tight">
                   Audit Log &amp; Riwayat Operasional
                 </h1>
-                <p className="text-[13px] text-[#4B5563] mt-0.5 leading-snug font-medium">
-                  Rekapitulasi jejak digital pengalihan paket dan penanganan kendala{' '}
+                <p className="text-[11px] sm:text-[13px] text-[#4B5563] mt-0.5 leading-snug font-medium">
+                  Rekapitulasi jejak digital pengalihan paket{' '}
                   <span className="font-semibold text-[#C91076]">Hub Tebet</span>
                 </p>
               </div>

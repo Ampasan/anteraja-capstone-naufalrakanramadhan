@@ -21,7 +21,9 @@ export function Modal({ open, onClose, children, maxWidth = 'max-w-lg' }: ModalP
         <Dialog.Content
           className={cn(
             'fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2',
-            'w-full bg-white rounded-2xl shadow-[0_20px_25px_-5px_rgba(15,23,42,0.12),0_8px_10px_-6px_rgba(15,23,42,0.08)]',
+            'w-[calc(100vw-1rem)] sm:w-[calc(100vw-2rem)] max-h-[calc(100vh-1.5rem)] sm:max-h-[calc(100vh-3rem)]',
+            'bg-white rounded-2xl shadow-[0_20px_25px_-5px_rgba(15,23,42,0.12),0_8px_10px_-6px_rgba(15,23,42,0.08)]',
+            'flex flex-col overflow-hidden',
             'focus:outline-none',
             'data-[state=open]:animate-in data-[state=closed]:animate-out',
             'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',

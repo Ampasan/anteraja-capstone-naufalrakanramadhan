@@ -61,17 +61,11 @@ export function LoginForm({
 
       {/* ── Field 3: Kata Sandi ── */}
       <div className="flex flex-col gap-1.5">
-        {/* Label row: "Kata Sandi" + "Lupa kata sandi?" */}
+        {/* Label row: "Kata Sandi" */}
         <div className="flex items-center justify-between">
           <label htmlFor="login-password" className="text-[13px] font-semibold text-[#374151]">
             Kata Sandi
           </label>
-          <button
-            type="button"
-            className="text-[12px] font-medium text-[#99004C] hover:text-[#C91076] transition-colors duration-150 cursor-pointer"
-          >
-            Lupa kata sandi?
-          </button>
         </div>
 
         {/* Input dengan toggle show/hide */}

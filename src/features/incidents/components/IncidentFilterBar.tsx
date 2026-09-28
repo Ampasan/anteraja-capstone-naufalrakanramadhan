@@ -56,12 +56,12 @@ export function IncidentFilterBar({
   onReset,
 }: IncidentFilterBarProps) {
   return (
-    <div className="bg-white border border-[#E2E8F0] rounded-2xl px-5 py-4 shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] flex flex-col gap-4">
+    <div className="bg-white border border-[#E2E8F0] rounded-2xl px-4 sm:px-5 py-3 sm:py-4 shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] flex flex-col gap-3 sm:gap-4">
 
       {/* ── Baris 1: Search + Status Tabs ── */}
-      <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
         {/* Search */}
-        <div className="flex-1 min-w-[200px]">
+        <div className="flex-1 min-w-0">
           <Input
             leftIcon={<Search size={14} />}
             placeholder="Cari no. resi atau nama kurir..."
@@ -72,7 +72,7 @@ export function IncidentFilterBar({
         </div>
 
         {/* Status Tabs — pill style */}
-        <div className="flex items-center gap-1 flex-shrink-0 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-1">
+        <div className="flex items-center gap-1 flex-shrink-0 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-1 overflow-x-auto">
           {STATUS_TABS.map((tab) => {
             const isActive = statusTab === tab;
             return (
@@ -80,7 +80,7 @@ export function IncidentFilterBar({
                 key={tab}
                 onClick={() => onStatusTabChange(tab)}
                 className={cn(
-                  'px-3 py-1.5 rounded-lg text-[12px] font-bold transition-all duration-200',
+                  'px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-[12px] font-bold transition-all duration-200 whitespace-nowrap flex-shrink-0',
                   isActive
                     ? TAB_ACTIVE[tab] + ' shadow-sm scale-105'
                     : TAB_INACTIVE_TEXT[tab] + ' hover:bg-white hover:shadow-sm',

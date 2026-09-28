@@ -89,11 +89,11 @@ export function MonitoringPage({
       className="flex flex-col h-full overflow-hidden bg-[#F8FAFC]"
     >
       {/* ─ Title bar halaman ─ */}
-      <header className="flex-shrink-0 flex items-center justify-between px-4 py-2 bg-white border-b border-[#E2E8F0]">
+      <header className="flex-shrink-0 flex items-center justify-between px-3 sm:px-4 py-2 bg-white border-b border-[#E2E8F0]">
         {/* Judul + ikon roket */}
         <h2
           id="monitoring-title"
-          className="flex items-center gap-2 text-[15px] font-bold text-[#0F172A] m-0"
+          className="flex items-center gap-2 text-[13px] sm:text-[15px] font-bold text-[#0F172A] m-0"
         >
           <svg
             aria-hidden="true"
@@ -106,11 +106,12 @@ export function MonitoringPage({
             <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/>
             <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
           </svg>
-          Monitoring Armada Aktif
+          <span className="hidden sm:inline">Monitoring Armada Aktif</span>
+          <span className="sm:hidden">Live Monitoring</span>
         </h2>
 
         {/* Kontrol peta: Pusatkan Hub + Peta Penuh */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <button
             type="button"
             onClick={() => {
@@ -120,10 +121,11 @@ export function MonitoringPage({
                 { duration: 0.8 },
               );
             }}
-            className="flex items-center gap-1.5 text-[13px] font-semibold text-[#475569] bg-white border border-[#E2E8F0] hover:bg-[#F8FAFC] rounded-lg px-3 h-9 transition-colors"
+            className="flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-[13px] font-semibold text-[#475569] bg-white border border-[#E2E8F0] hover:bg-[#F8FAFC] rounded-lg px-2 sm:px-3 h-8 sm:h-9 transition-colors"
           >
             <MapPin size={12} className="text-[#C91076]" aria-hidden="true" />
-            Pusatkan Hub
+            <span className="hidden sm:inline">Pusatkan Hub</span>
+            <span className="sm:hidden">Hub</span>
           </button>
 
           <button
@@ -131,7 +133,7 @@ export function MonitoringPage({
             onClick={handleToggleFullscreen}
             aria-pressed={state.isFullscreen}
             aria-label={state.isFullscreen ? 'Keluar dari mode peta penuh' : 'Aktifkan mode peta penuh'}
-            className={`flex items-center gap-1.5 text-[13px] font-semibold rounded-lg px-3 h-9 border transition-colors ${
+            className={`flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-[13px] font-semibold rounded-lg px-2 sm:px-3 h-8 sm:h-9 border transition-colors ${
               state.isFullscreen
                 ? 'bg-[#C91076] text-white border-[#C91076] hover:bg-[#E51A8A]'
                 : 'bg-white text-[#475569] border-[#E2E8F0] hover:bg-[#F8FAFC]'
@@ -148,7 +150,7 @@ export function MonitoringPage({
                 : <><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></>
               }
             </svg>
-            <span aria-hidden="true">
+            <span aria-hidden="true" className="hidden sm:inline">
               {state.isFullscreen ? 'Keluar Peta Penuh' : 'Peta Penuh'}
             </span>
           </button>

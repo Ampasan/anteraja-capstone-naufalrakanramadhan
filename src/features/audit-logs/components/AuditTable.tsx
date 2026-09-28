@@ -201,20 +201,18 @@ export function AuditTable({ data, pagination, onPageChange }: AuditTableProps) 
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-[#FDF2F8]">
-              {[
-                { label: 'NO. RESI & LAYANAN', hint: 'Nomor resi paket dan jenis layanan pengiriman' },
-                { label: 'WAKTU SELESAI',       hint: 'Jam dan tanggal pengalihan berhasil diselesaikan' },
-                { label: 'PENGALIHAN KURIR',    hint: 'Kurir asal yang terkendala → kurir pengganti' },
-                { label: 'JENIS KENDALA',       hint: 'Masalah yang menyebabkan pengalihan terjadi' },
-              ].map(({ label, hint }) => (
-                <th
-                  key={label}
-                  title={hint}
-                  className="px-5 py-3.5 text-left text-[11.5px] font-extrabold uppercase tracking-widest text-[#99004C] whitespace-nowrap border-b-2 border-[#F0D0E0] cursor-help"
-                >
-                  {label}
-                </th>
-              ))}
+              <th title="Nomor resi paket dan jenis layanan pengiriman" className="px-3 sm:px-5 py-3.5 text-left text-[11.5px] font-extrabold uppercase tracking-widest text-[#99004C] whitespace-nowrap border-b-2 border-[#F0D0E0] cursor-help">
+                NO. RESI &amp; LAYANAN
+              </th>
+              <th title="Jam dan tanggal pengalihan berhasil diselesaikan" className="hidden sm:table-cell px-5 py-3.5 text-left text-[11.5px] font-extrabold uppercase tracking-widest text-[#99004C] whitespace-nowrap border-b-2 border-[#F0D0E0] cursor-help">
+                WAKTU SELESAI
+              </th>
+              <th title="Kurir asal yang terkendala → kurir pengganti" className="px-3 sm:px-5 py-3.5 text-left text-[11.5px] font-extrabold uppercase tracking-widest text-[#99004C] whitespace-nowrap border-b-2 border-[#F0D0E0] cursor-help">
+                PENGALIHAN KURIR
+              </th>
+              <th title="Masalah yang menyebabkan pengalihan terjadi" className="hidden md:table-cell px-5 py-3.5 text-left text-[11.5px] font-extrabold uppercase tracking-widest text-[#99004C] whitespace-nowrap border-b-2 border-[#F0D0E0] cursor-help">
+                JENIS KENDALA
+              </th>
             </tr>
           </thead>
 
@@ -248,10 +246,10 @@ export function AuditTable({ data, pagination, onPageChange }: AuditTableProps) 
                     )}
                   >
                     {/* Col 1: Resi + service */}
-                    <td className="px-5 py-5">
+                    <td className="px-3 sm:px-5 py-4 sm:py-5">
                       <div className="flex items-center">
                         <span
-                          className="text-[14px] font-semibold text-[#111827] tracking-tight font-mono"
+                          className="text-[12px] sm:text-[14px] font-semibold text-[#111827] tracking-tight font-mono"
                           title={`Nomor Resi: ${entry.resi}`}
                         >
                           {entry.resi}
@@ -261,16 +259,20 @@ export function AuditTable({ data, pagination, onPageChange }: AuditTableProps) 
                       <span
                         className={cn(
                           'mt-2 inline-flex items-center px-2.5 py-0.5 rounded-md',
-                          'text-[11.5px] font-bold uppercase tracking-wide border',
+                          'text-[11px] sm:text-[11.5px] font-bold uppercase tracking-wide border',
                           svc.cls,
                         )}
                       >
                         {svc.label}
                       </span>
+                      {/* Waktu selesai — mobile only (hidden sm column) */}
+                      <p className="sm:hidden text-[11px] text-[#6B7280] mt-1.5 font-medium tabular-nums">
+                        {fmtTime(entry.completedAt)} · {fmtDate(entry.completedAt)}
+                      </p>
                     </td>
 
-                    {/* Col 2: Waktu selesai */}
-                    <td className="px-5 py-5">
+                    {/* Col 2: Waktu selesai — hidden on mobile */}
+                    <td className="hidden sm:table-cell px-5 py-4 sm:py-5">
                       <p className="text-[15px] font-bold text-[#111827] leading-tight tabular-nums">
                         {fmtTime(entry.completedAt)}
                       </p>
@@ -280,37 +282,50 @@ export function AuditTable({ data, pagination, onPageChange }: AuditTableProps) 
                     </td>
 
                     {/* Col 3: Pengalihan kurir */}
-                    <td className="px-5 py-5">
-                      <div className="flex items-center gap-2.5 flex-wrap">
+                    <td className="px-3 sm:px-5 py-4 sm:py-5">
+                      <div className="flex items-center gap-1.5 sm:gap-2.5 flex-wrap">
                         {/* Kurir asal */}
                         <div className="flex flex-col min-w-0">
-                          <span className="text-[13.5px] font-medium text-[#374151] leading-tight">
+                          <span className="text-[12px] sm:text-[13.5px] font-medium text-[#374151] leading-tight">
                             {entry.fromCourier}
                           </span>
-                          <span className="text-[11px] font-semibold text-[#9CA3AF] mt-0.5 font-mono">
+                          <span className="text-[10px] sm:text-[11px] font-semibold text-[#9CA3AF] mt-0.5 font-mono">
                             {entry.fromCourierCode}
                           </span>
                         </div>
 
                         {/* Arrow */}
-                        <div className="flex-shrink-0 w-7 h-7 rounded-full bg-[#FFF0F6] border border-[#F9A8D4] flex items-center justify-center">
-                          <ArrowRight size={13} className="text-[#C91076]" strokeWidth={2.5} />
+                        <div className="flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#FFF0F6] border border-[#F9A8D4] flex items-center justify-center">
+                          <ArrowRight size={11} className="text-[#C91076]" strokeWidth={2.5} />
                         </div>
 
                         {/* Kurir pengganti */}
                         <div className="flex flex-col min-w-0">
-                          <span className="text-[13.5px] font-bold text-[#059669] leading-tight">
+                          <span className="text-[12px] sm:text-[13.5px] font-bold text-[#059669] leading-tight">
                             {entry.toCourier}
                           </span>
-                          <span className="text-[11px] font-semibold text-[#34D399] mt-0.5 font-mono">
+                          <span className="text-[10px] sm:text-[11px] font-semibold text-[#34D399] mt-0.5 font-mono">
                             {entry.toCourierCode}
                           </span>
                         </div>
                       </div>
+                      {/* Kendala — mobile only (hidden md column) */}
+                      <div className="md:hidden mt-2">
+                        <span
+                          className={cn(
+                            'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full',
+                            'text-[11px] font-semibold border',
+                            inc.cls,
+                          )}
+                        >
+                          {inc.icon}
+                          {entry.incidentDetail}
+                        </span>
+                      </div>
                     </td>
 
-                    {/* Col 4: Kendala */}
-                    <td className="px-5 py-5">
+                    {/* Col 4: Kendala — hidden on mobile */}
+                    <td className="hidden md:table-cell px-5 py-4 sm:py-5">
                       <span
                         className={cn(
                           'inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full',
@@ -332,18 +347,18 @@ export function AuditTable({ data, pagination, onPageChange }: AuditTableProps) 
       </div>
 
       {/* ── Footer ── */}
-      <div className="flex items-center justify-between px-5 py-4 border-t border-[#F3F4F6] bg-[#FAFAFA]">
-        {/* Info — */}
-        <div className="flex items-center gap-1.5">
-          <span className="text-[13px] text-[#6B7280]">Menampilkan</span>
-          <span className="text-[14px] font-extrabold text-[#111827] bg-[#F3F4F6] px-2 py-0.5 rounded-md">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 sm:px-5 py-3.5 sm:py-4 border-t border-[#F3F4F6] bg-[#FAFAFA]">
+        {/* Info */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-[12px] sm:text-[13px] text-[#6B7280]">Menampilkan</span>
+          <span className="text-[13px] sm:text-[14px] font-extrabold text-[#111827] bg-[#F3F4F6] px-2 py-0.5 rounded-md">
             {Math.min(pageSize, totalItems)}
           </span>
-          <span className="text-[13px] text-[#6B7280]">dari</span>
-          <span className="text-[14px] font-extrabold text-[#C91076]">
+          <span className="text-[12px] sm:text-[13px] text-[#6B7280]">dari</span>
+          <span className="text-[13px] sm:text-[14px] font-extrabold text-[#C91076]">
             {totalItems}
           </span>
-          <span className="text-[13px] text-[#6B7280]">catatan audit terverifikasi</span>
+          <span className="text-[12px] sm:text-[13px] text-[#6B7280]">catatan audit terverifikasi</span>
         </div>
 
         {totalItems > 0 && (

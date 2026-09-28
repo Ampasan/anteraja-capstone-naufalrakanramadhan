@@ -44,7 +44,9 @@ export function CourierList({
     <div
       className={cn(
         'flex flex-col h-full bg-white border-r border-[#E2E8F0] flex-shrink-0 transition-all duration-300 overflow-hidden',
-        isOpen ? 'w-[290px]' : 'w-0',
+        'z-[420]',
+        'max-md:absolute max-md:inset-y-0 max-md:left-0 max-md:shadow-2xl',
+        isOpen ? 'w-[290px] sm:w-[320px]' : 'w-0 border-r-0',
       )}
     >
       {/* Search bar + collapse button */}

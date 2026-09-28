@@ -36,7 +36,7 @@ export function AuditFilterBar({
     <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-sm overflow-hidden">
 
       {/* ── Search + Date tabs ── */}
-      <div className="flex items-center border-b border-[#F3F4F6]">
+      <div className="flex flex-col sm:flex-row sm:items-center border-b border-[#F3F4F6]">
 
         {/* Search */}
         <div className="flex-1 flex items-center gap-2.5 px-4 py-2.5">
@@ -59,11 +59,11 @@ export function AuditFilterBar({
           )}
         </div>
 
-        {/* Divider vertikal */}
-        <div className="w-px h-10 bg-[#E5E7EB] flex-shrink-0" />
+        {/* Divider: horizontal on mobile, vertical on sm+ */}
+        <div className="h-px sm:h-10 sm:w-px bg-[#E5E7EB] flex-shrink-0" />
 
         {/* Date tabs */}
-        <nav className="flex items-center px-2" aria-label="Filter rentang waktu">
+        <nav className="flex items-center px-2 overflow-x-auto" aria-label="Filter rentang waktu">
           {DATE_TABS.map((tab) => {
             const isActive = dateFilter === tab.key;
             return (
@@ -72,7 +72,7 @@ export function AuditFilterBar({
                 onClick={() => onDateFilterChange(tab.key)}
                 title={tab.hint}
                 className={cn(
-                  'relative px-4 py-3.5 text-[13.5px] font-semibold transition-all duration-150 whitespace-nowrap',
+                  'relative px-3 sm:px-4 py-3.5 text-[12px] sm:text-[13.5px] font-semibold transition-all duration-150 whitespace-nowrap flex-shrink-0',
                   isActive
                     ? 'text-[#C91076] font-bold'
                     : 'text-[#6B7280] hover:text-[#111827]',

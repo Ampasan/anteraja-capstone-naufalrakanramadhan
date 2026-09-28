@@ -93,11 +93,11 @@ export function SlaTable({
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[#E2E8F0] bg-[#FAFBFC]">
-              <th className="text-left px-5 py-3.5 text-[11px] font-bold uppercase tracking-[0.1em] text-[#64748B] whitespace-nowrap">No. Resi &amp; Layanan</th>
-              <th className="text-left px-5 py-3.5 text-[11px] font-bold uppercase tracking-[0.1em] text-[#64748B] whitespace-nowrap">Tujuan Pengantaran</th>
-              <th className="text-left px-5 py-3.5 text-[11px] font-bold uppercase tracking-[0.1em] text-[#64748B] whitespace-nowrap">Keadaan</th>
-              <th className="text-left px-5 py-3.5 text-[11px] font-bold uppercase tracking-[0.1em] text-[#64748B] whitespace-nowrap">Sisa SLA &amp; Status</th>
-              <th className="text-right px-5 py-3.5 text-[11px] font-bold uppercase tracking-[0.1em] text-[#64748B] whitespace-nowrap">Aksi Cepat</th>
+              <th className="text-left px-3 sm:px-5 py-3.5 text-[11px] font-bold uppercase tracking-[0.1em] text-[#64748B] whitespace-nowrap">No. Resi &amp; Layanan</th>
+              <th className="hidden sm:table-cell text-left px-5 py-3.5 text-[11px] font-bold uppercase tracking-[0.1em] text-[#64748B] whitespace-nowrap">Tujuan Pengantaran</th>
+              <th className="hidden md:table-cell text-left px-5 py-3.5 text-[11px] font-bold uppercase tracking-[0.1em] text-[#64748B] whitespace-nowrap">Keadaan</th>
+              <th className="text-left px-3 sm:px-5 py-3.5 text-[11px] font-bold uppercase tracking-[0.1em] text-[#64748B] whitespace-nowrap">Sisa SLA &amp; Status</th>
+              <th className="text-right px-3 sm:px-5 py-3.5 text-[11px] font-bold uppercase tracking-[0.1em] text-[#64748B] whitespace-nowrap">Aksi</th>
             </tr>
           </thead>
 
@@ -131,10 +131,10 @@ export function SlaTable({
                     )}
                   >
                     {/* ── Resi & Layanan ── */}
-                    <td className="px-5 py-4 align-middle">
+                    <td className="px-3 sm:px-5 py-4 align-middle">
                       <div className="flex flex-col gap-1.5">
                         <div className="flex items-center gap-1.5">
-                          <span className="font-bold text-[#C91076] text-sm font-mono tracking-tight">
+                          <span className="font-bold text-[#C91076] text-xs sm:text-sm font-mono tracking-tight">
                             {order.waybillNumber}
                           </span>
                           <button
@@ -157,17 +157,19 @@ export function SlaTable({
                         )}>
                           {order.serviceType}
                         </span>
+                        {/* Destination shown only on mobile (replaces hidden column) */}
+                        <p className="sm:hidden text-xs font-semibold text-[#0F172A] leading-snug mt-0.5">{order.destinationName}</p>
                       </div>
                     </td>
 
                     {/* ── Tujuan ── */}
-                    <td className="px-5 py-4 align-middle">
+                    <td className="hidden sm:table-cell px-5 py-4 align-middle">
                       <p className="font-bold text-[#0F172A] text-sm leading-snug">{order.destinationName}</p>
                       <p className="text-xs text-[#94A3B8] mt-0.5 font-medium">{order.destinationArea}</p>
                     </td>
 
                     {/* ── Keadaan ── */}
-                    <td className="px-5 py-4 align-middle">
+                    <td className="hidden md:table-cell px-5 py-4 align-middle">
                       <span className={cn(
                         'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border whitespace-nowrap',
                         cond.bg, cond.text, cond.border,
@@ -178,9 +180,9 @@ export function SlaTable({
                     </td>
 
                     {/* ── Sisa SLA ── */}
-                    <td className="px-5 py-4 align-middle">
+                    <td className="px-3 sm:px-5 py-4 align-middle">
                       <span className={cn(
-                        'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold border whitespace-nowrap',
+                        'inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-bold border whitespace-nowrap',
                         risk.bg, risk.text, risk.border,
                       )}>
                         <span className={cn('w-2 h-2 rounded-full flex-shrink-0', risk.dot,
@@ -191,23 +193,23 @@ export function SlaTable({
                     </td>
 
                     {/* ── Aksi Cepat ── */}
-                    <td className="px-5 py-4 align-middle">
-                      <div className="flex items-center justify-end gap-2">
+                    <td className="px-3 sm:px-5 py-4 align-middle">
+                      <div className="flex items-center justify-end gap-1.5 sm:gap-2">
                         <button
                           onClick={() => onOpenMap(order)}
                           title={`Lacak posisi kurir ${order.courierId} di peta`}
-                          className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-bold text-[#C91076] bg-[#FFF0F6] border border-[#F9A8D4] hover:bg-[#FFE0F0] hover:border-[#C91076] hover:scale-[1.04] active:scale-[0.97] transition-all duration-150"
+                          className="inline-flex items-center gap-1 sm:gap-1.5 h-8 px-2 sm:px-3 rounded-lg text-xs font-bold text-[#C91076] bg-[#FFF0F6] border border-[#F9A8D4] hover:bg-[#FFE0F0] hover:border-[#C91076] hover:scale-[1.04] active:scale-[0.97] transition-all duration-150"
                         >
                           <Map size={12} className="text-[#C91076]" />
-                          Peta
+                          <span className="hidden sm:inline">Peta</span>
                         </button>
                         <button
                           onClick={() => onOpenDetail(order)}
                           title="Lihat detail lengkap pengiriman ini"
-                          className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-bold text-[#475569] bg-white border border-[#E2E8F0] hover:border-[#C91076] hover:text-[#C91076] hover:bg-[#FFF0F6] hover:scale-[1.04] active:scale-[0.97] transition-all duration-150"
+                          className="inline-flex items-center gap-1 sm:gap-1.5 h-8 px-2 sm:px-3 rounded-lg text-xs font-bold text-[#475569] bg-white border border-[#E2E8F0] hover:border-[#C91076] hover:text-[#C91076] hover:bg-[#FFF0F6] hover:scale-[1.04] active:scale-[0.97] transition-all duration-150"
                         >
                           <Info size={12} />
-                          Detail
+                          <span className="hidden sm:inline">Detail</span>
                         </button>
                       </div>
                     </td>
@@ -220,7 +222,7 @@ export function SlaTable({
       </div>
 
       {/* ── Footer / Pagination ── */}
-      <div className="flex items-center justify-between px-5 py-3.5 border-t border-[#E2E8F0] bg-[#FAFBFC]">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-3 sm:px-5 py-3.5 border-t border-[#E2E8F0] bg-[#FAFBFC]">
         <span className="text-xs text-[#64748B]">
           Menampilkan{' '}
           <span className="font-bold text-[#0F172A]">{orders.length}</span>{' '}
@@ -229,7 +231,7 @@ export function SlaTable({
           pengiriman aktif
         </span>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 flex-wrap">
           <button
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}

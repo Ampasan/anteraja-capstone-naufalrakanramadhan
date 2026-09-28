@@ -30,7 +30,7 @@ function KpiCard({
 }: KpiCardProps) {
   return (
     <div
-      className={`flex-1 min-w-0 bg-white border-2 ${borderAccent} rounded-2xl px-5 py-4
+      className={`min-w-0 bg-white border-2 ${borderAccent} rounded-2xl px-4 sm:px-5 py-4
         shadow-[0_2px_8px_0_rgba(15,23,42,0.05)]
         hover:shadow-[0_4px_16px_0_rgba(15,23,42,0.10)]
         hover:-translate-y-0.5
@@ -66,7 +66,7 @@ function KpiCard({
 
 export function IncidentSummaryCards({ kpi }: IncidentSummaryCardsProps) {
   return (
-    <div className="flex gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
       {/* Kritis */}
       <KpiCard
         dotColor="bg-red-500"

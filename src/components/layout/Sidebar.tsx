@@ -1,4 +1,4 @@
-import { LayoutDashboard, AlertTriangle, ArrowLeftRight, ClipboardList } from 'lucide-react';
+import { LayoutDashboard, AlertTriangle, ArrowLeftRight, ClipboardList, X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import anterajaLogo from '../../assets/anteraja_logo.png';
 
@@ -43,30 +43,45 @@ const HUB_CAPACITY = { used: 2410, total: 2850, pct: 84 };
 interface SidebarProps {
   activePage: PageId;
   onNavigate: (page: PageId) => void;
+  onCloseMobile?: () => void;
 }
 
-export function Sidebar({ activePage, onNavigate }: SidebarProps) {
+export function Sidebar({ activePage, onNavigate, onCloseMobile }: SidebarProps) {
   return (
     <nav
       aria-label="Navigasi modul dispatch"
       style={{ animation: 'sidebarSlideIn 0.32s cubic-bezier(0.22,0.61,0.36,1) both' }}
-      className="flex flex-col h-full bg-white border-r border-[#E2E8F0] w-[220px] flex-shrink-0"
+      className="flex flex-col h-full bg-white border-r border-[#E2E8F0] w-full lg:w-[220px] flex-shrink-0 overflow-y-auto"
     >
       {/* ── Branding ── */}
-      <header className="flex items-center gap-3 px-4 h-14 flex-shrink-0 border-b border-[#E2E8F0]">
-        <img
-          src={anterajaLogo}
-          alt="Logo Anteraja"
-          className="h-8 w-auto object-contain flex-shrink-0"
-        />
-        <span className="flex flex-col leading-none">
-          <span className="text-[15px] font-extrabold text-[#C91076] tracking-tight leading-tight">
-            Anteraja
+      <header className="flex items-center justify-between px-4 h-14 flex-shrink-0 border-b border-[#E2E8F0]">
+        <div className="flex items-center gap-3 min-w-0">
+          <img
+            src={anterajaLogo}
+            alt="Logo Anteraja"
+            className="h-8 w-auto object-contain flex-shrink-0"
+          />
+          <span className="flex flex-col leading-none">
+            <span className="text-[15px] font-extrabold text-[#C91076] tracking-tight leading-tight">
+              Anteraja
+            </span>
+            <span className="text-[11px] font-semibold text-[#9CA3AF] tracking-wide mt-0.5">
+              Dispatch
+            </span>
           </span>
-          <span className="text-[11px] font-semibold text-[#9CA3AF] tracking-wide mt-0.5">
-            Dispatch
-          </span>
-        </span>
+        </div>
+
+        {/* Close button on mobile / tablet drawer */}
+        {onCloseMobile && (
+          <button
+            type="button"
+            onClick={onCloseMobile}
+            className="lg:hidden p-1.5 rounded-lg text-[#94A3B8] hover:text-[#0F172A] hover:bg-[#F1F5F9] transition-colors"
+            aria-label="Tutup navigasi"
+          >
+            <X size={18} />
+          </button>
+        )}
       </header>
 
       {/* ── Section label  ── */}
@@ -87,7 +102,10 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
             <li key={item.id}>
               <button
                 type="button"
-                onClick={() => onNavigate(item.id)}
+                onClick={() => {
+                  onNavigate(item.id);
+                  onCloseMobile?.();
+                }}
                 title={item.description}
                 aria-current={isActive ? 'page' : undefined}
                 style={{

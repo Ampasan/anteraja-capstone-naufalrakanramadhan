@@ -221,7 +221,7 @@ export function exportToPDF(entries: AuditLogEntry[]): void {
     <span>Total: ${entries.length} catatan terverifikasi</span>
   </div>
 
-  <script>window.onload = function() { window.print(); }<\/script>
+  <script>window.onload = function() { window.print(); }</script>
 </body>
 </html>`;
 

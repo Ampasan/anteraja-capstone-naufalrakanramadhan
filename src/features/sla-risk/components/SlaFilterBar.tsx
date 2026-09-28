@@ -43,9 +43,9 @@ export function SlaFilterBar({
       <div className="p-4 flex flex-col gap-4">
 
         {/* ── Row 1: Search + Risk Tabs ── */}
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-wrap">
           {/* Search */}
-          <div className="relative flex-1 min-w-[220px] max-w-sm">
+          <div className="relative flex-1 min-w-0 sm:min-w-[220px] sm:max-w-sm">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8] pointer-events-none" />
             <input
               type="text"
@@ -57,19 +57,17 @@ export function SlaFilterBar({
             />
           </div>
 
-          <div className="flex-1" />
-
           {/* Risk tabs */}
           <div className="flex flex-col gap-0.5">
             <span className="text-[9px] font-bold uppercase tracking-widest text-[#94A3B8] px-1">Filter Status SLA</span>
-            <div className="flex items-center bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg p-0.5 gap-0.5">
+            <div className="flex items-center bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg p-0.5 gap-0.5 overflow-x-auto">
               {RISK_TABS.map((tab) => (
                 <button
                   key={tab.key}
                   onClick={() => onRiskFilter(tab.key)}
                   title={tab.hint}
                   className={cn(
-                    'px-3.5 h-8 text-sm font-semibold rounded-md transition-all duration-150 whitespace-nowrap',
+                    'px-2.5 sm:px-3.5 h-8 text-[12px] sm:text-sm font-semibold rounded-md transition-all duration-150 whitespace-nowrap flex-shrink-0',
                     riskFilter === tab.key
                       ? 'bg-white text-[#0F172A] shadow-sm border border-[#E2E8F0] font-bold'
                       : 'text-[#64748B] hover:text-[#0F172A] hover:bg-white/70',
@@ -91,7 +89,7 @@ export function SlaFilterBar({
             <span className="text-[10px] text-[#94A3B8]">— pilih satu untuk menyaring tabel</span>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 overflow-x-auto pb-0.5">
             {servicePills.map((pill) => {
               const isActive = serviceFilter === pill.key;
               return (
@@ -100,7 +98,7 @@ export function SlaFilterBar({
                   onClick={() => onServiceFilter(pill.key)}
                   title={`Tampilkan paket layanan ${pill.label} saja`}
                   className={cn(
-                    'inline-flex items-center h-8 px-3.5 rounded-full text-xs font-semibold border',
+                    'inline-flex items-center h-7 sm:h-8 px-3 sm:px-3.5 rounded-full text-xs font-semibold border flex-shrink-0',
                     'transition-all duration-200 whitespace-nowrap',
                     'hover:scale-[1.03] active:scale-[0.97]',
                     isActive
@@ -124,7 +122,7 @@ export function SlaFilterBar({
               onClick={onReset}
               title="Hapus semua filter yang aktif"
               className={cn(
-                'inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-semibold',
+                'inline-flex items-center gap-1.5 h-7 sm:h-8 px-3 rounded-full text-xs font-semibold flex-shrink-0',
                 'border transition-all duration-200 whitespace-nowrap ml-auto',
                 'hover:scale-[1.03] active:scale-[0.97]',
                 isFiltered

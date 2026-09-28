@@ -31,7 +31,7 @@ function Section({
 }) {
   return (
     <section className={cn(
-      'rounded-xl overflow-hidden border',
+      'rounded-xl overflow-hidden border flex-shrink-0',
       accent ? 'border-[#F9A8D4]/60' : 'border-[#E2E8F0]',
     )}>
       <div className={cn(
@@ -132,57 +132,56 @@ export function SlaDetailModal({ order, onClose, onOpenMap }: SlaDetailModalProp
 
         <Dialog.Content
           aria-describedby="sla-modal-body"
-          className="fixed inset-0 z-50 overflow-y-auto p-4 focus:outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
+          className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-[calc(100vw-1rem)] sm:w-[calc(100vw-2rem)] max-w-[720px] max-h-[calc(100vh-1.5rem)] sm:max-h-[calc(100vh-2.5rem)] flex flex-col bg-white rounded-2xl shadow-[0_24px_48px_-12px_rgba(15,23,42,0.28)] overflow-hidden focus:outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]"
         >
-          <div className="flex items-center justify-center min-h-full">
-
-            <div
-              className="relative w-full max-w-[720px] my-4 flex flex-col bg-white rounded-2xl shadow-[0_24px_48px_-12px_rgba(15,23,42,0.28)]"
-              onClick={(e) => e.stopPropagation()}
-            >
-
-              {/* ══ HEADER ══ */}
-              <div className="flex-shrink-0 flex items-center justify-between px-6 py-4 bg-gradient-to-r from-[#FFF0F6] via-white to-white border-b border-[#F9A8D4]/60 rounded-t-2xl">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-1 h-9 rounded-full bg-[#C91076] flex-shrink-0" />
-                  <div className="flex flex-col gap-0.5 min-w-0">
-                    <div className="flex items-center gap-2.5 flex-wrap">
-                      <h2 className="text-lg font-black leading-none text-[#0F172A] whitespace-nowrap">
-                        Paket <span className="text-[#C91076]">#{order.waybillNumber}</span>
-                      </h2>
-                      <span className={cn('inline-flex items-center h-6 px-2.5 rounded-full text-[11px] font-bold border flex-shrink-0', svc.bg, svc.text, svc.border)}>
-                        {order.serviceType}
-                      </span>
-                    </div>
-                  </div>
+          {/* ══ HEADER ══ */}
+          <div className="flex-shrink-0 flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-[#FFF0F6] via-white to-white border-b border-[#F9A8D4]/60 rounded-t-2xl">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-1 h-9 rounded-full bg-[#C91076] flex-shrink-0" />
+              <div className="flex flex-col gap-0.5 min-w-0">
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <Dialog.Title asChild>
+                    <h2 className="text-sm sm:text-lg font-black leading-none text-[#0F172A]">
+                      Paket <span className="text-[#C91076]">#{order.waybillNumber}</span>
+                    </h2>
+                  </Dialog.Title>
+                  <span className={cn('inline-flex items-center h-6 px-2.5 rounded-full text-[11px] font-bold border flex-shrink-0', svc.bg, svc.text, svc.border)}>
+                    {order.serviceType}
+                  </span>
                 </div>
-                <button
-                  onClick={onClose}
-                  aria-label="Tutup detail pengiriman"
-                  title="Tutup"
-                  className="ml-4 flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full text-[#94A3B8] hover:text-[#C91076] hover:bg-[#FFF0F6] transition-colors"
-                >
-                  <X size={16} />
-                </button>
               </div>
+            </div>
+            <button
+              onClick={onClose}
+              aria-label="Tutup detail pengiriman"
+              title="Tutup"
+              className="ml-4 flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full text-[#94A3B8] hover:text-[#C91076] hover:bg-[#FFF0F6] transition-colors"
+            >
+              <X size={16} />
+            </button>
+          </div>
 
-              {/* ══ BODY — konten tumbuh natural, parent yang scroll ══ */}
-              <div id="sla-modal-body" className="px-6 py-5 flex flex-col gap-4">
+          {/* ══ BODY — konten scrollable di dalam modul pop-up ══ */}
+          <div
+            id="sla-modal-body"
+            tabIndex={0}
+            className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 sm:px-6 py-4 sm:py-5 flex flex-col gap-4 focus:outline-none"
+          >
 
                 {/* 1 — Identitas Kurir */}
                 <Section icon={Truck} title="Identitas Kurir & Armada Satria">
-                  <div className="grid grid-cols-3 divide-x divide-[#F1F5F9] bg-white">
-                    <div className="px-5 py-4 flex flex-col gap-1.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 sm:divide-x divide-y sm:divide-y-0 divide-[#F1F5F9] bg-white">
+                    <div className="px-4 sm:px-5 py-3 sm:py-4 flex flex-col gap-1.5">
                       <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#94A3B8]">ID Kurir Satria</span>
-                      <span className="text-xl font-black text-[#0F172A] font-mono tracking-tight">{detail.courierId}</span>
+                      <span className="text-lg sm:text-xl font-black text-[#0F172A] font-mono tracking-tight">{detail.courierId}</span>
                     </div>
-                    <div className="px-5 py-4 flex flex-col gap-1.5">
+                    <div className="px-4 sm:px-5 py-3 sm:py-4 flex flex-col gap-1.5">
                       <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#94A3B8]">Tipe Kendaraan</span>
-                      <span className="text-xl font-black text-[#0F172A]">{detail.vehicleType}</span>
+                      <span className="text-lg sm:text-xl font-black text-[#0F172A]">{detail.vehicleType}</span>
                     </div>
-                    <div className="px-5 py-4 flex flex-col gap-2">
+                    <div className="px-4 sm:px-5 py-3 sm:py-4 flex flex-col gap-2">
                       <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#94A3B8]">Kapasitas Muatan</span>
-                      <span className="text-base font-black text-[#0F172A]">{detail.loadUsedKg} / {detail.loadCapacityKg} Kg</span>
+                      <span className="text-sm sm:text-base font-black text-[#0F172A]">{detail.loadUsedKg} / {detail.loadCapacityKg} Kg</span>
                       <div className="h-2 bg-[#F1F5F9] rounded-full overflow-hidden">
                         <div className="h-full bg-[#C91076] rounded-full transition-all duration-500" style={{ width: `${loadPct}%` }} />
                       </div>
@@ -193,16 +192,16 @@ export function SlaDetailModal({ order, onClose, onOpenMap }: SlaDetailModalProp
 
                 {/* 2 — Rincian Penerima */}
                 <Section icon={Package} title="Rincian Penerima & Spesifikasi">
-                  <div className="px-4 py-4 grid grid-cols-5 gap-4 bg-white">
-                    <div className="col-span-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg p-4">
+                  <div className="px-3 sm:px-4 py-3 sm:py-4 grid grid-cols-1 sm:grid-cols-5 gap-3 sm:gap-4 bg-white">
+                    <div className="sm:col-span-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg p-4">
                       <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#94A3B8] block mb-2">Alamat Tujuan Pengiriman</span>
                       <p className="text-sm font-bold text-[#0F172A] leading-snug mb-1.5">{detail.destinationName}</p>
                       <p className="text-xs text-[#64748B] leading-relaxed font-medium">{detail.destinationAddress}</p>
                     </div>
-                    <div className="col-span-2 flex flex-col justify-between gap-4 py-0.5">
+                    <div className="sm:col-span-2 flex flex-col justify-between gap-3 sm:gap-4 py-0.5">
                       <div>
                         <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#94A3B8] block mb-1.5">Total Berat &amp; Dimensi</span>
-                        <p className="text-2xl font-black text-[#0F172A] leading-none">{detail.weightKg} Kg</p>
+                        <p className="text-xl sm:text-2xl font-black text-[#0F172A] leading-none">{detail.weightKg} Kg</p>
                         <p className="text-xs text-[#94A3B8] mt-1 font-medium">{detail.dimensionCm} ({detail.volumeCbm})</p>
                       </div>
                       <div>
@@ -224,7 +223,7 @@ export function SlaDetailModal({ order, onClose, onOpenMap }: SlaDetailModalProp
 
                 {/* 4 — Analisis Hambatan */}
                 <Section title="Analisis Faktor Hambatan & Prediksi Keterlambatan" accent>
-                  <div className="p-4 bg-[#FFF8FB] grid grid-cols-3 gap-3">
+                  <div className="p-3 sm:p-4 bg-[#FFF8FB] grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
                     {/* Cuaca */}
                     <div className="bg-white rounded-xl border border-[#F9A8D4]/30 px-4 py-3 flex flex-col gap-2">
                       <div className="flex items-center gap-1.5">
@@ -263,7 +262,7 @@ export function SlaDetailModal({ order, onClose, onOpenMap }: SlaDetailModalProp
               </div>
 
               {/* ══ FOOTER ══ */}
-              <div className="flex items-center justify-between px-6 py-4 border-t border-[#E2E8F0] bg-white rounded-b-2xl">
+              <div className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-t border-[#E2E8F0] bg-white rounded-b-2xl">
                 <button
                   onClick={onClose}
                   className="h-9 px-5 rounded-lg text-sm font-semibold text-[#475569] bg-white border border-[#E2E8F0] hover:bg-[#F8FAFC] transition-colors"
@@ -290,8 +289,6 @@ export function SlaDetailModal({ order, onClose, onOpenMap }: SlaDetailModalProp
                 </div>
               </div>
 
-            </div>
-          </div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
