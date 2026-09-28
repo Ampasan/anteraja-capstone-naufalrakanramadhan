@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { MapPin, ChevronsRight } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import { useMonitoring } from './hooks/useMonitoring';
 import { CourierList } from './components/CourierList';
 import { CourierDetailPanel } from './components/CourierDetailPanel';
@@ -12,26 +13,12 @@ import { EMERGENCY_REASSIGN_PAYLOAD } from '../../data/mockCouriers';
 import type { Courier } from './types';
 import type { Map as LeafletMap } from 'leaflet';
 
-interface MonitoringPageProps {
-  onFullscreenChange?: (isFullscreen: boolean) => void;
-  /** Courier ID to auto-focus when arriving from another page */
-  focusCourierId?: string;
-  /** Called once the focus has been applied, so parent can clear it */
-  onFocusHandled?: () => void;
-}
-
-export function MonitoringPage({
-  onFullscreenChange,
-  focusCourierId,
-  onFocusHandled,
-}: MonitoringPageProps) {
+export function MonitoringPage() {
   const state = useMonitoring();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const focusCourierId = searchParams.get('courier') ?? undefined;
 
   const [listOpen, setListOpen] = useState(true);
-
-  useEffect(() => {
-    onFullscreenChange?.(state.isFullscreen);
-  }, [state.isFullscreen, onFullscreenChange]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -48,9 +35,9 @@ export function MonitoringPage({
       state.selectCourier(target);
       state.mapRef?.flyTo([target.position.lat, target.position.lng], 16, { duration: 0.8 });
     }
-    onFocusHandled?.();
+    setSearchParams({}, { replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [focusCourierId]);
+  }, [focusCourierId, setSearchParams, state.allCouriers, state.mapRef, state.selectCourier]);
 
   const handleMapReady = useCallback(
     (map: LeafletMap) => state.setMapRef(map),

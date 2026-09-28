@@ -6,13 +6,10 @@ import { IncidentList } from './components/IncidentList';
 import { ReassignPanel } from './components/ReassignPanel';
 import { ReassignSuccessModal } from './components/ReassignSuccessModal';
 import { Button } from '../../components/ui/Button';
-import type { PageId } from '../../components/layout/Sidebar';
+import { useNavigate } from 'react-router-dom';
 
-interface IncidentsPageProps {
-  onNavigate?: (page: PageId) => void;
-}
-
-export function IncidentsPage({ onNavigate }: IncidentsPageProps) {
+export function IncidentsPage() {
+  const navigate = useNavigate();
   const {
     filteredIncidents,
     incidents,
@@ -135,7 +132,7 @@ export function IncidentsPage({ onNavigate }: IncidentsPageProps) {
         onClose={closeSuccessModal}
         onGoToAuditLog={() => {
           closeSuccessModal();
-          onNavigate?.('audit');
+          navigate('/audit');
         }}
       />
     </div>
