@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from 'react';
 import type { Map as LeafletMap } from 'leaflet';
 import { mockCouriers } from '../../../data/mockCouriers';
 import type { Courier, CourierFilter } from '../types';
+import { useAppContext } from '../../../context/useAppContext';
 
 export interface MonitoringState {
   allCouriers: Courier[];
@@ -32,7 +33,7 @@ export interface MonitoringActions {
 }
 
 export function useMonitoring(): MonitoringState & MonitoringActions {
-  const [selectedCourier, setSelectedCourier] = useState<Courier | null>(null);
+  const { selectedCourierId, selectCourier: selectCourierId } = useAppContext();
   const [activeFilter, setActiveFilter] = useState<CourierFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isFocusingRoute, setIsFocusingRoute] = useState(false);
@@ -43,6 +44,10 @@ export function useMonitoring(): MonitoringState & MonitoringActions {
   const [mapRef, setMapRef] = useState<LeafletMap | null>(null);
 
   const allCouriers = mockCouriers;
+  const selectedCourier = useMemo(
+    () => allCouriers.find((courier) => courier.id === selectedCourierId) ?? null,
+    [allCouriers, selectedCourierId],
+  );
 
   const counts = useMemo(() => ({
     all:    allCouriers.length,
@@ -75,12 +80,12 @@ export function useMonitoring(): MonitoringState & MonitoringActions {
 
   /** Select a courier — also fly map to their position */
   const selectCourier = useCallback((courier: Courier | null) => {
-    setSelectedCourier(courier);
+    selectCourierId(courier?.id ?? null);
     setIsFocusingRoute(false);
     if (courier && mapRef) {
       mapRef.flyTo([courier.position.lat, courier.position.lng], 16, { duration: 0.8 });
     }
-  }, [mapRef]);
+  }, [mapRef, selectCourierId]);
 
   /** Toggle route focus — zoom in and follow the active route */
   const toggleFocusRoute = useCallback(() => {
