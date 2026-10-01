@@ -1,0 +1,702 @@
+{
+    "info": {
+        "name": "Anteraja Courier Admin API",
+        "description": "Collection untuk testing API Courier Admin Mini Panel.\n\nLangkah:\n1. Jalankan `php artisan serve --port=8000` di folder backend\n2. Jalankan request \"1. Login\" dulu\n3. Token otomatis tersimpan ke variable {{token}}\n4. Jalankan endpoint lainnya\n\nCatatan realtime:\n- Event WebSocket (Laravel Reverb) disiarkan ke channel `hub.{hubId}`:\n  incident.reported, incident.escalated, incident.reassigned, courier.telemetry.\n  Lihat bagian \"Realtime (Laravel Reverb)\" di API_DOCUMENTATION.md.\n- Untuk pengiriman event & notifikasi jalankan `php artisan queue:listen`\n  dan `php artisan reverb:start`.\n- \"Get Replacement Candidates\" sebaiknya selalu mengirim `order_id` agar\n  filter kompatibilitas armada ikut dijalankan.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:8000/api"
+        },
+        {
+            "key": "token",
+            "value": ""
+        },
+        {
+            "key": "hub_id",
+            "value": ""
+        },
+        {
+            "key": "courier_id",
+            "value": ""
+        },
+        {
+            "key": "incident_id",
+            "value": ""
+        },
+        {
+            "key": "waybill_number",
+            "value": ""
+        },
+        {
+            "key": "replacement_courier_id",
+            "value": ""
+        }
+    ],
+    "item": [
+        {
+            "name": "0. Health Check (Public)",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "{{base_url}}/health",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "health"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "1. Get Hubs (Public)",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "const data = pm.response.json().data;",
+                            "if (data && data.hubs && data.hubs.length > 0) {",
+                            "    pm.collectionVariables.set('hub_id', data.hubs[0].id);",
+                            "    console.log('hub_id disimpan:', data.hubs[0].id);",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "{{base_url}}/hubs",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "hubs"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "2. Login",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Login sukses', () => pm.expect(pm.response.json().ok).to.be.true);",
+                            "const res = pm.response.json();",
+                            "if (res.ok) {",
+                            "    pm.collectionVariables.set('token', res.data.token);",
+                            "    console.log('Token tersimpan otomatis');",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"email\": \"siti.admin@anteraja.id\",\n  \"password\": \"Anteraja2026!\",\n  \"hub_id\": \"{{hub_id}}\"\n}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "{{base_url}}/auth/login",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "auth",
+                        "login"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "3. Get Current User",
+            "request": {
+                "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                        {
+                            "key": "token",
+                            "value": "{{token}}"
+                        }
+                    ]
+                },
+                "method": "GET",
+                "url": {
+                    "raw": "{{base_url}}/auth/me",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "auth",
+                        "me"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "4. Dashboard Summary",
+            "request": {
+                "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                        {
+                            "key": "token",
+                            "value": "{{token}}"
+                        }
+                    ]
+                },
+                "method": "GET",
+                "url": {
+                    "raw": "{{base_url}}/dashboard/summary",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "dashboard",
+                        "summary"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "5. Get Couriers",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "const data = pm.response.json().data;",
+                            "if (data && data.couriers && data.couriers.length > 0) {",
+                            "    pm.collectionVariables.set('courier_id', data.couriers[0].id);",
+                            "    console.log('courier_id disimpan:', data.couriers[0].name);",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                        {
+                            "key": "token",
+                            "value": "{{token}}"
+                        }
+                    ]
+                },
+                "method": "GET",
+                "url": {
+                    "raw": "{{base_url}}/couriers",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "couriers"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "6. Get Courier Detail",
+            "request": {
+                "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                        {
+                            "key": "token",
+                            "value": "{{token}}"
+                        }
+                    ]
+                },
+                "method": "GET",
+                "url": {
+                    "raw": "{{base_url}}/couriers/{{courier_id}}",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "couriers",
+                        "{{courier_id}}"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "7. Update Telemetry",
+            "request": {
+                "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                        {
+                            "key": "token",
+                            "value": "{{token}}"
+                        }
+                    ]
+                },
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"latitude\": -6.2678,\n  \"longitude\": 106.8812,\n  \"speed_kmh\": 22.5,\n  \"temperature_c\": 4.5,\n  \"battery_level\": 92\n}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "{{base_url}}/couriers/{{courier_id}}/telemetry",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "couriers",
+                        "{{courier_id}}",
+                        "telemetry"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Get Replacement Candidates",
+            "request": {
+                "method": "GET",
+                "description": "Kandidat kurir pengganti (FRD-03 / BR-02). exclude_id wajib; order_id dipakai untuk menyaring kompatibilitas armada (Cargo = Van/Truk, Frozen = tas termal, PHARMA = BPOM).",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{token}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/couriers/candidates?exclude_id={{courier_id}}&order_id={{order_id}}",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "couriers",
+                        "candidates"
+                    ],
+                    "query": [
+                        {
+                            "key": "exclude_id",
+                            "value": "{{courier_id}}",
+                            "description": "Kurir yang sedang bermasalah"
+                        },
+                        {
+                            "key": "order_id",
+                            "value": "{{order_id}}",
+                            "description": "Opsional — untuk validasi armada"
+                        },
+                        {
+                            "key": "weight_kg",
+                            "value": "",
+                            "description": "Opsional — bobot muatan"
+                        }
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "8. SLA Risk Orders",
+            "request": {
+                "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                        {
+                            "key": "token",
+                            "value": "{{token}}"
+                        }
+                    ]
+                },
+                "method": "GET",
+                "url": {
+                    "raw": "{{base_url}}/orders/sla-risk",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "orders",
+                        "sla-risk"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "9. Get Incidents",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "const data = pm.response.json().data;",
+                            "if (data && data.incidents && data.incidents.length > 0) {",
+                            "    pm.collectionVariables.set('incident_id', data.incidents[0].id);",
+                            "    pm.collectionVariables.set('waybill_number', data.incidents[0].waybill_number);",
+                            "    console.log('incident_id disimpan:', data.incidents[0].incident_code);",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                        {
+                            "key": "token",
+                            "value": "{{token}}"
+                        }
+                    ]
+                },
+                "method": "GET",
+                "url": {
+                    "raw": "{{base_url}}/incidents",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "incidents"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "10. Create Incident",
+            "request": {
+                "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                        {
+                            "key": "token",
+                            "value": "{{token}}"
+                        }
+                    ]
+                },
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"order_number\": \"100024000009\",\n  \"courier_id\": \"{{courier_id}}\",\n  \"incident_category\": \"Anomali Suhu\",\n  \"title\": \"Pendingin Tidak Stabil\",\n  \"description\": \"Suhu box pendingin melonjak\"\n}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "{{base_url}}/incidents",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "incidents"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "11. Reassign Incident",
+            "request": {
+                "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                        {
+                            "key": "token",
+                            "value": "{{token}}"
+                        }
+                    ]
+                },
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"replacement_courier_id\": \"{{replacement_courier_id}}\"\n}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "{{base_url}}/incidents/{{incident_id}}/reassign",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "incidents",
+                        "{{incident_id}}",
+                        "reassign"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "12. Upload Evidence (multipart)",
+            "request": {
+                "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                        {
+                            "key": "token",
+                            "value": "{{token}}"
+                        }
+                    ]
+                },
+                "method": "POST",
+                "body": {
+                    "mode": "formdata",
+                    "formdata": [
+                        {
+                            "key": "photo",
+                            "type": "file",
+                            "src": [],
+                            "description": "File gambar jpg/png max 5MB"
+                        },
+                        {
+                            "key": "caption",
+                            "value": "Foto bukti kondisi paket",
+                            "type": "text"
+                        }
+                    ]
+                },
+                "url": {
+                    "raw": "{{base_url}}/incidents/{{incident_id}}/upload-evidence",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "incidents",
+                        "{{incident_id}}",
+                        "upload-evidence"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Export Incident Daily Report (CSV)",
+            "request": {
+                "method": "GET",
+                "description": "Unduh laporan insiden harian (CSV). date opsional, default hari ini. Format kolom identik dengan output `php artisan report:daily-incidents`.",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{token}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/incidents/export?date=2026-10-01",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "incidents",
+                        "export"
+                    ],
+                    "query": [
+                        {
+                            "key": "date",
+                            "value": "2026-10-01",
+                            "description": "Format Y-m-d, default hari ini"
+                        }
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "13. Get Audit Logs",
+            "request": {
+                "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                        {
+                            "key": "token",
+                            "value": "{{token}}"
+                        }
+                    ]
+                },
+                "method": "GET",
+                "url": {
+                    "raw": "{{base_url}}/audit-logs",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "audit-logs"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Export Audit Logs (CSV)",
+            "request": {
+                "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                        {
+                            "key": "token",
+                            "value": "{{token}}"
+                        }
+                    ]
+                },
+                "method": "GET",
+                "url": {
+                    "raw": "{{base_url}}/audit-logs/export?format=csv",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "audit-logs",
+                        "export"
+                    ],
+                    "query": [
+                        {
+                            "key": "format",
+                            "value": "csv"
+                        }
+                    ]
+                },
+                "description": "Ekspor laporan audit log. format=csv|xlsx|pdf (default csv). XLSX berisi sheet \"Rekap KPI\" + \"Rincian Transaksi\"; PDF berisi rekapitulasi KPI + tabel rincian. Maksimal 10.000 baris per unduhan (FRD-04 / BR-03)."
+            }
+        },
+        {
+            "name": "Export Audit Logs (XLSX)",
+            "request": {
+                "method": "GET",
+                "description": "Ekspor XLSX (maatwebsite/excel) — 2 sheet: Rekap KPI + Rincian Transaksi",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{token}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/audit-logs/export?format=xlsx",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "audit-logs",
+                        "export"
+                    ],
+                    "query": [
+                        {
+                            "key": "format",
+                            "value": "xlsx"
+                        }
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Export Audit Logs (PDF)",
+            "request": {
+                "method": "GET",
+                "description": "Ekspor PDF (barryvdh/laravel-dompdf) — rekapitulasi KPI + tabel rincian",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{token}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/audit-logs/export?format=pdf",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "audit-logs",
+                        "export"
+                    ],
+                    "query": [
+                        {
+                            "key": "format",
+                            "value": "pdf"
+                        }
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "15. Logout",
+            "request": {
+                "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                        {
+                            "key": "token",
+                            "value": "{{token}}"
+                        }
+                    ]
+                },
+                "method": "POST",
+                "url": {
+                    "raw": "{{base_url}}/auth/logout",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "auth",
+                        "logout"
+                    ]
+                }
+            }
+        }
+    ]
+}
