@@ -118,7 +118,7 @@ Response:
     "couriers": [
       {
         "id": "uuid",
-        "courier_code": "STR-JKT-001",
+        "courier_code": "HLM-001",
         "name": "Budi Santoso",
         "status": "ONLINE",
         "vehicle_type": "Motorcycle",
@@ -137,8 +137,7 @@ Response:
 ### 7. Get Courier Detail
 **GET** `/api/couriers/{id}`
 
-Detail kurir beserta paket aktif. Untuk daftar **kandidat kurir pengganti**
-lihat endpoint [16. Get Replacement Candidates](#16-get-replacement-candidates).
+Detail kurir beserta paket aktif.
 
 ### 8. Update Courier Telemetry
 **POST** `/api/couriers/{id}/telemetry`
@@ -323,20 +322,6 @@ Parameter query `format` (opsional, default `csv`):
 | `xlsx` | Sheet **Rekap KPI** + sheet **Rincian Transaksi** | `maatwebsite/excel` |
 | `pdf`  | Rekapitulasi KPI + tabel rincian transaksi | `barryvdh/laravel-dompdf` |
 
-Rekapitulasi KPI (wajib ada di setiap berkas — FRD-04 / BR-03):
-`Total Incidents`, `Reassignment Rate`, `Avg Resolution Time`, `SLA Saved Rate`.
-Karena CSV tidak punya konsep sheet, rekap ditulis sebagai baris pembuka;
-lewat Excel/Sheets tabel rincian tetap terbaca sejak baris "Kode Log".
-
-Nama berkas mengikuti pola FRD-04: `Audit_Report_{KODE-HUB}_{YYYYMMDD}.{ext}`
-
-Batas FRD-04 / BR-03: maksimal **10.000 baris** per unduhan (PDF membatasi 1.000
-baris karena waktu render — gunakan CSV/XLSX untuk data lengkap).
-
-Contoh:
-```
-GET /api/audit-logs/export?format=pdf
-```
 
 ### 16. Get Replacement Candidates
 **GET** `/api/couriers/candidates`
@@ -356,11 +341,6 @@ Penyaringan mengikuti FRD-03 / BR-02:
 - armada kompatibel: `Cargo` = Van/Truk (bukan motor), `Frozen` = tas termal,
   `PHARMA` = bersertifikat BPOM
 
-Menghasilkan maksimal 5 kandidat, terurut dari beban paling ringan.
-
-> **Penting:** kirim juga `order_id` (atau `weight_kg`) — tanpanya filter
-> kapasitas dan kompatibilitas armada tidak dapat dijalankan, sehingga kandidat
-> yang muncul bisa ditolak `422` oleh endpoint [12. Reassign Incident](#12-reassign-incident-1-click).
 
 Response:
 ```json
@@ -390,14 +370,10 @@ Response:
 ```
 
 Jika tidak ada kandidat yang lolos, `candidates` kosong dan `note` berisi
-peringatan *"Tidak ada kurir ideal..."* (FRD-03 / BR-02).
+peringatan *"Tidak ada kurir ideal...".
 
 ### 17. Export Laporan Insiden Harian (CSV)
 **GET** `/api/incidents/export?date=YYYY-MM-DD`
-
-`date` opsional (default hari ini). Format kolom **identik** dengan berkas yang
-dihasilkan command `report:daily-incidents`, hanya saja data dibatasi hub milik
-user yang login.
 
 Response: download CSV (`text/csv`) dengan kolom
 `Kode Insiden, Waktu Lapor, Resi, Layanan, Kurir, Kurir Pengganti, Kategori,
@@ -430,7 +406,7 @@ GET /api/incidents/export?date=2026-10-01
 ### 1. Live Tracking Map
 - Data kurir diambil setiap 10 detik
 - Hanya kurir ONLINE dan IDLE yang ditampilkan
-- Deteksi kurir "diam" (>15 menit tidak update lokasi)
+- Deteksi kurir "diam"
 
 ### 2. SLA Risk Panel
 - Warna risiko: Merah (Kritis), Kuning (Waspada), Hijau (Aman)
@@ -438,7 +414,7 @@ GET /api/incidents/export?date=2026-10-01
 - Data di-cache 10 detik untuk optimasi
 
 ### 3. One-Click Reassignment
-- Cache lock untuk mencegah race condition (TTL 10 detik)
+- Cache lock untuk mencegah race condition
 - Validasi: resi tidak bisa di-reassign dalam 1 menit terakhir -> `409`
 - Validasi: kurir tujuan melebihi batas paket aktif -> `422`
 - Validasi: kapasitas muatan kurir kurang -> `422`
@@ -450,14 +426,14 @@ GET /api/incidents/export?date=2026-10-01
 ### 4. Incident Management
 - Upload foto bukti ke Cloudinary
 - Kandidat kurir pengganti otomatis: beban paling ringan + armada kompatibel
-- Eskalasi otomatis: insiden `REPORTED` > 10 menit menjadi `ESCALATED`
+- Eskalasi otomatis: insiden `REPORTED`
 - Tracking status insiden
 
 ### 5. Audit Log & History
 - Immutable audit log
 - Export ke CSV, XLSX, dan PDF
 - Ringkasan KPI (Total Incidents, Reassignment Rate, Avg Resolution Time,
-  SLA Saved Rate) sesuai FRD-04 / BR-03
+  SLA Saved Rate)
 
 ---
 
@@ -483,9 +459,7 @@ REST, dengan envelope `event` sesuai `broadcastAs()`:
 | `ReassignmentCompleted` | `incident.reassigned` | `{ incident_id, incident_code, waybill_number, original_courier, replacement_courier, confirmation_code, status }` | `POST /api/incidents/{id}/reassign` |
 | `CourierTelemetryUpdated` | `courier.telemetry` | `{ courier: { id, courier_code, name, status, latitude, longitude, speed_kmh, battery_level, recorded_at } }` | `POST /api/couriers/{id}/telemetry` |
 
-Channel memakai bentuk publik `hub.{hubId}` sehingga klien cukup menyebut
-UUID hub (contoh: `hub.01a0f636-386e-7281-97ab-ef54370f9bfd`) tanpa endpoint
-otorisasi tambahan.
+Channel memakai bentuk publik `hub.{hubId}` sehingga klien cukup menyebut UUID hub tanpa endpoint otorisasi tambahan.
 
 Contoh langganan di frontend (`laravel-echo` + `pusher-js`):
 
@@ -533,10 +507,6 @@ Keduanya juga bisa dipanggil manual:
 php artisan report:daily-incidents --date=2026-10-01
 php artisan incident:escalate --minutes=10
 ```
-
-> **Tips demo:** jalankan `php artisan db:seed --class=IncidentSeeder` untuk
-> memperbarui waktu laporan insiden, sehingga jendela tanggapan 10 menit
-> (sebelum eskalasi otomatis) dimulai ulang.
 
 ## Database
 

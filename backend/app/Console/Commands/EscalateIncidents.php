@@ -5,19 +5,15 @@ namespace App\Console\Commands;
 use App\Events\IncidentEscalated;
 use App\Models\IncidentReport;
 use App\Services\Incident\IncidentService;
+use App\Support\OperationalClock;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Eskalasi insiden otomatis (FRD-03 / BR-04).
- *
- * Insiden berstatus REPORTED yang tidak ditindaklanjuti Admin Hub selama
- * lebih dari 10 menit wajib berubah menjadi ESCALATED dan memicu alarm
- * pada dasbor. Command ini dijadwalkan tiap menit oleh Console\Kernel.
+ * Eskalasi insiden otomatis.
  */
 class EscalateIncidents extends Command
 {
-    /** Batas waktu tanggapan (menit) sebelum insiden di-eskalasi. */
     private const THRESHOLD_MINUTES = 10;
 
     protected $signature = 'incident:escalate {--minutes=10 : Ambang waktu tanggapan (menit) sebelum insiden di-eskalasi}';
@@ -27,7 +23,7 @@ class EscalateIncidents extends Command
     public function handle(): int
     {
         $threshold = max(1, (int) $this->option('minutes'));
-        $cutoff = now()->subMinutes($threshold);
+        $cutoff = OperationalClock::now()->subMinutes($threshold);
 
         $incidents = IncidentReport::query()
             ->with('order')
@@ -44,15 +40,17 @@ class EscalateIncidents extends Command
 
         $affectedHubs = [];
 
+        IncidentReport::whereIn('id', $incidents->pluck('id'))->update(['status' => 'ESCALATED']);
+
         foreach ($incidents as $incident) {
             $incident->status = 'ESCALATED';
-            $incident->save();
+            $incident->syncOriginalAttribute('status');
 
             $hubId = $incident->order?->hub_origin_id;
             if ($hubId) {
                 $affectedHubs[] = $hubId;
 
-                // Alarm realtime ke dasbor Admin Hub (FRD-03 / BR-04)
+                // Alarm realtime ke dasbor Admin Hub
                 event(new IncidentEscalated($hubId, [
                     'id' => $incident->id,
                     'incident_code' => $incident->incident_code,

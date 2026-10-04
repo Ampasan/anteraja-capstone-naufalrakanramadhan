@@ -1,11 +1,10 @@
 import { useEffect, useRef } from 'react';
 import { subscribeHub, type RealtimeEvent } from '../lib/realtime';
 
+export type { RealtimeEvent };
+
 /**
  * Berlangganan event realtime hub aktif.
- *
- * Callback disimpan lewat ref sehingga perubahan fungsi di dalam komponen
- * tidak memutus langganan (dan tidak membuat koneksi WebSocket baru).
  */
 export function useRealtime(
   hubId: string | undefined | null,

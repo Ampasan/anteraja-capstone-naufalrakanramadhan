@@ -1,7 +1,6 @@
-import { Clock, Package, Thermometer, Snowflake } from 'lucide-react';
+import { MapPin, Snowflake, Timer, User } from 'lucide-react';
 import { cn } from '../../../lib/utils';
-import { Badge } from '../../../components/ui/Badge';
-import type { Courier } from '../types';
+import type { ActivePackage, Courier } from '../types';
 
 interface CourierCardProps {
   courier: Courier;
@@ -9,53 +8,25 @@ interface CourierCardProps {
   onClick: (courier: Courier) => void;
 }
 
-function Avatar({ initials, status }: { initials: string; status: Courier['status'] }) {
-  const style: Record<Courier['status'], string> = {
-    ONLINE: 'bg-[#FFF0F6] text-[#C91076]',
-    IDLE:   'bg-amber-50  text-amber-600',
-    ALERT:  'bg-orange-50 text-orange-600',
-  };
-  return (
-    <div className={cn(
-      'w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0',
-      style[status],
-    )}>
-      {initials}
-    </div>
+/** Paket dengan sisa SLA paling sempit — jadi yang ditampilkan di kartu. */
+function mostUrgent(packages: ActivePackage[]): ActivePackage | undefined {
+  return packages.reduce<ActivePackage | undefined>(
+    (worst, pkg) => (!worst || pkg.slaRemainingMinutes < worst.slaRemainingMinutes ? pkg : worst),
+    undefined,
   );
 }
 
-function StatusPill({ courier }: { courier: Courier }) {
-  if (courier.status === 'ONLINE') {
-    return (
-      <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-emerald-700 flex-shrink-0">
-        <span className="w-2 h-2 rounded-full bg-emerald-500" />
-        Online
-      </span>
-    );
-  }
-  if (courier.status === 'ALERT') {
-    const temp = courier.coldChainAnomaly?.currentTempC;
-    return (
-      <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-orange-600 flex-shrink-0">
-        <Thermometer size={12} className="text-orange-500" />
-        {temp ? `${temp}°C Alert` : 'Alert'}
-      </span>
-    );
-  }
-  return null;
-}
-
+/**
+ * Kartu kurir di panel kiri.
+ */
 export function CourierCard({ courier, isSelected, onClick }: CourierCardProps) {
-  const firstPkg  = courier.activePackages[0];
+  const isIdle = courier.status === 'IDLE';
+  const isFrozen = courier.activePackages.some((pkg) => pkg.serviceType === 'Frozen');
   const hasAnomaly = !!courier.coldChainAnomaly;
-  const isIdle    = courier.status === 'IDLE';
-  const isAlert   = courier.status === 'ALERT';
-  // Jumlah paket mengikuti data backend; daftar SLA hanya memuat paket pantauan.
-  const parcelCount = courier.parcelCount ?? courier.activePackages.length;
+  const location = courier.lastKnownAddress;
+  const urgent = isIdle ? mostUrgent(courier.activePackages) : undefined;
 
-  const slaMin    = firstPkg?.slaRemainingMinutes ?? 0;
-  const slaColour = slaMin <= 15 ? 'text-red-600' : slaMin <= 30 ? 'text-amber-600' : 'text-[#475569]';
+  const slaDanger = urgent ? urgent.slaRemainingMinutes <= 15 : false;
 
   return (
     <button
@@ -66,89 +37,102 @@ export function CourierCard({ courier, isSelected, onClick }: CourierCardProps) 
         isSelected
           ? 'border-[#C91076] bg-[#FFF0F6] shadow-[0_0_0_1px_#C91076]'
           : 'border-[#E2E8F0] bg-white hover:border-[#C91076]/30 hover:bg-[#FFF8FB]',
+        // Penanda khusus kurir muatan dingin.
+        isFrozen && !isSelected && 'border-l-[3px] border-l-blue-400 bg-blue-50/40',
       )}
     >
-      {/* Row 1: avatar · name · badges · status */}
-      <div className="flex items-center gap-3 mb-2.5">
-        <Avatar initials={courier.initials} status={courier.status} />
+      <div className="flex items-center gap-3">
+        {/* Avatar */}
+        <span
+          className={cn(
+            'w-9 h-9 rounded-full flex items-center justify-center font-bold text-[13px] flex-shrink-0',
+            isFrozen
+              ? 'bg-blue-50 text-blue-600'
+              : isIdle
+                ? 'bg-amber-50 text-amber-600'
+                : 'bg-[#FFF0F6] text-[#C91076]',
+          )}
+          aria-hidden="true"
+        >
+          {courier.initials || <User size={15} />}
+        </span>
 
-        <div className="flex-1 min-w-0 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-            {/* Name — larger, darker */}
+        <div className="flex-1 min-w-0">
+          {/* Nama kurir + status */}
+          <div className="flex items-center justify-between gap-2">
             <span className="text-[14px] font-bold text-[#0F172A] truncate">{courier.name}</span>
 
-            {isSelected && <Badge variant="selected">AKTIF</Badge>}
-
-            {isIdle && courier.idleDuration && (
-              <Badge variant="idle">IDLE {courier.idleDuration}</Badge>
-            )}
-
-            {hasAnomaly && (
-              <span className="inline-flex items-center gap-0.5 text-[11px] font-bold text-blue-700 bg-blue-50 border border-blue-200 rounded-full px-2 py-0.5 uppercase">
-                <Snowflake size={10} />
-                COLD-CHAIN
+            {isIdle ? (
+              <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-amber-700 flex-shrink-0 whitespace-nowrap">
+                <span className="w-2 h-2 rounded-full bg-amber-400" aria-hidden="true" />
+                Idle
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-emerald-700 flex-shrink-0 whitespace-nowrap">
+                <span className="w-2 h-2 rounded-full bg-emerald-500" aria-hidden="true" />
+                Online
               </span>
             )}
           </div>
 
-          <StatusPill courier={courier} />
+          {/* Lokasi: jalan tempat kurir berada */}
+          {location ? (
+            <p className="flex items-start gap-1.5 text-[12px] font-medium text-[#64748B] leading-snug mt-1">
+              <MapPin size={12} className="text-[#C91076] flex-shrink-0 mt-0.5" aria-hidden="true" />
+              <span className="truncate">{location}</span>
+            </p>
+          ) : (
+            <p className="flex items-start gap-1.5 text-[12px] font-medium text-[#94A3B8] leading-snug mt-1">
+              <MapPin size={12} className="text-[#CBD5E1] flex-shrink-0 mt-0.5" aria-hidden="true" />
+              <span>Lokasi belum diperbarui</span>
+            </p>
+          )}
+
+          {/* Ringkasan kiriman kurir idle: SLA, resi, dan layanan */}
+          {isIdle && (
+            <div className="mt-2 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-2.5 py-2 flex flex-col gap-1">
+              <div className="flex items-center">
+                <span
+                  className={cn(
+                    'inline-flex items-center gap-1 text-[11px] font-extrabold',
+                    !urgent
+                      ? 'text-[#94A3B8]'
+                      : slaDanger
+                        ? 'text-red-600'
+                        : 'text-emerald-600',
+                  )}
+                >
+                  <Timer size={11} aria-hidden="true" />
+                  {!urgent
+                    ? 'SLA: belum ada paket'
+                    : urgent.slaRemainingMinutes <= 0
+                      ? `Terlambat ${Math.abs(urgent.slaRemainingMinutes)} Menit`
+                      : `Sisa SLA ${urgent.slaRemainingMinutes} Menit`}
+                </span>
+              </div>
+
+              {urgent && (
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-mono text-[11px] font-bold text-[#0F172A] truncate">
+                    {urgent.waybillNumber}
+                  </span>
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded border border-[#F9A8D4] bg-[#FFF0F6] text-[10px] font-bold text-[#C91076] whitespace-nowrap">
+                    {urgent.serviceType}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Lencana khusus: muatan dingin (dan anomali suhunya bila ada) */}
+          {isFrozen && (
+            <span className="inline-flex items-center gap-1 mt-2 text-[10px] font-bold uppercase tracking-wide text-blue-700 bg-blue-50 border border-blue-200 rounded-full px-2 py-0.5">
+              <Snowflake size={10} aria-hidden="true" />
+              {hasAnomaly ? 'Cold-chain · Suhu naik' : 'Cold-chain'}
+            </span>
+          )}
         </div>
       </div>
-
-      {/* Row 2: package box */}
-      {firstPkg && (
-        <div className={cn(
-          'rounded-lg border px-3 py-2.5',
-          isAlert ? 'border-blue-200 bg-blue-50' : 'border-[#F1F5F9] bg-[#F8FAFC]',
-        )}>
-          {/* Waybill + SLA */}
-          <div className="flex items-center justify-between mb-2">
-            <span className="flex items-center gap-1.5 font-mono text-[13px] font-bold text-[#0F172A]">
-              <Package size={12} className="text-[#C91076] flex-shrink-0" />
-              {firstPkg.waybillNumber}
-            </span>
-            <span className={cn('text-[12px] font-bold flex items-center gap-1', slaColour)}>
-              <Clock size={11} className="flex-shrink-0" />
-              {slaMin <= 0 ? 'SLA Habis' : `SLA: ${slaMin}m`}
-            </span>
-          </div>
-
-          {/* Service type badge + paket count */}
-          <div className="flex items-center justify-between gap-1">
-            <Badge
-              variant={
-                firstPkg.serviceType === 'Same Day' ? 'same-day' :
-                firstPkg.serviceType === 'Frozen'   ? 'frozen'   :
-                firstPkg.serviceType === 'PHARMA'   ? 'pharma'   : 'regular'
-              }
-            >
-              {firstPkg.serviceType}
-            </Badge>
-            {(isAlert || isIdle || parcelCount > 1) && (
-              <span className="text-[12px] font-semibold text-[#475569]">
-                {parcelCount}/{courier.capacityTotal} Paket
-              </span>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Baris ringkas bila kurir belum punya paket pantauan di panel SLA */}
-      {!firstPkg && parcelCount > 0 && (
-        <div className="rounded-lg border border-[#F1F5F9] bg-[#F8FAFC] px-3 py-2.5">
-          <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#475569]">
-            <Package size={12} className="text-[#C91076] flex-shrink-0" />
-            {parcelCount}/{courier.capacityTotal} Paket
-          </span>
-        </div>
-      )}
-
-      {/* IDLE: last address */}
-      {isIdle && courier.lastKnownAddress && (
-        <p className="text-[12px] font-medium text-[#475569] mt-2 truncate">
-          📍 {courier.lastKnownAddress}
-        </p>
-      )}
     </button>
   );
 }

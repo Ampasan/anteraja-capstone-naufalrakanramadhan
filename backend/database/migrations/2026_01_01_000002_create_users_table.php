@@ -27,10 +27,13 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Check constraints
-        DB::statement("ALTER TABLE users ADD CONSTRAINT chk_users_role CHECK (role IN ('ADMIN'))");
-        DB::statement("ALTER TABLE users ADD CONSTRAINT chk_users_status CHECK (status IN ('ACTIVE', 'LOCKED', 'SUSPENDED'))");
-        DB::statement('ALTER TABLE users ADD CONSTRAINT chk_users_failed_attempts CHECK (failed_login_attempts >= 0)');
+        // Check constraints. SQLite tidak mendukung ALTER ADD CONSTRAINT,
+        // jadi driver itu melewati blok ini (hanya dipakai test).
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE users ADD CONSTRAINT chk_users_role CHECK (role IN ('ADMIN'))");
+            DB::statement("ALTER TABLE users ADD CONSTRAINT chk_users_status CHECK (status IN ('ACTIVE', 'LOCKED', 'SUSPENDED'))");
+            DB::statement('ALTER TABLE users ADD CONSTRAINT chk_users_failed_attempts CHECK (failed_login_attempts >= 0)');
+        }
     }
 
     public function down(): void

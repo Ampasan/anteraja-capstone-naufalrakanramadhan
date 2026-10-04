@@ -12,33 +12,72 @@ use Illuminate\Support\Facades\DB;
 
 class CourierService
 {
-    /**
-     * Ambil semua kurir untuk hub tertentu dengan telemetri terbaru.
-     * Hanya tampilkan kurir ONLINE dan IDLE (OFFLINE tidak ditampilkan).
-     * Data di-cache 10 detik (panel monitoring memang refresh tiap 10 detik).
-     */
     public function getCouriersByHub(string $hubId): array
     {
         $cacheKey = "couriers_{$hubId}";
 
-        return Cache::remember($cacheKey, 10, function () use ($hubId) {
-            // NOTE: Jangan gunakan select() dengan with() - bisa menyebabkan masalah foreign key
-            $couriers = Courier::with(['latestTelemetry'])
+        return Cache::remember($cacheKey, 5, function () use ($hubId) {
+            $couriers = Courier::query()
+                ->select(self::selectWithLatestTelemetry())
+                ->with(['orders' => fn ($query) => $query->whereNotIn('delivery_status', ['DELIVERED', 'RETURNED'])])
                 ->where('hub_id', $hubId)
                 ->whereIn('status', ['ONLINE', 'IDLE'])
                 ->get();
 
-            // Semua kurir dari hub yang sama: ambil hub dari cache (hemat 1 query)
             $hub = Hub::cached($hubId);
-            $couriers->each(fn (Courier $courier) => $courier->setRelation('hub', $hub));
 
-            return $couriers->map(fn (Courier $courier) => $this->formatCourier($courier))->toArray();
+            foreach ($couriers as $courier) {
+                $courier->setRelation('hub', $hub);
+                self::attachTelemetryFromSelect($courier);
+            }
+
+            return $couriers->map(fn (Courier $courier) => $this->formatCourier($courier, true))->toArray();
         });
     }
 
     /**
-     * Ambil detail kurir beserta paket aktif.
+     * @return array<int, string|\Illuminate\Contracts\Database\Query\Expression>
      */
+    public static function selectWithLatestTelemetry(): array
+    {
+        $selects = ['couriers.*'];
+
+        foreach (['latitude', 'longitude', 'speed_kmh', 'temperature_c', 'battery_level', 'recorded_at'] as $column) {
+            $selects[] = DB::raw(sprintf(
+                '(SELECT t.%s FROM courier_telemetries t WHERE t.courier_id = couriers.id ORDER BY t.recorded_at DESC LIMIT 1) AS joined_telemetry_%s',
+                $column,
+                $column,
+            ));
+        }
+
+        return $selects;
+    }
+
+    public static function attachTelemetryFromSelect(Courier $courier): void
+    {
+        $attributes = $courier->getAttributes();
+        $telemetry = [];
+
+        foreach (array_keys($attributes) as $key) {
+            if (! str_starts_with($key, 'joined_telemetry_')) {
+                continue;
+            }
+
+            $telemetry[substr($key, strlen('joined_telemetry_'))] = $attributes[$key];
+            unset($attributes[$key]);
+        }
+
+        $courier->setRawAttributes($attributes, true);
+        
+        if (($telemetry['recorded_at'] ?? null) === null) {
+            $courier->setRelation('latestTelemetry', null);
+
+            return;
+        }
+
+        $courier->setRelation('latestTelemetry', (new CourierTelemetry())->forceFill($telemetry));
+    }
+
     public function getCourierDetail(string $courierId): ?array
     {
         $courier = Courier::with(['latestTelemetry', 'hub', 'orders' => function ($query) {
@@ -52,9 +91,6 @@ class CourierService
         return $this->formatCourier($courier, true);
     }
 
-    /**
-     * Format data kurir untuk response API.
-     */
     private function formatCourier(Courier $courier, bool $withOrders = false): array
     {
         $telemetry = $courier->latestTelemetry;
@@ -62,18 +98,27 @@ class CourierService
         // Hitung durasi idle
         $idleDuration = null;
         if ($courier->status === 'IDLE' && $telemetry) {
-            // Carbon 3 mengembalikan nilai bertanda (tanggal lama = negatif),
-            // jadi selisihnya dihitung dari recorded_at menuju sekarang.
             $idleMinutes = max(0, (int) round($telemetry->recorded_at->diffInMinutes(now())));
             $idleDuration = $idleMinutes < 60
                 ? $idleMinutes . 'm'
                 : floor($idleMinutes / 60) . 'j ' . ($idleMinutes % 60) . 'm';
         }
 
-        // Deteksi kurir diam (tidak kirim lokasi > 15 menit)
         $isStale = false;
         if ($telemetry && $courier->status === 'ONLINE') {
             $isStale = $telemetry->recorded_at->diffInMinutes(now()) > 15;
+        }
+
+        $distanceFromHubM = null;
+        $insideRadius = null;
+        if ($telemetry && $courier->hub) {
+            $distanceFromHubM = (int) round(self::haversineMetres(
+                (float) $telemetry->latitude,
+                (float) $telemetry->longitude,
+                (float) $courier->hub->latitude,
+                (float) $courier->hub->longitude,
+            ));
+            $insideRadius = $distanceFromHubM <= (float) $courier->hub->service_radius_km * 1000;
         }
 
         $data = [
@@ -94,6 +139,11 @@ class CourierService
             'has_thermal_box' => $courier->has_thermal_box,
             'idle_duration' => $idleDuration,
             'is_stale' => $isStale,
+            'distance_from_hub_m' => $distanceFromHubM,
+            'inside_radius' => $insideRadius,
+            'radius_km' => $courier->hub->service_radius_km !== null
+                ? (float) $courier->hub->service_radius_km
+                : null,
             'position' => $telemetry ? [
                 'lat' => (float) $telemetry->latitude,
                 'lng' => (float) $telemetry->longitude,
@@ -119,6 +169,7 @@ class CourierService
                 'destination_address' => $order->destination_address,
                 'drop_lat' => (float) $order->drop_latitude,
                 'drop_lng' => (float) $order->drop_longitude,
+                'order_time' => $order->order_time?->toISOString(),
                 'sla_deadline' => $order->sla_deadline->toISOString(),
                 'delivery_status' => $order->delivery_status,
             ])->toArray();
@@ -127,9 +178,6 @@ class CourierService
         return $data;
     }
 
-    /**
-     * Generate inisial dari nama kurir.
-     */
     private function getInitials(string $name): string
     {
         $words = explode(' ', $name);
@@ -140,14 +188,20 @@ class CourierService
         return $initials;
     }
 
-    /**
-     * Update posisi kurir (dipanggil dari tracking device).
-     *
-     * Catatan: cache list kurir TIDAK dihapus di sini. Data lokasi memang
-     * direfresh tiap 10 detik sesuai kebutuhan panel monitoring, jadi cukup
-     * mengandalkan TTL. Menghapus cache tiap telemetri masuk justru membuat
-     * GET /couriers selalu kena query penuh (lambat).
-     */
+    public static function haversineMetres(float $lat1, float $lng1, float $lat2, float $lng2): float
+    {
+        $earthRadiusM = 6371000;
+        $toRad = fn (float $deg): float => $deg * M_PI / 180;
+
+        $dLat = $toRad($lat2 - $lat1);
+        $dLng = $toRad($lng2 - $lng1);
+
+        $a = sin($dLat / 2) ** 2
+            + cos($toRad($lat1)) * cos($toRad($lat2)) * sin($dLng / 2) ** 2;
+
+        return $earthRadiusM * 2 * atan2(sqrt($a), sqrt(1 - $a));
+    }
+
     public function updateTelemetry(Courier $courier, array $data): void
     {
         CourierTelemetry::create([
@@ -160,8 +214,6 @@ class CourierService
             'recorded_at' => now(),
         ]);
 
-        // Siarkan posisi terbaru ke peta monitoring (PRD F-01).
-        // Sengaja pakai data minim agar payload tiap update tetap kecil.
         event(new CourierTelemetryUpdated($courier->hub_id, [
             'id' => $courier->id,
             'courier_code' => $courier->courier_code,

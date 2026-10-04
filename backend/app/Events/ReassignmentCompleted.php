@@ -6,12 +6,7 @@ use Illuminate\Broadcasting\Channel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
 /**
- * Pengalihan 1-klik berhasil dieksekusi (PRD F-03 / FRD-03 F-03.1).
- *
- * Dipakai frontend untuk memperbarui daftar insiden dan peta kurir secara
- * langsung tanpa harus memuat ulang halaman.
- *
- * Dikirim lewat antrean agar endpoint reassign tetap kembali < 1 detik.
+ * Pengalihan 1-klik berhasil dieksekusi
  */
 class ReassignmentCompleted implements ShouldBroadcast
 {

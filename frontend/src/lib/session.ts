@@ -1,13 +1,3 @@
-/**
- * Penyimpanan sesi autentikasi (token Sanctum + profil admin hub).
- *
- * "Ingat saya"  -> localStorage (bertahan setelah browser ditutup)
- * Tanpa centang  -> sessionStorage (hilang saat tab ditutup)
- *
- * Bendera "remember" disimpan di localStorage agar halaman login berikutnya
- * tahu ke mana token harus ditulis/dibaca.
- */
-
 export interface SessionUser {
   id: string;
   name: string;
@@ -20,6 +10,7 @@ export interface SessionUser {
 const TOKEN_KEY = 'anteraja.token';
 const USER_KEY = 'anteraja.user';
 const REMEMBER_KEY = 'anteraja.remember';
+const LOGIN_AT_KEY = 'anteraja.loginAt';
 
 export function isRemembered(): boolean {
   try {
@@ -29,11 +20,6 @@ export function isRemembered(): boolean {
   }
 }
 
-/**
- * Baca token. Cek localStorage lebih dulu (sesi "ingat saya"), lalu
- * sessionStorage — sehingga token lama tidak pernah tertinggal setelah
- * pengguna berganti preferensi.
- */
 export function getToken(): string | null {
   try {
     return (
@@ -59,17 +45,30 @@ export function hasSession(): boolean {
   return getToken() !== null;
 }
 
+export function getLoginAt(): number | null {
+  try {
+    const raw =
+      window.localStorage.getItem(LOGIN_AT_KEY) ?? window.sessionStorage.getItem(LOGIN_AT_KEY);
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 export function setSession(token: string, user: SessionUser, rememberMe: boolean): void {
   try {
     window.localStorage.setItem(REMEMBER_KEY, rememberMe ? '1' : '0');
     const store = rememberMe ? window.localStorage : window.sessionStorage;
-    // Bersihkan pasangan di penyimpanan lain agar tidak ada token ganda.
     window.localStorage.removeItem(TOKEN_KEY);
     window.localStorage.removeItem(USER_KEY);
+    window.localStorage.removeItem(LOGIN_AT_KEY);
     window.sessionStorage.removeItem(TOKEN_KEY);
     window.sessionStorage.removeItem(USER_KEY);
+    window.sessionStorage.removeItem(LOGIN_AT_KEY);
     store.setItem(TOKEN_KEY, token);
     store.setItem(USER_KEY, JSON.stringify(user));
+    store.setItem(LOGIN_AT_KEY, String(Date.now()));
   } catch {
     // Penyimpanan diblokir (private mode) — sesi hanya bertahan di memori,
     // API tetap berjalan karena token diambil dari variabel runtime oleh caller.
@@ -81,8 +80,10 @@ export function clearSession(): void {
     window.localStorage.removeItem(TOKEN_KEY);
     window.localStorage.removeItem(USER_KEY);
     window.localStorage.removeItem(REMEMBER_KEY);
+    window.localStorage.removeItem(LOGIN_AT_KEY);
     window.sessionStorage.removeItem(TOKEN_KEY);
     window.sessionStorage.removeItem(USER_KEY);
+    window.sessionStorage.removeItem(LOGIN_AT_KEY);
   } catch {
     // abaikan
   }

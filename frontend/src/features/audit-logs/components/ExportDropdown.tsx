@@ -15,10 +15,7 @@ interface ExportDropdownProps {
 }
 
 /**
- * Ekspor laporan audit dilayani backend (`GET /api/audit-logs/export`) supaya
- * mendapat ringkasan KPI + tabel detail, batas 10.000 baris, dan waktu proses
- * < 3 detik sesuai FRD-04 BR-03. Berkas diunduh lewat fetch ber-Bearer token,
- * bukan `window.open`, karena endpoint tersebut terproteksi.
+ * Ekspor laporan audit dilayani backend (`GET /api/audit-logs/export`)
  */
 export function ExportDropdown({ entries, open, onToggle, onClose }: ExportDropdownProps) {
   const containerRef = useRef<HTMLDivElement>(null);

@@ -41,10 +41,6 @@ return [
 
     'debug' => (bool) env('APP_DEBUG', false),
 
-
-    // URL frontend React (dipakai middleware CORS)
-    'frontend_url' => env('FRONTEND_URL', 'http://localhost:5173'),
-
     /*
     |--------------------------------------------------------------------------
     | Application URL
@@ -70,6 +66,21 @@ return [
     */
 
     'timezone' => 'UTC',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Operational Clock
+    |--------------------------------------------------------------------------
+    |
+    | Titik "sekarang" untuk semua perhitungan SLA. Dikunci di dalam jam
+    | operasional hub (08.00-20.00 WIB) supaya waktu yang tampil di halaman
+    | selalu berada di rentang itu dan angka panel tidak bergerak sendiri
+    | mengikuti jam dinding. Harus sama dengan OPERATIONAL_NOW_ISO di
+    | frontend/src/lib/operationalClock.ts.
+    |
+    */
+
+    'operational_now' => env('APP_OPERATIONAL_NOW', '2026-10-03T14:00:00+07:00'),
 
     /*
     |--------------------------------------------------------------------------

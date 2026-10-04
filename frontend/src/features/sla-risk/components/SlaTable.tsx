@@ -55,19 +55,31 @@ function buildPages(current: number, total: number): (number | '…')[] {
   return pages;
 }
 
+// ─── Sisa SLA ───
+/**
+ * Sisa SLA ditulis sebagai kalimat supaya nilai negatif terbaca jelas.
+ * `-723 Mnt` membingungkan operator; `Terlambat 723 mnt` tidak.
+ */
+function sisaSla(minutes: number): string {
+  if (minutes >= 0) return `Sisa ${minutes} mnt`;
+  return `Terlambat ${Math.abs(minutes)} mnt`;
+}
+
 // ─── Component ───
 interface SlaTableProps {
   orders: SlaOrder[];
   displayTotal: number;
   currentPage: number;
   totalPages: number;
+  /** true sampai respons pertama tiba — dipakai membedakan "memuat" dari "kosong". */
+  isLoading?: boolean;
   onPageChange: (page: number) => void;
   onOpenDetail: (order: SlaOrder) => void;
   onOpenMap: (order: SlaOrder) => void;
 }
 
 export function SlaTable({
-  orders, displayTotal, currentPage, totalPages,
+  orders, displayTotal, currentPage, totalPages, isLoading = false,
   onPageChange, onOpenDetail, onOpenMap,
 }: SlaTableProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -102,7 +114,19 @@ export function SlaTable({
           </thead>
 
           <tbody className="divide-y divide-[#F1F5F9]">
-            {orders.length === 0 ? (
+            {orders.length === 0 && isLoading ? (
+              <tr>
+                <td colSpan={5} className="text-center py-16">
+                  <div className="flex flex-col items-center gap-3">
+                    <span
+                      className="h-7 w-7 animate-spin rounded-full border-[3px] border-[#F9A8D4] border-t-[#C91076]"
+                      aria-hidden="true"
+                    />
+                    <p className="text-sm font-semibold text-[#64748B]">Memuat daftar pengiriman…</p>
+                  </div>
+                </td>
+              </tr>
+            ) : orders.length === 0 ? (
               <tr>
                 <td colSpan={5} className="text-center py-16">
                   <div className="flex flex-col items-center gap-2">
@@ -179,16 +203,22 @@ export function SlaTable({
                       </span>
                     </td>
 
-                    {/* ── Sisa SLA ── */}
+                    {/* ── Sisa SLA & Status ── */}
                     <td className="px-3 sm:px-5 py-4 align-middle">
                       <span className={cn(
-                        'inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-bold border whitespace-nowrap',
+                        'inline-flex flex-col items-start gap-1 px-2 sm:px-2.5 py-1.5 rounded-lg border',
                         risk.bg, risk.text, risk.border,
                       )}>
-                        <span className={cn('w-2 h-2 rounded-full flex-shrink-0', risk.dot,
-                          order.slaRisk === 'Kritis' && 'animate-pulse',
-                        )} />
-                        {order.slaRemainingMin} Mnt · {order.slaRisk}
+                        <span className="inline-flex items-center gap-1.5 text-xs font-bold whitespace-nowrap">
+                          <span className={cn(
+                            'w-2 h-2 rounded-full flex-shrink-0', risk.dot,
+                            order.slaRisk === 'Kritis' && 'animate-pulse',
+                          )} />
+                          {sisaSla(order.slaRemainingMin)}
+                        </span>
+                        <span className="text-[11px] font-semibold whitespace-nowrap opacity-85">
+                          {order.slaRisk}
+                        </span>
                       </span>
                     </td>
 

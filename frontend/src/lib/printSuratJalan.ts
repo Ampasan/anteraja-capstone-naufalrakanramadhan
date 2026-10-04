@@ -1,4 +1,5 @@
-import type { SlaOrder } from '../data/mockOrders';
+import type { SlaOrder } from '../features/sla-risk/types';
+import { operationalNow } from './operationalClock';
 
 const TRAFFIC_COLOR: Record<string, string> = {
   green: '#16a34a',
@@ -63,9 +64,9 @@ function timelineItemHtml(step: SlaOrder['detail']['timeline'][0], isLast: boole
 function buildHtml(order: SlaOrder): string {
   const d = order.detail;
   const loadPct = Math.min(100, Math.round((d.loadUsedKg / d.loadCapacityKg) * 100));
-  const printDate = new Date().toLocaleString('id-ID', {
+  const printDate = operationalNow().toLocaleString('id-ID', {
     day: '2-digit', month: 'long', year: 'numeric',
-    hour: '2-digit', minute: '2-digit',
+    hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta',
   });
 
   const timelineHtml = d.timeline

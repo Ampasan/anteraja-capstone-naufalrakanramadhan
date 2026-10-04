@@ -6,6 +6,7 @@ import {
   type RawAuditLog,
   type RawAuditSummary,
 } from '../../../lib/mappers';
+import { operationalNow } from '../../../lib/operationalClock';
 import type {
   AuditLogEntry,
   AuditFilters,
@@ -21,14 +22,20 @@ const PAGE_SIZE = 5;
 const POLL_MS = 20_000;
 const CACHE_TTL_MS = 19_000;
 
+/** Urutkan terbaru di atas — jaminan pengurutan tidak bergantung pada urutan server. */
+function newestFirst(entries: AuditLogEntry[]): AuditLogEntry[] {
+  return [...entries].sort(
+    (a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime(),
+  );
+}
+
 function startOfDay(d: Date): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
-function isWithinRange(iso: string, filter: DateFilterType): boolean {
+function isWithinRange(iso: string, filter: DateFilterType, now = operationalNow()): boolean {
   if (filter === 'all') return true;
   const date = new Date(iso);
-  const now = new Date();
 
   if (filter === 'today') {
     return date >= startOfDay(now);
@@ -63,15 +70,15 @@ export function useAuditLogs() {
   });
 
   const [page, setPage] = useState(1);
-
-  // Rantai .then agar setState hanya berjalan di dalam callback, bukan
-  // sinkron dari dalam effect (react-hooks/set-state-in-effect).
+  
   const load = useCallback(
     () =>
       apiCached<{ logs: RawAuditLog[]; summary?: RawAuditSummary }>('/audit-logs', CACHE_TTL_MS)
         .then((payload) => {
           const mapped = mapAuditLogs(payload.logs ?? []);
-          setLogs(mapped);
+          // Tabel riwayat wajib terbaru di atas; urutan ini dijaga di sini
+          // sehingga filter dan pagination tetap mewarisi urutan yang sama.
+          setLogs(newestFirst(mapped));
           setKpi(mapAuditKpi(payload.summary, mapped));
           setErrorMessage(null);
         })
@@ -88,53 +95,56 @@ export function useAuditLogs() {
     return () => window.clearInterval(timer);
   }, [load]);
 
-  const filteredAll = useMemo<AuditLogEntry[]>(() => {
+  const { filtered: filteredAll, categoryCounts } = useMemo<{
+    filtered: AuditLogEntry[];
+    categoryCounts: CategoryCount[];
+  }>(() => {
     const q = filters.search.trim().toLowerCase();
+    // Sekarang dihitung satu kali per pass; sebelumnya `operationalNow()`
+    // dipanggil untuk tiap baris, dua kali lipat, lewat dua memo terpisah.
+    const now = operationalNow();
 
-    return logs.filter((entry) => {
-      // Search: resi or courier name
-      if (q && !entry.resi.toLowerCase().includes(q) &&
-          !entry.fromCourier.toLowerCase().includes(q) &&
-          !entry.toCourier.toLowerCase().includes(q)) {
-        return false;
+    const filtered: AuditLogEntry[] = [];
+    const counts: Record<string, number> = {};
+    let base = 0;
+
+    // Satu pass menghasilkan baris terfilter dan hitungan kategori sekaligus.
+    // `logs` sudah terurut terbaru-di-atas sejak `load`, jadi urutannya
+    // diwarisi apa adanya tanpa pengurutan ulang di setiap ketikan.
+    for (const entry of logs) {
+      if (
+        q &&
+        !entry.resi.toLowerCase().includes(q) &&
+        !entry.fromCourier.toLowerCase().includes(q) &&
+        !entry.toCourier.toLowerCase().includes(q)
+      ) {
+        continue;
       }
+      if (!isWithinRange(entry.completedAt, filters.dateFilter, now)) continue;
 
-      // Date filter
-      if (!isWithinRange(entry.completedAt, filters.dateFilter)) return false;
+      base++;
+      counts[entry.incidentCategory] = (counts[entry.incidentCategory] ?? 0) + 1;
 
-      // Category filter
-      if (filters.categoryFilter !== 'all') {
-        if (entry.incidentCategory !== filters.categoryFilter) return false;
+      if (filters.categoryFilter !== 'all' && entry.incidentCategory !== filters.categoryFilter) {
+        continue;
       }
+      filtered.push(entry);
+    }
 
-      return true;
-    });
+    return {
+      filtered,
+      categoryCounts: [
+        { key: 'all',               label: `Semua (${base})`,                                      count: base },
+        { key: 'Cuaca / Hujan',     label: `Cuaca / Hujan (${counts['Cuaca / Hujan'] ?? 0})`,       count: counts['Cuaca / Hujan'] ?? 0 },
+        { key: 'Anomali Suhu',      label: `Anomali Suhu (${counts['Anomali Suhu'] ?? 0})`,         count: counts['Anomali Suhu'] ?? 0 },
+        { key: 'Mogok Kendaraan',   label: `Mogok Kendaraan (${counts['Mogok Kendaraan'] ?? 0})`,   count: counts['Mogok Kendaraan'] ?? 0 },
+        { key: 'Ban Bocor',         label: `Ban Bocor (${counts['Ban Bocor'] ?? 0})`,               count: counts['Ban Bocor'] ?? 0 },
+        { key: 'Alamat tidak ditemukan', label: `Alamat tidak ditemukan (${counts['Alamat tidak ditemukan'] ?? 0})`, count: counts['Alamat tidak ditemukan'] ?? 0 },
+        { key: 'Banjir',            label: `Banjir (${counts['Banjir'] ?? 0})`,                     count: counts['Banjir'] ?? 0 },
+        { key: 'Macet Total',       label: `Macet Total (${counts['Macet Total'] ?? 0})`,           count: counts['Macet Total'] ?? 0 },
+      ] as CategoryCount[],
+    };
   }, [logs, filters]);
-
-  const categoryCounts = useMemo<CategoryCount[]>(() => {
-    const q = filters.search.trim().toLowerCase();
-    const base = logs.filter((entry) => {
-      if (q && !entry.resi.toLowerCase().includes(q) &&
-          !entry.fromCourier.toLowerCase().includes(q) &&
-          !entry.toCourier.toLowerCase().includes(q)) return false;
-      if (!isWithinRange(entry.completedAt, filters.dateFilter)) return false;
-      return true;
-    });
-
-    const counts = base.reduce<Record<string, number>>((acc, e) => {
-      acc[e.incidentCategory] = (acc[e.incidentCategory] ?? 0) + 1;
-      return acc;
-    }, {});
-
-    return [
-      { key: 'all',               label: `Semua (${base.length})`,                                      count: base.length },
-      { key: 'Cuaca / Hujan',     label: `Cuaca / Hujan (${counts['Cuaca / Hujan'] ?? 0})`,             count: counts['Cuaca / Hujan'] ?? 0 },
-      { key: 'Anomali Suhu',      label: `Anomali Suhu (${counts['Anomali Suhu'] ?? 0})`,               count: counts['Anomali Suhu'] ?? 0 },
-      { key: 'Mogok Kendaraan',   label: `Mogok Kendaraan (${counts['Mogok Kendaraan'] ?? 0})`,         count: counts['Mogok Kendaraan'] ?? 0 },
-      { key: 'Ban Bocor',         label: `Ban Bocor (${counts['Ban Bocor'] ?? 0})`,                     count: counts['Ban Bocor'] ?? 0 },
-      { key: 'Banjir',            label: `Banjir (${counts['Banjir'] ?? 0})`,                           count: counts['Banjir'] ?? 0 },
-    ] as CategoryCount[];
-  }, [logs, filters.search, filters.dateFilter]);
 
   const totalItems = filteredAll.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));

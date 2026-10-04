@@ -27,10 +27,6 @@ class AuthController extends Controller
 
             return $this->success($result, 'Login berhasil');
         } catch (\Illuminate\Validation\ValidationException $e) {
-            // Kredensial ditolak AuthService (email/password salah, akun tidak
-            // aktif) — ini kegagalan autentikasi, jadi 401 sesuai tabel kode
-            // error di API_DOCUMENTATION.md. Field yang kosong/format salah
-            // tetap 422 karena divalidasi FormRequest sebelum sampai ke sini.
             $errors = $e->errors();
             $message = $errors['email'][0] ?? $errors['password'][0] ?? $errors['hub_id'][0] ?? 'Login gagal';
             return response()->json([

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Redis;
 
 class HealthController extends Controller
 {
@@ -16,11 +18,12 @@ class HealthController extends Controller
     {
         $checks = [
             'database' => $this->checkDatabase(),
+            'redis' => $this->checkRedis(),
             'cache' => $this->checkCache(),
             'queue' => $this->checkQueue(),
         ];
 
-        $allHealthy = !in_array(false, $checks, true);
+        $allHealthy = !in_array('error', array_column($checks, 'status'), true);
 
         return response()->json([
             'ok' => $allHealthy,
@@ -41,6 +44,30 @@ class HealthController extends Controller
         try {
             DB::connection()->getPdo();
             return ['status' => 'ok', 'response_time_ms' => $this->measureTime(fn () => DB::connection()->getPdo())];
+        } catch (\Exception $e) {
+            return ['status' => 'error', 'message' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Cek koneksi Redis
+     */
+    private function checkRedis(): array
+    {
+        try {
+            $responseTime = $this->measureTime(fn () => Redis::connection()->ping());
+
+            return [
+                'status' => 'ok',
+                'client' => config('database.redis.client'),
+                'host' => config('database.redis.default.host') . ':' . config('database.redis.default.port'),
+                'used_by' => array_values(array_filter([
+                    config('cache.default') === 'redis' ? 'cache' : null,
+                    config('queue.default') === 'redis' ? 'queue' : null,
+                    config('session.driver') === 'redis' ? 'session' : null,
+                ])),
+                'response_time_ms' => $responseTime,
+            ];
         } catch (\Exception $e) {
             return ['status' => 'error', 'message' => $e->getMessage()];
         }
@@ -69,11 +96,12 @@ class HealthController extends Controller
     private function checkQueue(): array
     {
         try {
-            $pendingJobs = DB::table('jobs')->count();
+            $pendingJobs = Queue::size();
             $failedJobs = DB::table('failed_jobs')->count();
             
             return [
                 'status' => 'ok',
+                'connection' => config('queue.default'),
                 'pending_jobs' => $pendingJobs,
                 'failed_jobs' => $failedJobs,
             ];

@@ -8,7 +8,6 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 
 /**
  * Sheet 1: rekapitulasi KPI laporan audit log.
- * Sumber KPI mengikuti FRD-04 / BR-03.
  */
 class KpiSheet implements FromCollection, WithHeadings, WithTitle
 {
@@ -35,7 +34,6 @@ class KpiSheet implements FromCollection, WithHeadings, WithTitle
         $s = $this->summary;
         $m = $this->meta;
 
-        // maatwebsite/excel memanggil collection()->all(), jadi wajib Collection.
         return collect([
             ['Nama Hub', $m['hub_name'] ?? '-'],
             ['Kota', $m['hub_city'] ?? '-'],

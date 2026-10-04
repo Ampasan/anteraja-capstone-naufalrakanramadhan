@@ -137,6 +137,18 @@ export function ReassignPanel({
 
   const selectedCandidate = incident.candidates.find((c) => c.id === selectedCandidateId);
   const isColdChain = incident.serviceType === 'Frozen' || incident.kendalaDetail?.includes('Suhu') || incident.kendalaDetail?.includes('suhu');
+  const isResolved = incident.status === 'RESOLVED';
+  const replacement = incident.replacementCourier;
+
+  /** Inisial nama untuk avatar kurir pengganti (mis. "Eko Prasetyo" -> "EP"). */
+  const initialsOf = (name: string) =>
+    name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join('')
+      .toUpperCase();
 
   return (
     <div className="flex flex-col bg-[#FFF5FA] rounded-2xl border-2 border-[#F9A8D4] overflow-visible">
@@ -153,7 +165,9 @@ export function ReassignPanel({
           )}>
             Formulir Pengalihan Cepat
           </span>
-          <span className="text-[10px] text-[#94A3B8]">Tinjau &amp; konfirmasi di bawah</span>
+          <span className="text-[10px] text-[#94A3B8]">
+            {isResolved ? 'Pengalihan sudah tuntas' : 'Tinjau & konfirmasi di bawah'}
+          </span>
         </div>
         <div className="flex items-center gap-2">
           {isColdChain && (
@@ -162,10 +176,17 @@ export function ReassignPanel({
               Cold-Chain
             </span>
           )}
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            Siap Dialihkan
-          </span>
+          {isResolved ? (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px] font-extrabold bg-emerald-100 text-emerald-700 border border-emerald-200">
+              <CheckCircle2 size={12} />
+              Sudah Dialihkan
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              Siap Dialihkan
+            </span>
+          )}
         </div>
       </div>
 
@@ -253,19 +274,6 @@ export function ReassignPanel({
                     <Camera size={13} className="text-[#C91076]" />
                     Foto Bukti Lapangan
                   </span>
-                  {onViewEvidence ? (
-                    <button
-                      type="button"
-                      onClick={() => onViewEvidence(incident)}
-                      className="text-[11px] font-bold text-[#C91076] hover:text-[#A80060] flex items-center gap-1 transition-colors"
-                    >
-                      Buka Pop-up Bukti ↗
-                    </button>
-                  ) : (
-                    <span className="text-[10px] font-mono text-[#C91076] bg-[#FFF0F6] px-1.5 py-0.5 rounded border border-[#F9A8D4]">
-                      Cloudinary: {incident.evidencePublicId ?? 'foto_bukti'}
-                    </span>
-                  )}
                 </div>
                 <div
                   onClick={() => onViewEvidence ? onViewEvidence(incident) : window.open(incident.evidenceImageUrl, '_blank')}
@@ -283,7 +291,7 @@ export function ReassignPanel({
                       <Camera size={12} className="text-[#F9A8D4]" /> Klik untuk Pop-up Bukti
                     </span>
                     <span className="text-[10px] text-slate-300 font-mono">
-                      Cloudinary
+                      Foto Bukti
                     </span>
                   </div>
                 </div>
@@ -292,6 +300,47 @@ export function ReassignPanel({
           </div>
         </div>
 
+        {/* ── Status pengalihan: sudah tuntas, tinggal ditelusuri ── */}
+        {isResolved ? (
+          <div className="flex flex-col gap-3">
+            <div className="flex items-baseline justify-between">
+              <span className="text-[13px] font-extrabold text-[#0F172A]">
+                Kurir Pengganti
+              </span>
+              <span className="text-[11px] text-[#94A3B8] bg-white border border-[#E2E8F0] px-2 py-0.5 rounded-full">
+                Selesai
+              </span>
+            </div>
+
+            {replacement ? (
+              <div className="bg-white rounded-xl border-2 border-emerald-200 px-3.5 py-3.5 flex items-start gap-3">
+                <div className="w-11 h-11 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[13px] font-extrabold flex-shrink-0">
+                  {initialsOf(replacement.name)}
+                </div>
+                <div className="flex flex-col gap-0.5 min-w-0">
+                  <span className="text-[14px] font-extrabold text-[#0F172A]">
+                    {replacement.name}
+                  </span>
+                  <span className="text-[11px] text-[#64748B]">
+                    {[replacement.vehicleType, replacement.vehiclePlate].filter(Boolean).join(' · ')}
+                  </span>
+                  {replacement.courierCode && (
+                    <span className="text-[10px] font-mono text-[#94A3B8]">
+                      {replacement.courierCode}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="bg-white rounded-xl border border-[#E2E8F0] px-3.5 py-3 text-[12px] text-[#64748B]">
+                Paket sudah berpindah ke kurir pengganti.
+              </div>
+            )}
+
+
+          </div>
+        ) : (
+          <>
         {/* ── Pilih Kurir Pengganti ── */}
         <div>
           <div className="flex items-baseline justify-between mb-2.5">
@@ -323,20 +372,16 @@ export function ReassignPanel({
             fullWidth
             onClick={onConfirm}
             loading={isSubmitting}
-            disabled={!selectedCandidate || isSubmitting || incident.status === 'RESOLVED'}
+            disabled={!selectedCandidate || isSubmitting}
             className={cn(
               'font-extrabold text-[13px] rounded-full transition-all duration-200',
-              selectedCandidate && !isSubmitting && incident.status !== 'RESOLVED'
+              selectedCandidate && !isSubmitting
                 ? 'hover:scale-105 hover:shadow-lg active:scale-95 shadow-[0_4px_14px_0_rgba(201,16,118,0.4)]'
                 : '',
             )}
           >
             <Zap size={15} />
-            {incident.status === 'RESOLVED'
-              ? 'Pengalihan Sudah Selesai'
-              : isSubmitting
-                ? 'Memproses Pengalihan…'
-                : 'Konfirmasi Pengalihan 1-Klik (< 30 dtk)'}
+            {isSubmitting ? 'Memproses Pengalihan…' : 'Konfirmasi Pengalihan 1-Klik (< 30 dtk)'}
           </Button>
 
           {selectedCandidate ? (
@@ -350,6 +395,8 @@ export function ReassignPanel({
             </p>
           )}
         </div>
+          </>
+        )}
 
       </div>
     </div>

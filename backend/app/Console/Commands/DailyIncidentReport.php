@@ -7,11 +7,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Laporan insiden harian (CSV) — FRD-04 & kebutuhan "incident daily report
- * downloadable as CSV".
- *
- * Berkas ditulis ke storage/app/public/exports sehingga bisa diunduh lewat
- * aplikasi, sekaligus tetap tersimpan sebagai arsip harian.
+ * Laporan insiden harian (CSV) — "incident daily report downloadable as CSV".
  */
 class DailyIncidentReport extends Command
 {
@@ -33,7 +29,7 @@ class DailyIncidentReport extends Command
     {
         $date = $this->option('date') ?: now()->toDateString();
         $rows = $this->reportService->rows($date);
-        $summary = $this->reportService->summary($date);
+        $summary = $this->reportService->summarize($rows);
 
         $filename = 'Laporan_Insiden_' . str_replace('-', '', $date) . '.csv';
         $directory = storage_path('app/public/exports');

@@ -114,4 +114,20 @@ return [
 
     'prefix' => env('CACHE_PREFIX', Str::slug((string) env('APP_NAME', 'laravel')).'-cache-'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Response Cache Headers
+    |--------------------------------------------------------------------------
+    |
+    | Nilai Cache-Control yang dipasang pada setiap respons di bawah /api oleh
+    | middleware ApiTiming. Respons API memuat data per-hub yang berganti tiap
+    | 10 detik, sehingga harus privat dan tidak boleh disimpan oleh proxy,
+    | CDN, maupun browser pengguna.
+    |
+    */
+
+    'headers' => [
+        'response' => env('API_CACHE_CONTROL', 'private, no-store, max-age=0'),
+    ],
+
 ];

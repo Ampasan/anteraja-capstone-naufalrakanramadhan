@@ -1,27 +1,24 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { MapPin, ChevronsRight } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useMonitoring } from './hooks/useMonitoring';
 import { CourierList } from './components/CourierList';
 import { CourierDetailPanel } from './components/CourierDetailPanel';
 import { MapView } from './components/MapView';
 import { MapControls } from './components/MapControls';
 import { IncidentAlertToast } from './components/IncidentAlertToast';
-import { EmergencyReassignModal } from './components/EmergencyReassignModal';
 import { useHubs } from '../../hooks/useHubs';
-import { api, invalidateApiCache } from '../../lib/api';
 import type { Courier } from './types';
 import type { Map as LeafletMap } from 'leaflet';
 
 export function MonitoringPage() {
   const state = useMonitoring();
   const { activeHub } = useHubs();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const focusCourierId = searchParams.get('courier') ?? undefined;
 
   const [listOpen, setListOpen] = useState(true);
-  // Kunci anti klik-ganda pada dialog pengalihan darurat.
-  const reassigningRef = useRef(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -30,14 +27,17 @@ export function MonitoringPage() {
     return () => clearTimeout(timer);
   }, [state.isFullscreen, state.mapRef]);
 
-  // Auto-focus a courier when arriving from the SLA panel
+  // Auto-focus a courier when arriving from the SLA panel.
+  // Parameter URL baru dihapus setelah kurir benar-benar ditemukan — kalau
+  // dihapus sejak awal, saat data kurir belum termuat pilihannya langsung
+  // hilang dan halaman peta tidak pernah menyorot kurir yang sama.
   useEffect(() => {
     if (!focusCourierId) return;
     const target = state.allCouriers.find((c) => c.id === focusCourierId);
-    if (target) {
-      state.selectCourier(target);
-      state.mapRef?.flyTo([target.position.lat, target.position.lng], 16, { duration: 0.8 });
-    }
+    if (!target) return;
+
+    state.selectCourier(target);
+    state.mapRef?.flyTo([target.position.lat, target.position.lng], 16, { duration: 0.8 });
     setSearchParams({}, { replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focusCourierId, setSearchParams, state.allCouriers, state.mapRef, state.selectCourier]);
@@ -63,31 +63,17 @@ export function MonitoringPage() {
     [state],
   );
 
-  const handleConfirmReassign = useCallback(
-    async (candidateId: string) => {
-      const incidentId = state.reassignPayload?.incidentId;
-      if (!incidentId || reassigningRef.current) return;
-
-      reassigningRef.current = true;
-      try {
-        await api(`/incidents/${incidentId}/reassign`, {
-          method: 'POST',
-          body: JSON.stringify({ replacement_courier_id: candidateId }),
-        });
-        invalidateApiCache();
-        state.refreshData();
-        state.closeReassignModal();
-        state.dismissAnomalyToast();
-      } catch (error) {
-        window.alert(
-          error instanceof Error ? error.message : 'Pengalihan gagal dilakukan. Coba lagi.',
-        );
-      } finally {
-        reassigningRef.current = false;
-      }
-    },
-    [state],
-  );
+  /**
+   * Tombol "Alihkan Paket" pada toast insiden.
+   *
+   * Toast peringatan sengaja tidak dibawa ke halaman tujuan: operator sudah
+   * membacanya, cukup halaman Incident & Reassign yang terbuka dengan insiden
+   * itu tersorot lewat parameter `?incident=`.
+   */
+  const handleReassignPacket = useCallback(() => {
+    const incidentId = state.currentIncident?.id;
+    navigate(incidentId ? `/incidents?incident=${incidentId}` : '/incidents');
+  }, [navigate, state.currentIncident]);
 
   return (
 
@@ -177,6 +163,7 @@ export function MonitoringPage() {
             searchQuery={state.searchQuery}
             counts={state.counts}
             totalCount={state.counts.all}
+            isLoading={state.isLoading}
             onSelectCourier={handleCourierClick}
             onFilterChange={state.setFilter}
             onSearchChange={state.setSearchQuery}
@@ -225,8 +212,8 @@ export function MonitoringPage() {
             </button>
           )}
 
-          {/* Panel detail kurir — mengambang kanan atas */}
-          {state.selectedCourier && (
+          {/* Panel detail kurir — mengambang kanan atas, sembunyikan saat fullscreen */}
+          {state.selectedCourier && !state.isFullscreen && (
             <div className="absolute top-3 right-3 z-[450] pointer-events-auto">
               <CourierDetailPanel
                 courier={state.selectedCourier}
@@ -240,26 +227,17 @@ export function MonitoringPage() {
             </div>
           )}
 
-          {/* Toast insiden — kanan bawah */}
-          {state.showAnomalyToast && state.incidentAlerts.length > 0 && (
+          {/* Toast insiden di kanan bawah. Tombol utamanya membawa operator ke
+              halaman Incident & Reassign, tanpa membawa toast yang sama. */}
+          {state.showAnomalyToast && state.currentAlert && (
             <IncidentAlertToast
-              incident={state.incidentAlerts[state.currentIncidentIndex]}
-              onReassign={state.openReassignModal}
+              incident={state.currentAlert}
+              onReassign={handleReassignPacket}
               onDismiss={state.dismissCurrentIncident}
             />
           )}
         </article>
       </div>
-
-      {/* Modal darurat reassignment — hanya dirender bila payload siap */}
-      {state.reassignPayload && (
-        <EmergencyReassignModal
-          open={state.showReassignModal}
-          payload={state.reassignPayload}
-          onClose={state.closeReassignModal}
-          onConfirm={handleConfirmReassign}
-        />
-      )}
     </section>
   );
 }

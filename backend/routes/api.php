@@ -7,6 +7,7 @@ use App\Http\Controllers\HealthController;
 use App\Http\Controllers\IncidentController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\AuditLogController;
+use App\Http\Controllers\TaskController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -50,13 +51,21 @@ Route::middleware('auth:sanctum')->group(function () {
     // Orders (SLA Risk Panel)
     Route::get('/orders/sla-risk', [OrderController::class, 'slaRisk']);
 
+    // Papan peringkat risiko (Redis) — 10 teratas, sangat cepat
+    Route::get('/risiko/teratas', [OrderController::class, 'topRisk']);
+    // Tabel tugas aktif dengan server-side processing (paginasi, filter, urutan)
+    Route::get('/tugas/tabel', [OrderController::class, 'tugasTabel']);
+
     // Incidents (Incident & Reassign)
     Route::get('/incidents', [IncidentController::class, 'index']);
-    // Unduhan laporan insiden harian (CSV) — harus sebelum /incidents/{id}...
+    // Unduhan laporan insiden harian (CSV/XLSX/PDF) — harus sebelum /incidents/{id}...
     Route::get('/incidents/export', [IncidentController::class, 'export']);
     Route::post('/incidents', [IncidentController::class, 'store']);
     Route::post('/incidents/{id}/reassign', [IncidentController::class, 'reassign']);
     Route::post('/incidents/{id}/upload-evidence', [IncidentController::class, 'uploadEvidence']);
+
+    // Status pekerjaan asinkron (202 selama masih diproses worker)
+    Route::get('/tasks/{id}', [TaskController::class, 'show']);
 
     // Audit Logs (Audit Log & Riwayat)
     Route::get('/audit-logs', [AuditLogController::class, 'index']);

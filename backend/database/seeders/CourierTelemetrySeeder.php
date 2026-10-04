@@ -4,72 +4,76 @@ namespace Database\Seeders;
 
 use App\Models\Courier;
 use App\Models\CourierTelemetry;
+use App\Support\CourierRoute;
 use Illuminate\Database\Seeder;
 
 class CourierTelemetrySeeder extends Seeder
 {
-    /**
-     * Seed data telemetri untuk kurir yang online/idle.
-     * Data ini dipakai untuk live tracking map.
-     */
     public function run(): void
     {
-        $telemetries = [
-            [
-                'courier_code' => 'STR-JKT-001',
-                'latitude' => -6.2678,
-                'longitude' => 106.8812,
-                'speed_kmh' => 22.50,
-                'temperature_c' => null,
-                'battery_level' => 92,
-            ],
-            [
-                'courier_code' => 'HLM-VAN-02',
-                'latitude' => -6.2172,
-                'longitude' => 106.9248,
-                'speed_kmh' => 0.00,
-                'temperature_c' => null,
-                'battery_level' => 48,
-            ],
-            [
-                'courier_code' => 'HLM-004',
-                'latitude' => -6.2622,
-                'longitude' => 106.8802,
-                'speed_kmh' => 31.00,
-                'temperature_c' => null,
-                'battery_level' => 85,
-            ],
-            [
-                'courier_code' => 'HLM-008',
-                'latitude' => -6.2712,
-                'longitude' => 106.8838,
-                'speed_kmh' => 18.00,
-                'temperature_c' => 6.2,
-                'battery_level' => 74,
-            ],
-            [
-                'courier_code' => 'HLM-009',
-                'latitude' => -6.2598,
-                'longitude' => 106.8730,
-                'speed_kmh' => 0.00,
-                'temperature_c' => null,
-                'battery_level' => 65,
-            ],
+        $hub = \App\Models\Hub::where('hub_code', 'HUB-JAKTIM-HALIM')->firstOrFail();
+        $hubLat = (float) $hub->latitude;
+        $hubLng = (float) $hub->longitude;
+
+        $online = [
+            'HLM-001'     => ['speed' => 45.0, 'battery' => 92, 'temperature' => 3.1],
+            'HLM-004'     => ['speed' => 40.0, 'battery' => 85, 'temperature' => 2.4],
+            'HLM-008'     => ['speed' => 36.0, 'battery' => 74, 'temperature' => 6.2],
         ];
 
-        foreach ($telemetries as $telemetry) {
-            $courier = Courier::where('courier_code', $telemetry['courier_code'])->first();
-            if ($courier) {
-                CourierTelemetry::create([
-                    'courier_id' => $courier->id,
-                    'latitude' => $telemetry['latitude'],
-                    'longitude' => $telemetry['longitude'],
-                    'speed_kmh' => $telemetry['speed_kmh'],
-                    'temperature_c' => $telemetry['temperature_c'],
-                    'battery_level' => $telemetry['battery_level'],
-                    'recorded_at' => now(),
-                ]);
+        $idle = [
+            'HLM-010'     => ['speed' => 30.0, 'battery' => 48, 'idle' => now()->subMinutes(8)],
+            'HLM-005'     => ['speed' => 30.0, 'battery' => 61, 'idle' => now()->subMinutes(23)],
+            'HLM-009'     => ['speed' => 44.0, 'battery' => 65, 'idle' => now()->subMinutes(47)],
+            'HLM-011'     => ['speed' => 42.0, 'battery' => 77, 'idle' => now()->subHour()->subMinutes(4)],
+            'HLM-002'     => ['speed' => 34.0, 'battery' => 55, 'idle' => now()->subHours(2)->subMinutes(12)],
+            'HLM-003'     => ['speed' => 36.0, 'battery' => 39, 'idle' => now()->subHours(5)->subMinutes(36)],
+            'HLM-007'     => ['speed' => 38.0, 'battery' => 58, 'idle' => now()->subMinutes(38)],
+        ];
+
+        foreach ($online as $code => $data) {
+            $courier = Courier::where('courier_code', $code)->first();
+            if (! $courier) {
+                continue;
             }
+
+            [$lat, $lng] = CourierRoute::loop($code, $hubLat, $hubLng)[0];
+
+            $this->put($courier, [
+                'latitude' => round($lat, 7),
+                'longitude' => round($lng, 7),
+                'speed_kmh' => $data['speed'],
+                'temperature_c' => $data['temperature'],
+                'battery_level' => $data['battery'],
+                'recorded_at' => now(),
+            ]);
         }
+
+        foreach ($idle as $code => $data) {
+            $courier = Courier::where('courier_code', $code)->first();
+            if (! $courier) {
+                continue;
+            }
+
+            [$lat, $lng] = CourierRoute::loop($code, $hubLat, $hubLng)[0];
+
+            $this->put($courier, [
+                'latitude' => round($lat, 7),
+                'longitude' => round($lng, 7),
+                'speed_kmh' => $data['speed'],
+                'temperature_c' => null,
+                'battery_level' => $data['battery'],
+                'recorded_at' => $data['idle'],
+            ]);
+        }
+    }
+
+    private function put(Courier $courier, array $data): void
+    {
+        CourierTelemetry::where('courier_id', $courier->id)->delete();
+
+        CourierTelemetry::create(array_merge($data, [
+            'courier_id' => $courier->id,
+        ]));
     }
 }

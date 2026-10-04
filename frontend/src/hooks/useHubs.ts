@@ -19,7 +19,7 @@ function envString(name: string, fallback: string): string {
 /** Cadangan bila endpoint /hubs tidak terjangkau — tetap menjaga peta tetap fokus. */
 const FALLBACK_HUB: Hub = {
   id: '',
-  name: envString('VITE_ACTIVE_HUB_NAME', 'ANTERAJA HUB HALIM'),
+  name: envString('VITE_ACTIVE_HUB_NAME', 'Hub Halim - Jakarta Timur'),
   shortName: envString('VITE_ACTIVE_HUB_CODE', 'HUB HALIM'),
   position: {
     lat: envNumber('VITE_ACTIVE_HUB_LAT', -6.2651893),
@@ -31,15 +31,26 @@ const FALLBACK_HUB: Hub = {
 };
 
 /**
- * Daftar semua hub (endpoint publik) + hub milik user yang sedang login.
- * Data statis, di-cache 60 detik sehingga tidak dipanggil ulang tiap render.
+ * Hub awal yang langsung tersedia pada render pertama.
+ */
+function seedHub(): Hub {
+  const user = getUser();
+  return {
+    ...FALLBACK_HUB,
+    id: user?.hub_id ?? '',
+    name: user?.hub_name ?? FALLBACK_HUB.name,
+  };
+}
+
+/**
+ * Daftar semua hub + hub milik user yang sedang login.
  */
 export function useHubs(): {
   hubs: Hub[];
   activeHub: Hub | null;
   loading: boolean;
 } {
-  const [hubs, setHubs] = useState<Hub[]>([]);
+  const [hubs, setHubs] = useState<Hub[]>(() => [seedHub()]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

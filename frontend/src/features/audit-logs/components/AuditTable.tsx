@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   Copy,
   Check,
@@ -6,25 +6,27 @@ import {
   Thermometer,
   Wrench,
   CircleDot,
+  MapPin,
   Waves,
   ArrowRight,
+  AlertTriangle,
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   Camera,
   ExternalLink,
 } from 'lucide-react';
 import { cn } from '../../../lib/utils';
-import type { AuditLogEntry, PaginationState, IncidentCategory } from '../types';
+import type { AuditLogEntry, PaginationState, IncidentCategory, ReportStatus } from '../types';
 import { EvidencePhotoModal, type EvidenceModalData } from '../../../components/evidence/EvidencePhotoModal';
 
 interface AuditTableProps {
   data: AuditLogEntry[];
   pagination: PaginationState;
+  isLoading?: boolean;
   onPageChange: (page: number) => void;
 }
 
-/** Peta layanan -> warna badge. Dicari pakai huruf besar agar cocok dengan
- *  nilai backend yang datang dalam campuran huruf ("Cargo", "Frozen", ...). */
 const SVC: Partial<Record<string, { cls: string; label: string }>> = {
   'NEXT DAY':  { cls: 'bg-[#DCFCE7] text-[#15803D] border-[#86EFAC]',   label: 'NEXT DAY'  },
   'FROZEN':    { cls: 'bg-[#DBEAFE] text-[#1D4ED8] border-[#93C5FD]',   label: 'FROZEN'    },
@@ -67,10 +69,20 @@ function incidentCfg(cat: IncidentCategory): IncidentCfg {
         icon: <CircleDot size={14} />,
         cls: 'bg-[#FEF2F2] text-[#B91C1C] border-[#FECACA]',
       };
+    case 'Alamat tidak ditemukan':
+      return {
+        icon: <MapPin size={14} />,
+        cls: 'bg-[#F0FDF4] text-[#15803D] border-[#BBF7D0]',
+      };
     case 'Banjir':
       return {
         icon: <Waves size={14} />,
         cls: 'bg-[#EEF2FF] text-[#4338CA] border-[#C7D2FE]',
+      };
+    case 'Macet Total':
+      return {
+        icon: <AlertTriangle size={14} />,
+        cls: 'bg-[#FFF7ED] text-[#C2410C] border-[#FED7AA]',
       };
     default:
       // Kategori tak dikenal tetap harus dirender — jangan sampai crash.
@@ -88,6 +100,36 @@ function fmtTime(iso: string) {
     ':' +
     String(d.getMinutes()).padStart(2, '0') +
     ' WIB'
+  );
+}
+
+/**
+ * Status laporan tiap baris riwayat.
+ */
+const STATUS_CFG: Record<ReportStatus, { cls: string; icon: ReactNode }> = {
+  Eskalasi: {
+    cls: 'bg-[#FFF7ED] text-[#C2410C] border-[#FDBA74]',
+    icon: <AlertTriangle size={13} strokeWidth={2.5} />,
+  },
+  Selesai: {
+    cls: 'bg-[#DCFCE7] text-[#15803D] border-[#86EFAC]',
+    icon: <CheckCircle2 size={13} strokeWidth={2.5} />,
+  },
+};
+
+function StatusBadge({ status }: { status: ReportStatus }) {
+  const cfg = STATUS_CFG[status] ?? STATUS_CFG.Selesai;
+  return (
+    <span
+      title={`Status Laporan: ${status}`}
+      className={cn(
+        'inline-flex items-center gap-1.5 rounded-full border font-semibold whitespace-nowrap px-2.5 sm:px-3 py-1.5 text-[12px] sm:text-[13px]',
+        cfg.cls,
+      )}
+    >
+      {cfg.icon}
+      {status}
+    </span>
   );
 }
 
@@ -209,7 +251,7 @@ function Pagination({
 }
 
 
-export function AuditTable({ data, pagination, onPageChange }: AuditTableProps) {
+export function AuditTable({ data, pagination, isLoading = false, onPageChange }: AuditTableProps) {
   const { totalItems, pageSize, page } = pagination;
   const [selectedEvidence, setSelectedEvidence] = useState<EvidenceModalData | null>(null);
 
@@ -242,6 +284,9 @@ export function AuditTable({ data, pagination, onPageChange }: AuditTableProps) 
                 <th title="Nomor resi paket dan jenis layanan pengiriman" className="px-3 sm:px-5 py-3.5 text-left text-[11.5px] font-extrabold uppercase tracking-widest text-[#99004C] whitespace-nowrap border-b-2 border-[#F0D0E0] cursor-help">
                   NO. RESI &amp; LAYANAN
                 </th>
+                <th title="Posisi laporan saat ini: Dialihkan, Eskalasi, atau Selesai" className="px-3 sm:px-5 py-3.5 text-left text-[11.5px] font-extrabold uppercase tracking-widest text-[#99004C] whitespace-nowrap border-b-2 border-[#F0D0E0] cursor-help">
+                  STATUS LAPORAN
+                </th>
                 <th title="Jam dan tanggal pengalihan berhasil diselesaikan" className="hidden sm:table-cell px-5 py-3.5 text-left text-[11.5px] font-extrabold uppercase tracking-widest text-[#99004C] whitespace-nowrap border-b-2 border-[#F0D0E0] cursor-help">
                   WAKTU SELESAI
                 </th>
@@ -258,9 +303,21 @@ export function AuditTable({ data, pagination, onPageChange }: AuditTableProps) 
             </thead>
 
             <tbody key={page}>
-              {data.length === 0 ? (
+              {data.length === 0 && isLoading ? (
                 <tr>
-                  <td colSpan={5} className="py-20 text-center">
+                  <td colSpan={6} className="py-20 text-center">
+                    <div className="flex flex-col items-center gap-3">
+                      <span
+                        className="h-7 w-7 animate-spin rounded-full border-[3px] border-[#F9A8D4] border-t-[#C91076]"
+                        aria-hidden="true"
+                      />
+                      <p className="text-[15px] font-semibold text-[#64748B]">Memuat riwayat…</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : data.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-20 text-center">
                     <div className="flex flex-col items-center gap-2">
                       <span className="text-3xl">🔍</span>
                       <p className="text-[15px] font-semibold text-[#374151]">Tidak ada catatan ditemukan</p>
@@ -324,7 +381,12 @@ export function AuditTable({ data, pagination, onPageChange }: AuditTableProps) 
                         </div>
                       </td>
 
-                      {/* Col 2: Waktu selesai — hidden on mobile */}
+                      {/* Col 2: Status laporan — selalu tampil, apa pun lebar layar */}
+                      <td className="px-3 sm:px-5 py-4 sm:py-5">
+                        <StatusBadge status={entry.reportStatus} />
+                      </td>
+
+                      {/* Col 3: Waktu selesai — hidden on mobile */}
                       <td className="hidden sm:table-cell px-5 py-4 sm:py-5">
                         <p className="text-[15px] font-bold text-[#111827] leading-tight tabular-nums">
                           {fmtTime(entry.completedAt)}
@@ -334,7 +396,7 @@ export function AuditTable({ data, pagination, onPageChange }: AuditTableProps) 
                         </p>
                       </td>
 
-                      {/* Col 3: Pengalihan kurir */}
+                      {/* Col 4: Pengalihan kurir */}
                       <td className="px-3 sm:px-5 py-4 sm:py-5">
                         <div className="flex items-center gap-1.5 sm:gap-2.5 flex-wrap">
                           {/* Kurir asal */}
@@ -372,12 +434,12 @@ export function AuditTable({ data, pagination, onPageChange }: AuditTableProps) 
                             )}
                           >
                             {inc.icon}
-                            {entry.incidentDetail}
+                            {entry.incidentCategory}
                           </span>
                         </div>
                       </td>
 
-                      {/* Col 4: Kendala — hidden on mobile */}
+                      {/* Col 5: Kendala — hidden on mobile */}
                       <td className="hidden md:table-cell px-5 py-4 sm:py-5">
                         <span
                           className={cn(
@@ -388,11 +450,11 @@ export function AuditTable({ data, pagination, onPageChange }: AuditTableProps) 
                           title={`Kategori: ${entry.incidentCategory}`}
                         >
                           {inc.icon}
-                          {entry.incidentDetail}
+                          {entry.incidentCategory}
                         </span>
                       </td>
 
-                      {/* Col 5: Foto Bukti */}
+                      {/* Col 6: Foto Bukti */}
                       <td className="px-3 sm:px-5 py-4 sm:py-5 text-center">
                         {isColdChain ? (
                           <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-blue-200 bg-blue-50 text-blue-700 text-[11px] font-bold">

@@ -1,6 +1,6 @@
 import {
   Truck, Package, TrendingUp, CheckCircle2, Clock,
-  Sun, Printer, ExternalLink, X, Gauge, ShieldCheck,
+  Sun, Printer, ExternalLink, X, Gauge, ShieldCheck, AlertTriangle,
 } from 'lucide-react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { cn } from '../../../lib/utils';
@@ -57,6 +57,7 @@ function Section({
 // ─── Timeline Item ───
 function TimelineItem({ step, isLast }: { step: TimelineStep; isLast: boolean }) {
   const isDone = step.status === 'done';
+  const isLate = step.status === 'late';
   const badgeClr: Record<string, string> = {
     green: 'text-emerald-600',
     amber: 'text-amber-600',
@@ -66,22 +67,31 @@ function TimelineItem({ step, isLast }: { step: TimelineStep; isLast: boolean })
   return (
     <div className="flex gap-3">
       <div className="flex flex-col items-center flex-shrink-0 pt-0.5">
-        {isDone ? (
-          <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center shadow-sm">
-            <CheckCircle2 size={13} className="text-white" />
-          </div>
-        ) : (
-          <div className="w-6 h-6 rounded-full border-2 border-[#C91076] bg-[#FFF0F6] flex items-center justify-center">
-            <Clock size={11} className="text-[#C91076]" />
-          </div>
-        )}
+          {step.status === 'done' ? (
+            <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center shadow-sm">
+              <CheckCircle2 size={13} className="text-white" />
+            </div>
+          ) : step.status === 'late' ? (
+            /* Tenggat terlewati — lingkaran merah, bukan centang hijau,
+               supaya kepatuhan SLA terbaca benar sejak sekilas pandang. */
+            <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center shadow-sm">
+              <AlertTriangle size={12} className="text-white" />
+            </div>
+          ) : (
+            <div className="w-6 h-6 rounded-full border-2 border-[#C91076] bg-[#FFF0F6] flex items-center justify-center">
+              <Clock size={11} className="text-[#C91076]" />
+            </div>
+          )}
         {!isLast && <div className="w-px bg-[#E2E8F0] mt-1.5 flex-1 min-h-[28px]" />}
       </div>
 
       <div className={cn('flex-1 min-w-0 flex items-start justify-between gap-3', isLast ? 'pb-0' : 'pb-5')}>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className={cn('text-sm font-bold leading-snug', isDone ? 'text-[#0F172A]' : 'text-[#C91076]')}>
+            <span className={cn(
+              'text-sm font-bold leading-snug',
+              isLate ? 'text-red-600' : isDone ? 'text-[#0F172A]' : 'text-[#C91076]',
+            )}>
               {step.title}
             </span>
             {step.badge && step.badgeColor && (
@@ -96,7 +106,14 @@ function TimelineItem({ step, isLast }: { step: TimelineStep; isLast: boolean })
           {step.time ? (
             <span className="text-sm font-bold text-[#475569] whitespace-nowrap">{step.time}</span>
           ) : step.etaBadge ? (
-            <span className="inline-flex items-center text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg whitespace-nowrap">
+            <span
+              className={cn(
+                'inline-flex items-center text-xs font-bold border px-2.5 py-1 rounded-lg whitespace-nowrap',
+                isLate
+                  ? 'text-red-700 bg-red-50 border-red-200'
+                  : 'text-emerald-700 bg-emerald-50 border-emerald-200',
+              )}
+            >
               {step.etaBadge}
             </span>
           ) : null}
@@ -118,10 +135,16 @@ export function SlaDetailModal({ order, onClose, onOpenMap }: SlaDetailModalProp
 
   const detail  = order.detail;
   const svc     = SVC[order.serviceType] ?? SVC.Regular;
-  const loadPct = Math.min(100, Math.round((detail.loadUsedKg / detail.loadCapacityKg) * 100));
+  // Kapasitas dijaga tetap menurut jenis kendaraan; nol berarti baris armada
+  // belum dimuat sehingga persentase tidak boleh ikut ditampilkan.
+  const capacityKnown = detail.loadCapacityKg > 0 && detail.loadKnown !== false;
+  const loadPct = capacityKnown
+    ? Math.min(100, Math.round((detail.loadUsedKg / detail.loadCapacityKg) * 100))
+    : 0;
 
   const trafficClr: Record<string, string> = { green: 'text-emerald-600', amber: 'text-amber-600', red: 'text-red-600' };
   const riskClr:    Record<string, string> = { green: 'text-emerald-600', amber: 'text-amber-600', red: 'text-red-600' };
+  const riskBg:     Record<string, string> = { green: 'bg-emerald-50 border-emerald-200', amber: 'bg-amber-50 border-amber-200', red: 'bg-red-50 border-red-200' };
 
   return (
     <Dialog.Root open={!!order} onOpenChange={(v) => !v && onClose()}>
@@ -181,11 +204,23 @@ export function SlaDetailModal({ order, onClose, onOpenMap }: SlaDetailModalProp
                     </div>
                     <div className="px-4 sm:px-5 py-3 sm:py-4 flex flex-col gap-2">
                       <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#94A3B8]">Kapasitas Muatan</span>
-                      <span className="text-sm sm:text-base font-black text-[#0F172A]">{detail.loadUsedKg} / {detail.loadCapacityKg} Kg</span>
-                      <div className="h-2 bg-[#F1F5F9] rounded-full overflow-hidden">
-                        <div className="h-full bg-[#C91076] rounded-full transition-all duration-500" style={{ width: `${loadPct}%` }} />
-                      </div>
-                      <span className="text-[10px] text-[#94A3B8]">{loadPct}% kapasitas terisi</span>
+                      <span className="text-sm sm:text-base font-black text-[#0F172A]">
+                        {capacityKnown
+                          ? `${detail.loadUsedKg} / ${detail.loadCapacityKg} Kg`
+                          : '— Kg'}
+                      </span>
+                      {capacityKnown ? (
+                        <>
+                          <div className="h-2 bg-[#F1F5F9] rounded-full overflow-hidden">
+                            <div className="h-full bg-[#C91076] rounded-full transition-all duration-500" style={{ width: `${loadPct}%` }} />
+                          </div>
+                          <span className="text-[10px] text-[#94A3B8]">
+                            {loadPct}% kapasitas {detail.vehicleType} terisi
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-[10px] text-[#94A3B8]">Data armada belum tersedia</span>
+                      )}
                     </div>
                   </div>
                 </Section>
@@ -193,10 +228,26 @@ export function SlaDetailModal({ order, onClose, onOpenMap }: SlaDetailModalProp
                 {/* 2 — Rincian Penerima */}
                 <Section icon={Package} title="Rincian Penerima & Spesifikasi">
                   <div className="px-3 sm:px-4 py-3 sm:py-4 grid grid-cols-1 sm:grid-cols-5 gap-3 sm:gap-4 bg-white">
-                    <div className="sm:col-span-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg p-4">
-                      <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#94A3B8] block mb-2">Alamat Tujuan Pengiriman</span>
-                      <p className="text-sm font-bold text-[#0F172A] leading-snug mb-1.5">{detail.destinationName}</p>
-                      <p className="text-xs text-[#64748B] leading-relaxed font-medium">{detail.destinationAddress}</p>
+                    <div className="sm:col-span-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg p-4 flex flex-col gap-3">
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#94A3B8] block mb-1.5">Nama Penerima</span>
+                        <p className="text-sm font-bold text-[#0F172A] leading-snug">
+                          {detail.recipientName || '—'}
+                        </p>
+                        {detail.recipientPhone && (
+                          <a
+                            href={`tel:${detail.recipientPhone.replace(/\s+/g, '')}`}
+                            className="text-xs font-semibold text-[#C91076] hover:underline"
+                          >
+                            {detail.recipientPhone}
+                          </a>
+                        )}
+                      </div>
+                      <div className="border-t border-[#E2E8F0] pt-3">
+                        <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#94A3B8] block mb-1.5">Alamat Tujuan Pengiriman</span>
+                        <p className="text-sm font-bold text-[#0F172A] leading-snug mb-1.5">{detail.destinationName}</p>
+                        <p className="text-xs text-[#64748B] leading-relaxed font-medium">{detail.destinationAddress}</p>
+                      </div>
                     </div>
                     <div className="sm:col-span-2 flex flex-col justify-between gap-3 sm:gap-4 py-0.5">
                       <div>
@@ -258,7 +309,16 @@ export function SlaDetailModal({ order, onClose, onOpenMap }: SlaDetailModalProp
                         <span className="text-[9px] font-bold uppercase tracking-[0.1em] text-[#94A3B8] leading-tight">Tingkat Risiko SLA</span>
                       </div>
                       <span className={cn('text-sm font-bold', riskClr[detail.hazard.slaRiskColor])}>
-                        {detail.hazard.slaRiskLabel} <span className="text-[#94A3B8] font-normal">({detail.hazard.slaRiskScore})</span>
+                        {detail.hazard.slaRiskLabel}{' '}
+                        <span
+                          className={cn(
+                            'ml-1 inline-block rounded-md border px-1.5 py-0.5 text-[12px] font-extrabold tabular-nums',
+                            riskBg[detail.hazard.slaRiskColor],
+                            riskClr[detail.hazard.slaRiskColor],
+                          )}
+                        >
+                          {detail.hazard.slaRiskScore}/10
+                        </span>
                       </span>
                     </div>
                   </div>

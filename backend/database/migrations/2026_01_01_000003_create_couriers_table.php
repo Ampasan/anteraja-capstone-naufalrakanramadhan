@@ -9,7 +9,6 @@ return new class extends Migration
 {
     /**
      * Tabel couriers: Data kurir yang melayani pengiriman.
-     * 10 kurir untuk Hub Halim: 3 online, 5 idle, 2 offline.
      */
     public function up(): void
     {
@@ -32,14 +31,17 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Check constraints
-        DB::statement("ALTER TABLE couriers ADD CONSTRAINT chk_couriers_status CHECK (status IN ('ONLINE', 'OFFLINE', 'IDLE', 'OFF_DUTY'))");
-        DB::statement('ALTER TABLE couriers ADD CONSTRAINT chk_couriers_parcel_count CHECK (current_parcel_count >= 0)');
-        DB::statement('ALTER TABLE couriers ADD CONSTRAINT chk_couriers_max_parcel CHECK (max_parcel_count > 0)');
-        DB::statement('ALTER TABLE couriers ADD CONSTRAINT chk_couriers_load CHECK (current_load_kg >= 0)');
-        DB::statement('ALTER TABLE couriers ADD CONSTRAINT chk_couriers_capacity CHECK (max_capacity_kg > 0)');
-        DB::statement('ALTER TABLE couriers ADD CONSTRAINT chk_couriers_parcel_max CHECK (current_parcel_count <= max_parcel_count)');
-        DB::statement('ALTER TABLE couriers ADD CONSTRAINT chk_couriers_load_max CHECK (current_load_kg <= max_capacity_kg)');
+        // Check constraints. SQLite tidak mendukung ALTER ADD CONSTRAINT,
+        // jadi driver itu melewati blok ini (hanya dipakai test).
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE couriers ADD CONSTRAINT chk_couriers_status CHECK (status IN ('ONLINE', 'OFFLINE', 'IDLE', 'OFF_DUTY'))");
+            DB::statement('ALTER TABLE couriers ADD CONSTRAINT chk_couriers_parcel_count CHECK (current_parcel_count >= 0)');
+            DB::statement('ALTER TABLE couriers ADD CONSTRAINT chk_couriers_max_parcel CHECK (max_parcel_count > 0)');
+            DB::statement('ALTER TABLE couriers ADD CONSTRAINT chk_couriers_load CHECK (current_load_kg >= 0)');
+            DB::statement('ALTER TABLE couriers ADD CONSTRAINT chk_couriers_capacity CHECK (max_capacity_kg > 0)');
+            DB::statement('ALTER TABLE couriers ADD CONSTRAINT chk_couriers_parcel_max CHECK (current_parcel_count <= max_parcel_count)');
+            DB::statement('ALTER TABLE couriers ADD CONSTRAINT chk_couriers_load_max CHECK (current_load_kg <= max_capacity_kg)');
+        }
     }
 
     public function down(): void

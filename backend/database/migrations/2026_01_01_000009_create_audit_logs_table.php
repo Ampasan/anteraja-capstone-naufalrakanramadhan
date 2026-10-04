@@ -23,18 +23,18 @@ return new class extends Migration
             $table->foreignUuid('executor_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('incident_category', 50);
             $table->string('incident_detail', 150);
-            $table->string('action_type', 50)->default('ONE_CLICK_REASSIGNMENT');
             $table->decimal('resolution_time_seconds', 6, 2);
             $table->boolean('is_sla_saved')->default(true);
             $table->string('audit_hash', 64)->nullable();
-            $table->text('notes')->nullable();
             $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->nullable();
         });
 
-        // Check constraints
-        DB::statement('ALTER TABLE audit_logs ADD CONSTRAINT chk_audit_logs_different_couriers CHECK (original_courier_id <> replacement_courier_id)');
-        DB::statement('ALTER TABLE audit_logs ADD CONSTRAINT chk_audit_logs_resolution_time CHECK (resolution_time_seconds >= 0)');
+        // Check constraints. SQLite tidak mendukung ALTER ADD CONSTRAINT,
+        // jadi driver itu melewati blok ini (hanya dipakai test).
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement('ALTER TABLE audit_logs ADD CONSTRAINT chk_audit_logs_different_couriers CHECK (original_courier_id <> replacement_courier_id)');
+            DB::statement('ALTER TABLE audit_logs ADD CONSTRAINT chk_audit_logs_resolution_time CHECK (resolution_time_seconds >= 0)');
+        }
 
         // Index untuk optimasi
         DB::statement('CREATE INDEX idx_audit_logs_order_id ON audit_logs(order_id)');

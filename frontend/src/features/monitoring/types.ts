@@ -54,6 +54,12 @@ export interface Courier {
   capacityTotal: number;
   idleDuration?: string;
   lastKnownAddress?: string;
+  /** Jarak lurus ke hub dalam meter (null bila belum ada telemetri). */
+  distanceFromHubM?: number;
+  /** Masih di dalam radius layan hub? null bila jaraknya belum diketahui. */
+  insideRadius?: boolean;
+  /** Radius layan hub dalam km — dipakai untuk label di UI. */
+  hubRadiusKm?: number;
   route?: ActiveRoute;
   coldChainAnomaly?: ColdChainAnomaly;
   phone: string;
@@ -68,41 +74,6 @@ export interface Hub {
   radiusKm: number;
   capacityUsed: number;
   capacityTotal: number;
-}
-
-/** Candidate courier for emergency reassignment */
-export interface ReassignmentCandidate {
-  id: string;
-  name: string;
-  initials: string;
-  etaMinutes: number;
-  distanceLabel: string;
-  loadCurrent: number;
-  loadTotal: number;
-  isBest: boolean;
-}
-
-/** Payload for the emergency reassignment modal */
-export interface EmergencyReassignPayload {
-  /** Hanya terisi untuk paket cold-chain yang bersuhu di atas ambang aman. */
-  anomaly?: ColdChainAnomaly;
-  /** Ringkasan kendala lapangan — dipakai bila kasusnya bukan cold-chain. */
-  description?: string;
-  /** Posisi hub aktif (opsional, diisi oleh mapper). */
-  hubPosition?: LatLng;
-  /** ID insiden asal — dipakai untuk memanggil endpoint pengalihan. */
-  incidentId?: string;
-  /** Nomor resi paket yang dialihkan. */
-  waybillNumber?: string;
-  originalCourier: {
-    id: string;
-    name: string;
-    initials: string;
-    vehicle: VehicleType;
-    obstacleLabel: string;
-    lastKnownAddress: string;
-  };
-  candidates: ReassignmentCandidate[];
 }
 
 /** UI filter tabs for courier list */
@@ -122,7 +93,7 @@ export interface IncidentAlert {
   courierName: string;
   location: string;
   timestamp: string;
-  icon: 'snowflake' | 'wrench' | 'cloud-rain' | 'alert-triangle' | 'package';
+  icon: 'snowflake' | 'wrench' | 'cloud-rain' | 'alert-triangle' | 'package' | 'map-pin';
   theme: {
     border: string;
     bg: string;

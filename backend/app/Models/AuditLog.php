@@ -16,6 +16,9 @@ class AuditLog extends Model
     protected $keyType = 'string';
 
     // Audit log immutable - tidak bisa diupdate
+    /** Tabel ini punya `created_at` saja; `updated_at` sengaja tidak dipakai. */
+    public const UPDATED_AT = null;
+
     protected $fillable = [
         'log_code',
         'order_id',
@@ -25,11 +28,9 @@ class AuditLog extends Model
         'executor_user_id',
         'incident_category',
         'incident_detail',
-        'action_type',
         'resolution_time_seconds',
         'is_sla_saved',
         'audit_hash',
-        'notes',
         'created_at',
     ];
 

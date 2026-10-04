@@ -6,9 +6,6 @@ use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Jalankan semua seeders dalam urutan yang benar.
-     */
     public function run(): void
     {
         $this->call([

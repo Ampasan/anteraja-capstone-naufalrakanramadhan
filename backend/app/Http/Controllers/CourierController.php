@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Courier;
+use App\Models\CourierTelemetry;
+use App\Models\Order;
 use App\Services\Courier\CourierReplacementService;
 use App\Services\Courier\CourierService;
 use Illuminate\Http\JsonResponse;
@@ -25,11 +27,22 @@ class CourierController extends Controller
 
         $couriers = $this->courierService->getCouriersByHub($hubId);
 
+        $online = 0;
+        $idle = 0;
+
+        foreach ($couriers as $courier) {
+            if ($courier['status'] === 'ONLINE') {
+                $online++;
+            } elseif ($courier['status'] === 'IDLE') {
+                $idle++;
+            }
+        }
+
         return $this->success([
             'couriers' => $couriers,
             'total' => count($couriers),
-            'online' => count(array_filter($couriers, fn ($c) => $c['status'] === 'ONLINE')),
-            'idle' => count(array_filter($couriers, fn ($c) => $c['status'] === 'IDLE')),
+            'online' => $online,
+            'idle' => $idle,
         ]);
     }
 
@@ -51,16 +64,12 @@ class CourierController extends Controller
     /**
      * GET /api/couriers/candidates?exclude_id=&order_id=
      * Kandidat kurir pengganti untuk satu insiden.
-     *
-     * Dipakai modal konfirmasi pengalihan di frontend. Sama persis dengan
-     * daftar kandidat yang tersemat di response GET /incidents, sehingga UI
-     * tidak perlu menghitung ulang.
      */
     public function candidates(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'exclude_id' => 'required|string',
-            'order_id' => 'nullable|string|exists:orders,id',
+            'order_id' => 'nullable|string',
             'weight_kg' => 'nullable|numeric|min:0',
         ]);
 
@@ -68,16 +77,41 @@ class CourierController extends Controller
 
         $order = null;
         if (!empty($validated['order_id'])) {
-            $order = \App\Models\Order::find($validated['order_id']);
+            $order = Order::find($validated['order_id']);
+
+            if ($order === null) {
+                return $this->error('Order tidak ditemukan.', 422);
+            }
         }
 
         $weightKg = (float) ($validated['weight_kg'] ?? $order?->weight_kg ?? 0);
 
+        $excludeIds = [$validated['exclude_id']];
+        if ($order?->current_courier_id) {
+            $excludeIds[] = $order->current_courier_id;
+        }
+        
+        $from = null;
+        if ($order?->current_courier_id) {
+            $telemetry = CourierTelemetry::query()
+                ->where('courier_id', $order->current_courier_id)
+                ->orderByDesc('recorded_at')
+                ->first();
+
+            if ($telemetry) {
+                $from = [
+                    'lat' => (float) $telemetry->latitude,
+                    'lng' => (float) $telemetry->longitude,
+                ];
+            }
+        }
+
         $candidates = $this->replacementService->getReplacementCandidates(
             $hubId,
-            $validated['exclude_id'],
+            $excludeIds,
             $weightKg,
-            $order
+            $order,
+            $from
         );
 
         return $this->success([

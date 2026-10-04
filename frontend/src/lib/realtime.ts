@@ -1,14 +1,4 @@
-/**
- * Koneksi realtime (Laravel Reverb via Laravel Echo + pusher-js).
- *
- * Realtime bersifat PELengkap: seluruh panel tetap memutakhirkan data lewat
- * polling REST. Bila server WebSocket tidak tersedia, koneksi diputus setelah
- * beberapa detik supaya tidak membanjiri konsol dan menghemat resource —
- * tidak ada satu pun alur data yang bergantung pada koneksi ini.
- */
-
-import Echo from 'laravel-echo';
-import Pusher from 'pusher-js';
+import type Echo from 'laravel-echo';
 
 export type RealtimeEvent =
   | 'incident.reported'
@@ -26,14 +16,16 @@ const EVENTS: RealtimeEvent[] = [
 /** Berapa lama menunggu sebelum menyerah menyalakan WebSocket. */
 const CONNECT_TIMEOUT_MS = 6000;
 
-type Channel = ReturnType<Echo<'reverb'>['channel']>;
+type EchoInstance = Echo<'reverb'>;
+type Channel = ReturnType<EchoInstance['channel']>;
 
-let echo: Echo<'reverb'> | null = null;
+let echo: EchoInstance | null = null;
+let pending: Promise<EchoInstance | null> | null = null;
 let channel: Channel | null = null;
 let channelName: string | null = null;
 let watchdog: number | null = null;
-/** Setelah gagal sekali, jangan coba lagi selama satu sesi halaman. */
 let unavailable = false;
+let generation = 0;
 
 function env(name: string, fallback: string): string {
   const value = (import.meta.env as Record<string, unknown>)[name];
@@ -49,54 +41,68 @@ function clearWatchdog(): void {
 
 function disable(): void {
   clearWatchdog();
+  generation++;
   try {
     echo?.disconnect();
   } catch {
     // abaikan
   }
   echo = null;
+  pending = null;
   channel = null;
   channelName = null;
   unavailable = true;
 }
 
-function connect(): Echo<'reverb'> | null {
-  if (unavailable) return null;
-  if (echo) return echo;
+function connect(): Promise<EchoInstance | null> {
+  if (unavailable) return Promise.resolve(null);
+  if (echo) return Promise.resolve(echo);
+  if (pending) return pending;
 
-  const host = env('VITE_REVERB_HOST', '127.0.0.1');
-  const port = Number(env('VITE_REVERB_PORT', '8080'));
-  const scheme = env('VITE_REVERB_SCHEME', 'http');
+  const gen = generation;
 
-  try {
-    echo = new Echo<'reverb'>({
-      broadcaster: 'reverb',
-      key: env('VITE_REVERB_APP_KEY', 'anteraja-local-key'),
-      wsHost: host,
-      wsPort: port,
-      wssPort: port,
-      forceTLS: scheme === 'https',
-      enabledTransports: ['ws', 'wss'],
-      disableStats: true,
-      Pusher,
+  const attempt: Promise<EchoInstance | null> = Promise.all([
+    import('laravel-echo'),
+    import('pusher-js'),
+  ])
+    .then(([echoModule, pusherModule]) => {
+      if (unavailable || gen !== generation) return null;
+
+      const instance = new echoModule.default<'reverb'>({
+        broadcaster: 'reverb',
+        key: env('VITE_REVERB_APP_KEY', 'anteraja-local-key'),
+        wsHost: env('VITE_REVERB_HOST', '127.0.0.1'),
+        wsPort: Number(env('VITE_REVERB_PORT', '8080')),
+        wssPort: Number(env('VITE_REVERB_PORT', '8080')),
+        forceTLS: env('VITE_REVERB_SCHEME', 'http') === 'https',
+        enabledTransports: ['ws', 'wss'],
+        disableStats: true,
+        Pusher: pusherModule.default,
+      });
+
+      echo = instance;
+
+      watchdog = window.setTimeout(() => {
+        const state = echo?.connector.pusher.connection.state;
+        if (state !== 'connected') disable();
+      }, CONNECT_TIMEOUT_MS);
+
+      return instance;
+    })
+    .catch(() => {
+      unavailable = true;
+      return null;
+    })
+    .finally(() => {
+      if (pending === attempt) pending = null;
     });
-  } catch {
-    unavailable = true;
-    return null;
-  }
 
-  // Watchdog: bila Reverb tidak menjawab dalam beberapa detik, putuskan
-  // koneksi dan andalkan polling saja.
-  watchdog = window.setTimeout(() => {
-    const state = echo?.connector.pusher.connection.state;
-    if (state !== 'connected') disable();
-  }, CONNECT_TIMEOUT_MS);
-
-  return echo;
+  pending = attempt;
+  return attempt;
 }
 
-function getChannel(hubId: string): Channel | null {
-  const instance = connect();
+async function getChannel(hubId: string): Promise<Channel | null> {
+  const instance = await connect();
   if (!instance) return null;
 
   if (channel && channelName === `hub.${hubId}`) return channel;
@@ -108,42 +114,55 @@ function getChannel(hubId: string): Channel | null {
   return channel;
 }
 
-/**
- * Berlangganan seluruh event operasional hub. Mengembalikan fungsi
- * pembatal langganan yang aman dipanggil berkali-kali.
- */
 export function subscribeHub(
   hubId: string,
   onEvent: (event: RealtimeEvent) => void,
 ): () => void {
-  const target = getChannel(hubId);
-  if (!target) return () => undefined;
-
-  const bindings = EVENTS.map((event) => {
-    const handler = () => onEvent(event);
-    // Echo menambahkan titik di depan nama event hasil broadcastAs().
-    target.listen(`.${event}`, handler);
-    return { event, handler };
-  });
-
   let active = true;
+  let bindings: { event: RealtimeEvent; handler: () => void }[] = [];
+  let boundChannel: Channel | null = null;
 
-  return () => {
-    if (!active) return;
-    active = false;
-    for (const { event, handler } of bindings) {
+  void getChannel(hubId).then((target) => {
+    if (!target) return;
+
+    const attached = EVENTS.map((event) => {
+      const handler = () => onEvent(event);
+      target.listen(`.${event}`, handler);
+      return { event, handler };
+    });
+
+    if (active) {
+      boundChannel = target;
+      bindings = attached;
+      return;
+    }
+
+    for (const { event, handler } of attached) {
       try {
         target.stopListening(`.${event}`, handler);
       } catch {
         // channel sudah dilepas
       }
     }
+  });
+
+  return () => {
+    if (!active) return;
+    active = false;
+    for (const { event, handler } of bindings) {
+      try {
+        boundChannel?.stopListening(`.${event}`, handler);
+      } catch {
+        // channel sudah dilepas
+      }
+    }
+    bindings = [];
   };
 }
 
 /** Putus koneksi realtime (dipanggil saat logout). */
 export function disconnectRealtime(): void {
-  unavailable = false;
   disable();
+  // Sesi berikutnya boleh mencoba menyambung lagi.
   unavailable = false;
 }

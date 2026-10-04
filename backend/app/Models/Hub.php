@@ -20,7 +20,6 @@ class Hub extends Model
         'hub_code',
         'hub_name',
         'city',
-        'address',
         'latitude',
         'longitude',
         'service_radius_km',

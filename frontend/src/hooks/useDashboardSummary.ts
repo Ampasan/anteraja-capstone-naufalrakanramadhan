@@ -19,9 +19,6 @@ const POLL_MS = 30_000;
 
 /**
  * Ringkasan dasbor (header + sidebar).
- *
- * Dipakai dua komponen sekaligus, sehingga hasilnya di-cache — panggilan
- * paralel pertama hanya menghasilkan SATU request ke backend.
  */
 export function useDashboardSummary(): {
   summary: DashboardSummary | null;
@@ -31,8 +28,6 @@ export function useDashboardSummary(): {
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // `load` sengaja memakai rantai .then (bukan async/await + setState langsung)
-  // supaya setState hanya terpanggil di dalam callback, bukan sinkron dari effect.
   const load = useCallback(
     () =>
       apiCached<DashboardSummary>('/dashboard/summary', TTL_MS)

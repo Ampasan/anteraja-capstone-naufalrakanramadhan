@@ -75,11 +75,6 @@ class AuthService
         ];
     }
 
-    /**
-     * Ambil nama hub (di-cache 5 menit).
-     * Data hub hampir tidak berubah, jadi tidak perlu query tiap request —
-     * menghemat 1 round-trip (~200ms) di setiap /auth/me dan /auth/login.
-     */
     private function hubName(string $hubId): ?string
     {
         return Cache::remember(

@@ -19,23 +19,12 @@ class ReassignmentConfirmation extends Model
         'confirmation_code',
         'incident_id',
         'order_id',
-        'original_courier_id',
-        'replacement_courier_id',
-        'confirmed_by_user_id',
-        'confirmation_method',
         'confirmation_time',
-        'estimated_resolution_seconds',
-        'actual_resolution_seconds',
-        'is_sla_saved',
         'status',
-        'notes',
     ];
 
     protected $casts = [
         'confirmation_time' => 'datetime',
-        'estimated_resolution_seconds' => 'integer',
-        'actual_resolution_seconds' => 'integer',
-        'is_sla_saved' => 'boolean',
     ];
 
     public function incident(): BelongsTo
@@ -47,20 +36,5 @@ class ReassignmentConfirmation extends Model
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
-    }
-
-    public function originalCourier(): BelongsTo
-    {
-        return $this->belongsTo(Courier::class, 'original_courier_id');
-    }
-
-    public function replacementCourier(): BelongsTo
-    {
-        return $this->belongsTo(Courier::class, 'replacement_courier_id');
-    }
-
-    public function confirmedBy(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'confirmed_by_user_id');
     }
 }

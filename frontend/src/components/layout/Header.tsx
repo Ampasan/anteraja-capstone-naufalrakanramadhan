@@ -21,9 +21,15 @@ function displayRole(role?: string): string {
   return role.charAt(0).toUpperCase() + role.slice(1);
 }
 
-/** Nama hub tanpa awalan merek, untuk layar sempit ("HUB HALIM"). */
+/**
+ * Nama hub versi pendek untuk layar sempit.
+ *
+ * "Hub Halim - Jakarta Timur" -> "Hub Halim"
+ * "ANTERAJA HUB HALIM"        -> "HUB HALIM"
+ */
 function shortHubName(name: string): string {
-  return name.replace(/^ANTERAJA\s+/i, '');
+  const withoutBrand = name.replace(/^ANTERAJA\s+/i, '');
+  return withoutBrand.split(' - ')[0].trim() || withoutBrand;
 }
 
 interface HeaderProps {
@@ -36,10 +42,10 @@ export function Header({ onLogout, onToggleMobileNav }: HeaderProps) {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { summary } = useDashboardSummary();
-  // Profil berasal dari respons login, bukan data hardcoded.
+  // Profil berasal dari respons login
   const user = useMemo<SessionUser | null>(() => getUser(), []);
 
-  const hubName = summary?.hub.name ?? user?.hub_name ?? 'ANTERAJA HUB HALIM';
+  const hubName = summary?.hub.name ?? user?.hub_name ?? 'Hub Halim - Jakarta Timur';
   const stats = summary?.couriers ?? { total: 0, online: 0, idle: 0 };
   const userName = user?.name ?? 'Pengguna';
   const userRole = displayRole(user?.role);

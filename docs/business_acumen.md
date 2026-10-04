@@ -19,7 +19,7 @@ Dokumen ini merekomendasikan pembaruan arsitektur dan strategi aplikasi internal
 
 ##### 1. BUSINESS CONTEXT & POSITIONING OPERASIONAL
 Anteraja menempatkan teknologi sebagai pilar utama dalam mengeksekusi layanan pengiriman  *last-mile* . Dalam arsitektur operasional Hub:
-*   **Admin Hub Operasional (Siti - Hub Tebet):**  Pengguna tunggal dan utama dari aplikasi web *Courier Admin Mini-Panel*. Mengawasi pergerakan puluhan kurir SATRIA dan ribuan paket harian dari dasbor *Single-Screen Control Center*, memitigasi risiko SLA, serta mengeksekusi pengalihan rute.
+*   **Admin Hub Operasional (Siti - Hub Halim):**  Pengguna tunggal dan utama dari aplikasi web *Courier Admin Mini-Panel*. Mengawasi pergerakan puluhan kurir SATRIA dan ribuan paket harian dari dasbor *Single-Screen Control Center*, memitigasi risiko SLA, serta mengeksekusi pengalihan rute.
 *   **Kurir SATRIA (Armada Lapangan):**  Pengguna aplikasi seluler SATRIA yang mengeksekusi penjemputan dan pengantaran paket menggunakan berbagai moda transportasi (Motor, Van, Blind Van, Cargo Truck, Cooler Box Van), mentransmisikan lokasi GPS/suhu, dan menerima notifikasi penugasan baru.
 
 Keunggulan kompetitif Anteraja sangat bergantung pada ketepatan waktu penyerahan paket. Keterlambatan di tingkat Hub tidak hanya memicu biaya pengiriman ulang ( *re-delivery* ), tetapi juga merusak reputasi merek dan memperbesar risiko retur barang di  *marketplace* . Oleh karena itu, modernisasi alat kerja Admin Hub berbasis  *single-screen workflow*  merupakan investasi strategis yang krusial.
@@ -92,7 +92,7 @@ Courier Admin Mini-Panel v2.0 memfokuskan fiturnya pada  **5 Modul Core MVP**  u
 | **F-02: SLA Risk Indicator Panel** | Keterlambatan identifikasi paket yang rawan melepasi batas SLA. | Tabel otomatis mengurutkan paket secara  *ascending*  berdasarkan sisa SLA. Penanda warna dinamis (Merah <15m, Kuning 15–30m, Hijau >30m) dan  *cross-highlighting*  ke peta < 1.0s. |
 | **F-03: Incident & Reassignment Center (Terpadu)** | Lambatnya penanganan kendala dan lamanya proses pengalihan rute. | Antarmuka terpadu ( *Single-Screen* ) yang menerima  *actionable alert*  ≤ 5.0s dan menyediakan  *Drawer*  rekomendasi kurir pengganti teratas (beban < 20 paket & armada kompatibel) untuk eksekusi 1-klik < 30s. |
 | **F-04: Audit Log & Riwayat Operasional** | Hilangnya jejak pertanggungjawaban dan ketidaktersediaan bahan evaluasi. | Catatan  *immutable audit trail*  berisi rincian pengalihan,  *resolution time* , ID admin eksekutor, serta fitur ekspor laporan harian/mingguan ke format PDF/CSV. |
-| **F-05: Login & Otentikasi Module** | Potensi akses tak berizin dan kebocoran data operasional internal Hub. | Gerbang terenkripsi dengan  *Laravel Sanctum* , pembatasan domain @anteraja.id,  *Account Lockout*  15m jika 5x gagal, dan isolasi stasiun Hub Tebet. |
+| **F-05: Login & Otentikasi Module** | Potensi akses tak berizin dan kebocoran data operasional internal Hub. | Gerbang terenkripsi dengan  *Laravel Sanctum* , pembatasan domain @anteraja.id,  *Account Lockout*  15m jika 5x gagal, dan isolasi stasiun Hub Halim. |
 
 
 --------------------------------------------------------------------------------
@@ -156,7 +156,7 @@ Pemilihan tumpukan teknologi ( *Tech Stack* ) dirancang khusus untuk memenuhi st
 | **Minggu 1 – 2** | Pondasi & Arsitektur Data | Skema DB PostgreSQL, Laravel Setup, Auth Sanctum (F-05), dan struktur React.js + Tailwind CSS. |
 | **Minggu 3 – 4** | Real-Time Engine & Peta | Integrasi WebSocket Laravel Reverb, Peta React-Leaflet (F-01), dan Engine Kalkulasi Risiko SLA (F-02). |
 | **Minggu 5 – 6** | Fitur Terpadu & Audit Log | Modul Incident & Reassignment Center (F-03), Smart Matching Engine, dan Audit Log & Report Exporter (F-04). |
-| **Minggu 7 – 8** | Uji Coba Lapangan & Rollout | *Pilot Testing*  pada Hub Tebet & Jakarta Selatan, optimasi latensi, pelatihan Admin Hub, dan  *national rollout* . |
+| **Minggu 7 – 8** | Uji Coba Lapangan & Rollout | *Pilot Testing*  pada Hub Halim & Jakarta Timur, optimasi latensi, pelatihan Admin Hub, dan  *national rollout* . |
 
 
 --------------------------------------------------------------------------------

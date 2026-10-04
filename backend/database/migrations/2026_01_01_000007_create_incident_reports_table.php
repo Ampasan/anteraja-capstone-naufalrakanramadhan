@@ -37,21 +37,21 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Check constraints
-        DB::statement("ALTER TABLE incident_reports ADD CONSTRAINT chk_incidents_category CHECK (incident_category IN ('Cuaca / Hujan', 'Anomali Suhu', 'Mogok Kendaraan', 'Ban Bocor', 'Alamat tidak ditemukan', 'Banjir', 'Macet Total'))");
-        DB::statement("ALTER TABLE incident_reports ADD CONSTRAINT chk_incidents_status CHECK (status IN ('REPORTED', 'ACKNOWLEDGED', 'REASSIGNING', 'RESOLVED', 'ESCALATED'))");
-        DB::statement('ALTER TABLE incident_reports ADD CONSTRAINT chk_incidents_replacement CHECK (replacement_courier_id IS NULL OR replacement_courier_id <> courier_id)');
-        DB::statement('ALTER TABLE incident_reports ADD CONSTRAINT chk_incidents_resolved CHECK (resolved_at IS NULL OR resolved_at >= reported_at)');
-        DB::statement('ALTER TABLE incident_reports ADD CONSTRAINT chk_incidents_latitude CHECK (latitude IS NULL OR latitude BETWEEN -90 AND 90)');
-        DB::statement('ALTER TABLE incident_reports ADD CONSTRAINT chk_incidents_longitude CHECK (longitude IS NULL OR longitude BETWEEN -180 AND 180)');
+        // Check constraints. SQLite tidak mendukung ALTER ADD CONSTRAINT,
+        // jadi driver itu melewati blok ini (hanya dipakai test).
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE incident_reports ADD CONSTRAINT chk_incidents_category CHECK (incident_category IN ('Cuaca / Hujan', 'Anomali Suhu', 'Mogok Kendaraan', 'Ban Bocor', 'Alamat tidak ditemukan', 'Banjir', 'Macet Total'))");
+            DB::statement("ALTER TABLE incident_reports ADD CONSTRAINT chk_incidents_status CHECK (status IN ('REPORTED', 'ACKNOWLEDGED', 'REASSIGNING', 'RESOLVED', 'ESCALATED'))");
+            DB::statement('ALTER TABLE incident_reports ADD CONSTRAINT chk_incidents_replacement CHECK (replacement_courier_id IS NULL OR replacement_courier_id <> courier_id)');
+            DB::statement('ALTER TABLE incident_reports ADD CONSTRAINT chk_incidents_resolved CHECK (resolved_at IS NULL OR resolved_at >= reported_at)');
+            DB::statement('ALTER TABLE incident_reports ADD CONSTRAINT chk_incidents_latitude CHECK (latitude IS NULL OR latitude BETWEEN -90 AND 90)');
+            DB::statement('ALTER TABLE incident_reports ADD CONSTRAINT chk_incidents_longitude CHECK (longitude IS NULL OR longitude BETWEEN -180 AND 180)');
+        }
 
         // Index untuk optimasi
         DB::statement('CREATE INDEX idx_incidents_code ON incident_reports(incident_code)');
         DB::statement('CREATE INDEX idx_incidents_status_reported ON incident_reports(status, reported_at DESC)');
         DB::statement('CREATE INDEX idx_incidents_order_id ON incident_reports(order_id)');
-
-        // Tambahkan foreign key incident_id ke order_assignments sekarang bahwa tabel incident_reports sudah ada
-        DB::statement('ALTER TABLE order_assignments ADD CONSTRAINT fk_assignments_incident FOREIGN KEY (incident_id) REFERENCES incident_reports(id) ON DELETE SET NULL');
     }
 
     public function down(): void

@@ -26,14 +26,6 @@ return new class extends Migration
         // Index untuk audit logs query
         DB::statement('CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at 
             ON audit_logs(created_at DESC)');
-
-        // Index untuk order assignments query
-        DB::statement('CREATE INDEX IF NOT EXISTS idx_assignments_courier_status 
-            ON order_assignments(courier_id, assignment_status)');
-
-        // Index untuk tracking events query
-        DB::statement('CREATE INDEX IF NOT EXISTS idx_tracking_events_order_time 
-            ON order_tracking_events(order_id, event_time DESC)');
     }
 
     public function down(): void
@@ -42,7 +34,5 @@ return new class extends Migration
         DB::statement('DROP INDEX IF EXISTS idx_couriers_hub_status_available');
         DB::statement('DROP INDEX IF EXISTS idx_incidents_status_reported');
         DB::statement('DROP INDEX IF EXISTS idx_audit_logs_created_at');
-        DB::statement('DROP INDEX IF EXISTS idx_assignments_courier_status');
-        DB::statement('DROP INDEX IF EXISTS idx_tracking_events_order_time');
     }
 };

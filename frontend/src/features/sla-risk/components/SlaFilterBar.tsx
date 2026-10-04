@@ -52,7 +52,7 @@ export function SlaFilterBar({
               value={searchQuery}
               onChange={(e) => onSearch(e.target.value)}
               placeholder="Ketik no. resi atau nama jalan tujuan..."
-              title="Cari berdasarkan nomor resi (contoh: 100024000529) atau nama jalan tujuan"
+              title="Cari berdasarkan nomor resi (contoh: 100024000537) atau nama jalan tujuan"
               className="w-full pl-9 pr-3 h-10 text-sm rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] text-[#0F172A] placeholder:text-[#B0BEC5] focus:outline-none focus:ring-2 focus:ring-[#C91076]/25 focus:border-[#C91076] transition-all duration-200"
             />
           </div>

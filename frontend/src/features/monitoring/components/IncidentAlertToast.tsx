@@ -1,11 +1,11 @@
-import { X, AlertTriangle, Snowflake, Wrench, CloudRain, Package, ArrowRight } from 'lucide-react';
+import { X, AlertTriangle, Snowflake, Wrench, CloudRain, Package, ArrowRight, MapPin } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { cn } from '../../../lib/utils';
 import type { IncidentAlert } from '../types';
 
 interface IncidentAlertToastProps {
   incident: IncidentAlert;
-  onReassign: () => void;
+  onReassign?: () => void;
   onDismiss: () => void;
 }
 
@@ -15,15 +15,20 @@ const ICON_MAP = {
   'cloud-rain': CloudRain,
   'alert-triangle': AlertTriangle,
   'package': Package,
+  'map-pin': MapPin,
 };
 
-export function IncidentAlertToast({ incident, onReassign, onDismiss }: IncidentAlertToastProps) {
+export function IncidentAlertToast({
+  incident,
+  onReassign,
+  onDismiss,
+}: IncidentAlertToastProps) {
   const IconComponent = ICON_MAP[incident.icon];
   const isCritical = incident.severity === 'CRITICAL';
 
   return (
     <div className={cn(
-      'absolute bottom-12 right-4 z-[500] w-[380px] bg-white rounded-xl border-2 shadow-[0_8px_24px_rgba(15,23,42,0.18)] overflow-hidden pointer-events-auto',
+      'animate-toast-in fixed bottom-5 right-4 sm:right-5 z-[600] w-[min(380px,calc(100vw-2rem))] bg-white rounded-xl border-2 shadow-[0_8px_24px_rgba(15,23,42,0.18)] overflow-hidden pointer-events-auto',
       incident.theme.border,
     )}>
 
@@ -93,21 +98,23 @@ export function IncidentAlertToast({ incident, onReassign, onDismiss }: Incident
         </div>
 
         {/* Action buttons */}
-        <div className="flex gap-2">
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={onReassign}
-            className="flex-1 text-[13px] font-bold"
-          >
-            <ArrowRight size={13} />
-            Alihkan Paket
-          </Button>
+        <div className="flex flex-col gap-2">
+          {onReassign && (
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={onReassign}
+              className="w-full text-[13px] font-bold"
+            >
+              <ArrowRight size={13} />
+              Alihkan Paket
+            </Button>
+          )}
           <Button
             variant="secondary"
             size="sm"
             onClick={onDismiss}
-            className="text-[13px]"
+            className="w-full text-[12px]"
           >
             Abaikan
           </Button>

@@ -1,6 +1,8 @@
-import { CheckCircle2, ArrowRight } from 'lucide-react';
+import { CheckCircle2, ArrowRight, Loader2, Send, XCircle } from 'lucide-react';
 import { Modal, ModalBody } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
+import { cn } from '../../../lib/utils';
+import type { AsyncTask } from '../../../lib/api';
 import type { ReassignmentPayload } from '../types';
 
 const SERVICE_BADGE: Record<string, string> = {
@@ -13,14 +15,71 @@ const SERVICE_BADGE: Record<string, string> = {
 interface ReassignSuccessModalProps {
   open: boolean;
   payload: ReassignmentPayload | null;
+  notification?: AsyncTask | null;
   serviceLabel?: string;
   onClose: () => void;
   onGoToAuditLog: () => void;
 }
 
+/**
+ * Baris status pengiriman notifikasi.
+ */
+function NotificationStatus({ notification }: { notification?: AsyncTask | null }) {
+  if (!notification) {
+    return (
+      <p className="text-[11px] text-center text-[#94A3B8]">
+        Notifikasi rute dikirim ke ponsel kurir
+      </p>
+    );
+  }
+
+  const pending = notification.status === 'accepted' || notification.status === 'processing';
+  const failed = notification.status === 'failed';
+
+  return (
+    <div
+      className={cn(
+        'flex items-start gap-2 rounded-lg border px-3 py-2',
+        failed
+          ? 'border-red-200 bg-red-50'
+          : pending
+            ? 'border-amber-200 bg-amber-50'
+            : 'border-emerald-200 bg-emerald-50',
+      )}
+    >
+      <span
+        className={cn(
+          'mt-0.5 flex-shrink-0',
+          failed ? 'text-red-600' : pending ? 'text-amber-600' : 'text-emerald-600',
+        )}
+      >
+        {failed ? (
+          <XCircle size={14} />
+        ) : pending ? (
+          <Loader2 size={14} className="animate-spin" />
+        ) : (
+          <Send size={14} />
+        )}
+      </span>
+      <div className="min-w-0">
+        <p
+          className={cn(
+            'text-[11px] font-extrabold uppercase tracking-wide',
+            failed ? 'text-red-700' : pending ? 'text-amber-700' : 'text-emerald-700',
+          )}
+        >
+          Notifikasi kurir: {notification.status}
+        </p>
+        <p className="text-[11px] text-[#475569] leading-snug">{notification.message}</p>
+      </div>
+    </div>
+  );
+}
+
 export function ReassignSuccessModal({
   open,
   payload,
+  notification,
   serviceLabel = 'Cargo',
   onClose,
   onGoToAuditLog,
@@ -32,7 +91,6 @@ export function ReassignSuccessModal({
 
   const handleGoToAuditLog = () => {
     onClose();
-    // Small delay so the modal closes cleanly before navigating
     setTimeout(() => onGoToAuditLog(), 150);
   };
 
@@ -53,7 +111,7 @@ export function ReassignSuccessModal({
             </h2>
             <p className="text-[13px] text-[#64748B] leading-relaxed max-w-[300px]">
               Paket telah sukses dialihkan ke kurir pengganti dan rute navigasi baru telah
-              terkirim.
+              dicatat pada Audit Log &amp; Riwayat.
             </p>
           </div>
 
@@ -107,11 +165,12 @@ export function ReassignSuccessModal({
               </div>
             </div>
 
-            {/* Notification note */}
-            <div className="pt-1 border-t border-[#E2E8F0]">
+            {/* Penyimpanan + status notifikasi asinkron */}
+            <div className="pt-1 border-t border-[#E2E8F0] flex flex-col gap-2">
               <p className="text-[11px] text-center text-[#94A3B8]">
-                Notifikasi rute terkirim ke ponsel kurir
+                Tercatat di Audit Log &amp; Riwayat
               </p>
+              <NotificationStatus notification={notification} />
             </div>
           </div>
 

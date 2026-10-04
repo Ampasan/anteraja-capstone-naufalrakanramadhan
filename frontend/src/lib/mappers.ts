@@ -1,22 +1,15 @@
-/**
- * Pemetaan payload backend (snake_case) ke tipe yang dipakai komponen UI
- * (camelCase).
- *
- * Satu berkas ini adalah satu-satunya tempat yang "mengetahui" kontrak API,
- * sehingga perubahan nama field di backend cukup diperbaiki di sini.
- */
-
 import type {
   ActivePackage,
   ColdChainAnomaly,
   Courier,
-  EmergencyReassignPayload,
   Hub,
   IncidentAlert,
+  LatLng,
 } from '../features/monitoring/types';
 import type { CandidateCourier, IncidentReport } from '../features/incidents/types';
-import type { AuditKpi, AuditLogEntry } from '../features/audit-logs/types';
+import type { AuditKpi, AuditLogEntry, ReportStatus } from '../features/audit-logs/types';
 import type { CargoDetail, HazardAnalysis, SlaOrder, TimelineStep } from '../features/sla-risk/types';
+import { operationalNowMs } from './operationalClock';
 
 // ─── DTO mentah dari API ─────────────────────────────────────────────────────
 
@@ -61,9 +54,13 @@ export interface RawCourier {
   has_thermal_box?: boolean;
   idle_duration?: string | null;
   is_stale?: boolean;
+  distance_from_hub_m?: number | null;
+  inside_radius?: boolean | null;
+  radius_km?: number | null;
   position: LatLon;
   telemetry?: RawTelemetry | null;
   hub_position: LatLon;
+  active_packages?: RawCourierPackage[];
 }
 
 export interface RawCourierPackage {
@@ -74,6 +71,7 @@ export interface RawCourierPackage {
   destination_address: string;
   drop_lat: number;
   drop_lng: number;
+  order_time?: string | null;
   sla_deadline: string;
   delivery_status: string;
 }
@@ -81,7 +79,6 @@ export interface RawCourierPackage {
 export interface RawCourierDetail extends Omit<RawCourier, 'position' | 'hub_position'> {
   position?: LatLon;
   hub_position?: LatLon;
-  active_packages?: RawCourierPackage[];
 }
 
 export interface RawOrderCondition {
@@ -115,6 +112,12 @@ export interface RawOrder {
   traffic_condition?: string | null;
   temperature_c?: number | null;
   sla_risk_score?: number | null;
+  risk_score?: number | null;
+  recipient_name?: string | null;
+  recipient_phone?: string | null;
+  order_time?: string | null;
+  pickup_time?: string | null;
+  category?: string | null;
 }
 
 export interface RawCandidate {
@@ -151,6 +154,13 @@ export interface RawIncident {
     vehicle_plate: string;
     phone: string;
   };
+  replacement_courier?: {
+    id: string;
+    name: string;
+    courier_code?: string | null;
+    vehicle_type?: string | null;
+    vehicle_plate?: string | null;
+  } | null;
   kendala: string;
   kendala_detail?: string | null;
   incident_category?: string | null;
@@ -159,6 +169,7 @@ export interface RawIncident {
   muatan: string;
   weight_kg: number;
   reported_at: string;
+  resolved_at?: string | null;
   evidence_image_url?: string | null;
   evidence_public_id?: string | null;
   evidence_caption?: string | null;
@@ -182,6 +193,7 @@ export interface RawAuditLog {
   to_courier_code?: string | null;
   incident_category: string;
   incident_detail?: string | null;
+  report_status?: string | null;
   handling_seconds: number;
   sla_compliant: boolean;
   executor_name?: string | null;
@@ -203,7 +215,7 @@ export interface RawAuditSummary {
 export function minutesUntil(iso: string): number {
   const target = new Date(iso).getTime();
   if (Number.isNaN(target)) return 0;
-  return Math.round((target - Date.now()) / 60000);
+  return Math.round((target - operationalNowMs()) / 60000);
 }
 
 export function formatDistance(meters: number): string {
@@ -211,12 +223,23 @@ export function formatDistance(meters: number): string {
   return meters < 1000 ? `${Math.round(meters)} m` : `${(meters / 1000).toFixed(1)} km`;
 }
 
+export function percentElapsed(fromIso: string, toIso: string): number {
+  const from = new Date(fromIso).getTime();
+  const to = new Date(toIso).getTime();
+  if (!Number.isFinite(from) || !Number.isFinite(to) || to <= from) return 0;
+  return clamp(Math.round(((operationalNowMs() - from) / (to - from)) * 100), 0, 100);
+}
+
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
-function toLatLon(point: LatLon | undefined | null): LatLon {
-  return { lat: point?.lat ?? 0, lng: point?.lng ?? 0 };
+function toLatLon(point: LatLon | undefined | null, fallback?: LatLon): LatLon {
+  if (point && Number.isFinite(point.lat) && Number.isFinite(point.lng)) {
+    return { lat: point.lat, lng: point.lng };
+  }
+
+  return { lat: fallback?.lat ?? 0, lng: fallback?.lng ?? 0 };
 }
 
 // ─── Hubs ────────────────────────────────────────────────────────────────────
@@ -233,106 +256,29 @@ export function mapHub(raw: RawHub): Hub {
   };
 }
 
-// ─── Paket aktif (dari panel SLA) ────────────────────────────────────────────
+// ─── Paket aktif (daftar kurir + panel detail) ──────────────────────────────
 
-export function mapActivePackage(order: RawOrder): ActivePackage {
-  return {
-    waybillNumber: order.waybill_number,
-    serviceType: order.service_type,
-    weightKg: order.weight_kg,
-    // API tidak mengirim nama penerima — alamat tujuan dipakai sebagai pengganti
-    // yang tetap berguna untuk operator.
-    recipientName: order.destination_name,
-    recipientAddress: order.destination_area,
-    dropLat: order.drop_lat,
-    dropLng: order.drop_lng,
-    slaRemainingMinutes: order.remaining_minutes,
-    slaElapsedPct: order.elapsed_pct,
-  };
+function indexOrdersByWaybill(orders: RawOrder[]): Map<string, RawOrder> {
+  return new Map(orders.map((o) => [o.waybill_number, o]));
 }
 
-function groupOrdersByCourier(orders: RawOrder[]): Map<string, RawOrder[]> {
-  const map = new Map<string, RawOrder[]>();
-  for (const order of orders) {
-    const list = map.get(order.courier_id);
-    if (list) list.push(order);
-    else map.set(order.courier_id, [order]);
-  }
-  return map;
-}
+function buildActivePackages(
+  rawPackages: RawCourierPackage[] | undefined,
+  orders: RawOrder[] | Map<string, RawOrder>,
+): ActivePackage[] {
+  const ordersByWaybill =
+    orders instanceof Map ? orders : indexOrdersByWaybill(orders);
 
-/** Anomali cold-chain: layanan Frozen bersuhu di atas 5 °C (FRD-01). */
-function findColdChainAnomaly(orders: RawOrder[] | undefined): ColdChainAnomaly | undefined {
-  const anomaly = orders?.find(
-    (o) => o.service_type === 'Frozen' && typeof o.temperature_c === 'number' && o.temperature_c > 5,
-  );
-  if (!anomaly || typeof anomaly.temperature_c !== 'number') return undefined;
-  return {
-    waybillNumber: anomaly.waybill_number,
-    currentTempC: anomaly.temperature_c,
-    maxAllowedTempC: 5,
-    detectedAt: 'Baru Saja',
-  };
-}
-
-function buildRoute(courier: RawCourier, packages: ActivePackage[]) {
-  if (packages.length === 0) return undefined;
-  const polyline: LatLon[] = [toLatLon(courier.hub_position), courier.position];
-  for (const pkg of packages) polyline.push({ lat: pkg.dropLat, lng: pkg.dropLng });
-  const nearest = packages.reduce((min, p) => Math.min(min, p.slaRemainingMinutes), Infinity);
-  return {
-    polyline,
-    eta: Number.isFinite(nearest) ? `${Math.max(0, nearest)} mnt` : '—',
-  };
-}
-
-/**
- * Gabungkan daftar kurir dengan paket aktifnya.
- * `current_parcel_count` dari API dipakai sebagai jumlah paket pada kartu
- * karena daftar order hanya memuat paket yang sedang dipantau SLA.
- */
-export function mapCouriers(raw: RawCourier[], orders: RawOrder[]): Courier[] {
-  const byCourier = groupOrdersByCourier(orders);
-
-  return raw.map((c) => {
-    const ordersOfCourier = byCourier.get(c.id);
-    const activePackages = (ordersOfCourier ?? []).map(mapActivePackage);
-
-    return {
-      id: c.id,
-      name: c.name,
-      initials: c.initials,
-      status: c.status === 'ONLINE' || c.status === 'IDLE' ? c.status : 'IDLE',
-      vehicle: c.vehicle_type,
-      position: toLatLon(c.position),
-      hubPosition: toLatLon(c.hub_position),
-      activePackages,
-      parcelCount: c.current_parcel_count,
-      capacityTotal: c.max_parcel_count,
-      idleDuration: c.idle_duration ?? undefined,
-      lastKnownAddress: c.current_address ?? undefined,
-      route: buildRoute(c, activePackages),
-      coldChainAnomaly: findColdChainAnomaly(ordersOfCourier),
-      phone: c.phone_number,
-    };
-  });
-}
-
-/** Detail satu kurir (daftar paket + nama penerima sesungguhnya). */
-export function mapCourierDetail(
-  raw: RawCourierDetail,
-  base: Courier | undefined,
-  orders: RawOrder[],
-): Courier {
-  const ordersByWaybill = new Map(orders.map((o) => [o.waybill_number, o]));
-
-  const activePackages: ActivePackage[] = (raw.active_packages ?? []).map((pkg) => {
+  return (rawPackages ?? []).map((pkg) => {
     const sla = ordersByWaybill.get(pkg.waybill_number);
     const remaining = sla ? sla.remaining_minutes : minutesUntil(pkg.sla_deadline);
-    // Estimasi pemakaian waktu bila baris SLA tidak tersedia (skala 0–100%).
     const elapsed = sla
       ? sla.elapsed_pct
-      : clamp(Math.round(((120 - Math.max(0, remaining)) / 120) * 100), 0, 100);
+      : pkg.order_time
+        ? percentElapsed(pkg.order_time, pkg.sla_deadline)
+        : remaining <= 0
+          ? 100
+          : clamp(Math.round(((180 - Math.max(0, remaining)) / 180) * 100), 0, 100);
 
     return {
       waybillNumber: pkg.waybill_number,
@@ -346,35 +292,149 @@ export function mapCourierDetail(
       slaElapsedPct: elapsed,
     };
   });
+}
 
-  const hubPosition = base?.hubPosition ?? toLatLon(raw.hub_position);
-  const position = base?.position ?? toLatLon(raw.position);
-
-  const anomalyOrder = activePackages
-    .map((pkg) => ordersByWaybill.get(pkg.waybillNumber))
-    .find(
-      (order) =>
-        !!order &&
-        order.service_type === 'Frozen' &&
-        typeof order.temperature_c === 'number' &&
-        order.temperature_c > 5,
+function findColdChainAnomaly(
+  packages: ActivePackage[],
+  orders: RawOrder[] | Map<string, RawOrder>,
+): ColdChainAnomaly | undefined {
+  const ordersByWaybill =
+    orders instanceof Map ? orders : indexOrdersByWaybill(orders);
+  const anomaly = packages.find((pkg) => {
+    const order = ordersByWaybill.get(pkg.waybillNumber);
+    return (
+      !!order && order.service_type === 'Frozen' && typeof order.temperature_c === 'number' && order.temperature_c > 5
     );
+  });
 
-  const coldChainAnomaly: ColdChainAnomaly | undefined =
-    anomalyOrder && typeof anomalyOrder.temperature_c === 'number'
-      ? {
-          waybillNumber: anomalyOrder.waybill_number,
-          currentTempC: anomalyOrder.temperature_c,
-          maxAllowedTempC: 5,
-          detectedAt: 'Baru Saja',
-        }
-      : undefined;
+  const temperature = anomaly ? ordersByWaybill.get(anomaly.waybillNumber)?.temperature_c : undefined;
+  if (!anomaly || typeof temperature !== 'number') return undefined;
+
+  return {
+    waybillNumber: anomaly.waybillNumber,
+    currentTempC: temperature,
+    maxAllowedTempC: 5,
+    detectedAt: 'Baru Saja',
+  };
+}
+
+export function nearestDropPoint(packages: ActivePackage[], from: LatLng): LatLng | null {
+  let best: LatLng | null = null;
+  let bestDistance = Number.POSITIVE_INFINITY;
+
+  for (const pkg of packages) {
+    if (!Number.isFinite(pkg.dropLat) || !Number.isFinite(pkg.dropLng)) continue;
+    const distance = (pkg.dropLat - from.lat) ** 2 + (pkg.dropLng - from.lng) ** 2;
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = { lat: pkg.dropLat, lng: pkg.dropLng };
+    }
+  }
+
+  return best;
+}
+
+/**
+ * @return minimal 2 titik, atau undefined bila tidak cukup untuk satu garis.
+ */
+function polylineFrom(
+  hub: LatLon,
+  position: LatLon,
+  packages: ActivePackage[],
+): LatLon[] | undefined {
+  const points: LatLon[] = [];
+
+  const push = (point: LatLon) => {
+    if (!Number.isFinite(point.lat) || !Number.isFinite(point.lng)) return;
+    const last = points[points.length - 1];
+    if (last && last.lat === point.lat && last.lng === point.lng) return;
+    points.push({ lat: point.lat, lng: point.lng });
+  };
+
+  push(hub);
+  push(position);
+
+  const drop = nearestDropPoint(packages, position);
+  if (drop) push(drop);
+
+  return points.length >= 2 ? points : undefined;
+}
+
+function buildRoute(
+  courier: { status: string; position?: LatLon | null; hub_position?: LatLon | null },
+  packages: ActivePackage[],
+) {
+  if (packages.length === 0) return undefined;
+  if (courier.status !== 'IDLE') return undefined;
+
+  const hubPosition = toLatLon(courier.hub_position);
+  const polyline = polylineFrom(hubPosition, toLatLon(courier.position, hubPosition), packages);
+  if (!polyline) return undefined;
+
+  const nearest = packages.reduce((min, p) => Math.min(min, p.slaRemainingMinutes), Infinity);
+  return {
+    polyline,
+    eta: Number.isFinite(nearest) ? `${Math.max(0, nearest)} mnt` : '—',
+  };
+}
+
+function dedupeBy<T>(items: T[], key: (item: T) => string): T[] {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    const k = key(item);
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+}
+
+export function mapCouriers(raw: RawCourier[], orders: RawOrder[]): Courier[] {
+  const ordersByWaybill = indexOrdersByWaybill(orders);
+
+  return dedupeBy(raw, (c) => c.id).map((c) => {
+    const activePackages = buildActivePackages(c.active_packages, ordersByWaybill);
+    const hubPosition = toLatLon(c.hub_position);
+    const status = c.status === 'ONLINE' || c.status === 'IDLE' ? c.status : 'IDLE';
+
+    return {
+      id: c.id,
+      name: c.name,
+      initials: c.initials,
+      status,
+      vehicle: c.vehicle_type,
+      position: toLatLon(c.position, hubPosition),
+      hubPosition,
+      activePackages,
+      parcelCount: c.current_parcel_count,
+      capacityTotal: c.max_parcel_count,
+      idleDuration: c.idle_duration ?? undefined,
+      distanceFromHubM: c.distance_from_hub_m ?? undefined,
+      insideRadius: c.inside_radius ?? undefined,
+      hubRadiusKm: c.radius_km ?? undefined,
+      lastKnownAddress: c.current_address ?? undefined,
+      route: buildRoute({ status, position: c.position, hub_position: c.hub_position }, activePackages),
+      coldChainAnomaly: findColdChainAnomaly(activePackages, ordersByWaybill),
+      phone: c.phone_number,
+    };
+  });
+}
+
+export function mapCourierDetail(
+  raw: RawCourierDetail,
+  base: Courier | undefined,
+  orders: RawOrder[],
+): Courier {
+  const ordersByWaybill = indexOrdersByWaybill(orders);
+  const activePackages = buildActivePackages(raw.active_packages, ordersByWaybill);
+  const hubPosition = base?.hubPosition ?? toLatLon(raw.hub_position);
+  const position = base?.position ?? toLatLon(raw.position, hubPosition);
+  const status = raw.status === 'ONLINE' || raw.status === 'IDLE' ? raw.status : 'IDLE';
 
   return {
     id: raw.id,
     name: raw.name,
     initials: raw.initials,
-    status: raw.status === 'ONLINE' || raw.status === 'IDLE' ? raw.status : 'IDLE',
+    status,
     vehicle: raw.vehicle_type,
     position,
     hubPosition,
@@ -382,14 +442,12 @@ export function mapCourierDetail(
     parcelCount: raw.current_parcel_count,
     capacityTotal: raw.max_parcel_count,
     idleDuration: raw.idle_duration ?? undefined,
+    distanceFromHubM: raw.distance_from_hub_m ?? base?.distanceFromHubM,
+    insideRadius: raw.inside_radius ?? base?.insideRadius,
+    hubRadiusKm: raw.radius_km ?? base?.hubRadiusKm,
     lastKnownAddress: raw.current_address ?? undefined,
-    route: activePackages.length
-      ? {
-          polyline: [hubPosition, position, ...activePackages.map((p) => ({ lat: p.dropLat, lng: p.dropLng }))],
-          eta: `${Math.max(0, Math.min(...activePackages.map((p) => p.slaRemainingMinutes)))} mnt`,
-        }
-      : undefined,
-    coldChainAnomaly,
+    route: buildRoute({ status, position: raw.position, hub_position: raw.hub_position }, activePackages),
+    coldChainAnomaly: findColdChainAnomaly(activePackages, ordersByWaybill),
     phone: raw.phone_number,
   };
 }
@@ -412,6 +470,44 @@ function cargoClassification(serviceType: string): string {
   return CARGO_CLASSIFICATION[serviceType] ?? serviceType;
 }
 
+const VEHICLE_CAPACITY_KG: Array<{ pattern: RegExp; kg: number }> = [
+  { pattern: /motor|sepeda|bike/, kg: 20 },
+  { pattern: /pick\s*up/, kg: 600 },
+  { pattern: /blind\s*van/, kg: 500 },
+  { pattern: /van/, kg: 700 },
+  { pattern: /truk|truck|wingbox|\belf\b/, kg: 1200 },
+  { pattern: /mobil|car|suv|brio|avanza|innova/, kg: 150 },
+  { pattern: /dokumen|velop|bagasi/, kg: 10 },
+];
+
+function vehicleCapacityKg(vehicleType: string | undefined): number | undefined {
+  const key = (vehicleType ?? '').toLowerCase().trim();
+  if (!key || key === '—' || key === '-') return undefined;
+  return VEHICLE_CAPACITY_KG.find((entry) => entry.pattern.test(key))?.kg;
+}
+
+function loadUsedKgFor(courier: RawCourier | undefined): number {
+  if (!courier) return 0;
+
+  const listed = (courier.active_packages ?? []).reduce(
+    (sum, pkg) => sum + (Number(pkg.weight_kg) || 0),
+    0,
+  );
+  if (listed > 0) return Math.round(listed * 10) / 10;
+
+  return Math.max(0, Number(courier.current_load_kg) || 0);
+}
+
+function loadCapacityKgFor(courier: RawCourier | undefined, order: RawOrder, usedKg: number): number {
+  const fromCourier = Number(courier?.max_capacity_kg ?? 0);
+
+  const base = vehicleCapacityKg(courier?.vehicle_type)
+    ?? (fromCourier > 0 ? fromCourier : undefined)
+    ?? Math.max(Number(order.weight_kg) || 1, 1);
+
+  return Math.max(base, usedKg);
+}
+
 function trafficColor(traffic: string | null | undefined): 'green' | 'amber' | 'red' {
   const value = (traffic ?? '').toLowerCase();
   if (!value) return 'green';
@@ -422,46 +518,87 @@ function trafficColor(traffic: string | null | undefined): 'green' | 'amber' | '
   return 'green';
 }
 
+const clockFormatter = new Intl.DateTimeFormat('en-GB', {
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false,
+  timeZone: 'Asia/Jakarta',
+});
+
+const dateFormatter = new Intl.DateTimeFormat('id-ID', {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+  timeZone: 'Asia/Jakarta',
+});
+
 function formatClock(iso: string): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return '';
-  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')} WIB`;
+  return `${clockFormatter.format(date)} WIB`;
 }
 
+/** Tanggal singkat (WIB) untuk baris tenggat yang bisa lewat tengah malam. */
+function formatDate(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '';
+  return dateFormatter.format(date);
+}
+
+/**
+ * Timeline Audit Kepatuhan SLA.
+ * @return 4 langkah, atau 3 langkah tanpa "diambil" bila pickup_time kosong.
+ */
 function buildTimeline(order: RawOrder): TimelineStep[] {
   const remaining = order.remaining_minutes;
   const isLate = remaining <= 0;
 
-  return [
+  const now = operationalNowMs();
+  const orderTime = order.order_time ?? '';
+  const pickupTime = order.pickup_time ?? '';
+  const past = (iso: string) => !!iso && new Date(iso).getTime() <= now;
+
+  const steps: TimelineStep[] = [
     {
-      status: 'done',
-      title: 'Paket berangkat dari Hub Halim',
-      subtitle: `Manifest ${order.waybill_number} • Kurir ${order.courier_name}`,
-      time: '',
+      status: past(orderTime) ? 'done' : 'pending',
+      title: 'Pesanan diterima sistem',
+      subtitle: `Resi ${order.waybill_number} • ${order.service_type} • ${order.courier_name}`,
+      time: orderTime ? formatClock(orderTime) : '',
     },
     {
-      status: 'done',
+      status: past(pickupTime) ? 'done' : 'pending',
+      title: 'Paket diambil kurir dari hub',
+      subtitle: `Muat ${order.weight_kg} kg • Tujuan ${order.destination_area}`,
+      time: pickupTime ? formatClock(pickupTime) : 'Menunggu pengambilan',
+    },
+    {
+      status: past(pickupTime) ? 'done' : 'pending',
       title: 'Dalam perjalanan ke tujuan',
       subtitle: `${order.weather_condition ?? 'Cuaca normal'} • ${order.traffic_condition ?? 'Lalu lintas lancar'}`,
       time: '',
-      badge: isLate ? 'SLA terlewati' : `Sisa ${remaining} menit`,
+      badge: isLate
+        ? `Lewat ${Math.abs(remaining)} menit`
+        : `Sisa ${remaining} menit`,
       badgeColor: isLate ? 'red' : remaining <= 15 ? 'amber' : 'green',
     },
     {
-      status: isLate ? 'done' : 'pending',
-      title: 'Estimasi tiba di tujuan',
+      status: isLate ? 'late' : 'pending',
+      title: 'Tiba di tujuan (batas SLA)',
       subtitle: order.destination_area,
       time: '',
-      etaBadge: `${formatClock(order.sla_deadline)} (${isLate ? 'lewat' : `sisa ${remaining} menit`})`,
+      etaBadge: order.sla_deadline
+        ? `${formatDate(order.sla_deadline)} · ${formatClock(order.sla_deadline)}${isLate ? ' - terlambat' : ''}`
+        : '',
     },
   ];
+
+  return steps;
 }
 
 function buildHazard(order: RawOrder): HazardAnalysis {
-  const score =
-    typeof order.sla_risk_score === 'number'
-      ? order.sla_risk_score
-      : Number(clamp(order.elapsed_pct / 10, 0, 10).toFixed(1));
+  const score = Number(
+    (order.sla_risk_score ?? order.risk_score ?? order.elapsed_pct / 10).toFixed(1),
+  );
   const color = ['green', 'amber', 'red'].includes(order.risk_color)
     ? (order.risk_color as 'green' | 'amber' | 'red')
     : 'amber';
@@ -488,16 +625,21 @@ function mapOrderStatus(status: string): OrderStatus {
 
 export function mapSlaOrder(order: RawOrder, couriersById: Map<string, RawCourier>): SlaOrder {
   const courier = couriersById.get(order.courier_id);
+  const loadUsedKg = loadUsedKgFor(courier);
 
   const detail: CargoDetail = {
     courierId: order.courier_code,
     vehicleType: courier?.vehicle_type ?? '—',
-    loadUsedKg: courier?.current_load_kg ?? 0,
-    loadCapacityKg: courier?.max_capacity_kg || Math.max(courier?.current_load_kg ?? 0, 1),
+    loadCapacityKg: loadCapacityKgFor(courier, order, loadUsedKg),
+    loadUsedKg,
+    loadKnown: !!courier,
     destinationName: order.destination_name,
     destinationAddress: order.destination_area,
     weightKg: order.weight_kg,
-    cargoClassification: cargoClassification(order.service_type),
+    cargoClassification: order.category || cargoClassification(order.service_type),
+    recipientName: order.recipient_name ?? undefined,
+    recipientPhone: order.recipient_phone ?? undefined,
+    orderTime: order.order_time ?? undefined,
     timeline: buildTimeline(order),
     hazard: buildHazard(order),
   };
@@ -524,7 +666,7 @@ export function mapSlaOrder(order: RawOrder, couriersById: Map<string, RawCourie
 
 export function mapSlaOrders(orders: RawOrder[], couriers: RawCourier[]): SlaOrder[] {
   const couriersById = new Map(couriers.map((c) => [c.id, c]));
-  return orders.map((order) => mapSlaOrder(order, couriersById));
+  return dedupeBy(orders, (o) => o.waybill_number).map((order) => mapSlaOrder(order, couriersById));
 }
 
 // ─── Insiden ─────────────────────────────────────────────────────────────────
@@ -590,6 +732,16 @@ export function mapIncident(raw: RawIncident): IncidentReport {
     muatan: raw.muatan,
     weightKg: raw.weight_kg,
     reportedAt: raw.reported_at,
+    resolvedAt: raw.resolved_at ?? undefined,
+    replacementCourier: raw.replacement_courier
+      ? {
+          id: raw.replacement_courier.id,
+          name: raw.replacement_courier.name,
+          courierCode: raw.replacement_courier.courier_code ?? undefined,
+          vehicleType: raw.replacement_courier.vehicle_type ?? undefined,
+          vehiclePlate: raw.replacement_courier.vehicle_plate ?? undefined,
+        }
+      : undefined,
     evidenceImageUrl: raw.evidence_image_url ?? undefined,
     evidencePublicId: raw.evidence_public_id ?? undefined,
     evidenceCaption: raw.evidence_caption ?? undefined,
@@ -603,7 +755,7 @@ export function mapIncident(raw: RawIncident): IncidentReport {
 }
 
 export function mapIncidents(raw: RawIncident[]): IncidentReport[] {
-  return raw.map(mapIncident);
+  return dedupeBy(raw, (i) => i.id).map(mapIncident);
 }
 
 // ─── Alarm monitoring (toast) ────────────────────────────────────────────────
@@ -671,6 +823,30 @@ const ALERT_STYLES: Record<string, AlertStyle> = {
       badge: 'bg-red-50 text-red-700 border-red-200',
     },
   },
+  'Alamat tidak ditemukan': {
+    type: 'other',
+    icon: 'map-pin',
+    theme: {
+      border: 'border-emerald-300',
+      bg: 'bg-emerald-50',
+      iconBg: 'bg-emerald-100',
+      iconColor: 'text-emerald-600',
+      accent: 'bg-gradient-to-r from-emerald-500 to-green-500',
+      badge: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    },
+  },
+  'Macet Total': {
+    type: 'weather',
+    icon: 'cloud-rain',
+    theme: {
+      border: 'border-amber-300',
+      bg: 'bg-amber-50',
+      iconBg: 'bg-amber-100',
+      iconColor: 'text-amber-600',
+      accent: 'bg-gradient-to-r from-amber-500 to-yellow-500',
+      badge: 'bg-amber-50 text-amber-700 border-amber-200',
+    },
+  },
 };
 
 const DEFAULT_ALERT_STYLE: AlertStyle = {
@@ -687,7 +863,7 @@ const DEFAULT_ALERT_STYLE: AlertStyle = {
 };
 
 function relativeTime(iso: string): string {
-  const diffMs = Date.now() - new Date(iso).getTime();
+  const diffMs = operationalNowMs() - new Date(iso).getTime();
   if (Number.isNaN(diffMs) || diffMs < 0) return 'Baru Saja';
   const minutes = Math.floor(diffMs / 60000);
   if (minutes < 1) return 'Baru Saja';
@@ -698,12 +874,13 @@ function relativeTime(iso: string): string {
 }
 
 export function mapIncidentAlert(incident: IncidentReport): IncidentAlert {
-  const style = ALERT_STYLES[incident.incidentCategory ?? ''] ?? DEFAULT_ALERT_STYLE;
+  const category = incident.incidentCategory ?? '';
+  const style = ALERT_STYLES[category] ?? DEFAULT_ALERT_STYLE;
 
   return {
     id: incident.id,
     type: style.type,
-    title: incident.kendala,
+    title: ALERT_STYLES[category] ? category : incident.kendala,
     description: incident.kendalaDetail ?? incident.kendala,
     waybillNumber: incident.waybillNumber,
     severity: incident.severity,
@@ -715,61 +892,16 @@ export function mapIncidentAlert(incident: IncidentReport): IncidentAlert {
   };
 }
 
-// ─── Payload modal pengalihan darurat dari peta ──────────────────────────────
-
-export function mapEmergencyPayload(
-  incident: IncidentReport,
-  hubPosition: { lat: number; lng: number },
-): EmergencyReassignPayload {
-  const isColdChain = incident.serviceType === 'Frozen';
-  const anomaly: ColdChainAnomaly | undefined =
-    typeof incident.temperatureC === 'number' && isColdChain
-      ? {
-          waybillNumber: incident.waybillNumber,
-          currentTempC: incident.temperatureC,
-          maxAllowedTempC: 5,
-          detectedAt: 'Baru Saja',
-        }
-      : undefined;
-
-  return {
-    anomaly,
-    description: incident.kendalaDetail ?? incident.kendala,
-    incidentId: incident.id,
-    waybillNumber: incident.waybillNumber,
-    originalCourier: {
-      id: incident.courier.id,
-      name: incident.courier.name,
-      initials:
-        incident.courier.name
-          .split(' ')
-          .map((w) => w[0])
-          .join('')
-          .slice(0, 2)
-          .toUpperCase() || 'KU',
-      vehicle: incident.courier.vehicleType,
-      obstacleLabel: incident.trafficCondition ?? incident.kendala,
-      lastKnownAddress: incident.stoppedLocation,
-    },
-    candidates: incident.candidates.map((candidate) => {
-      const current = candidate.currentParcels ?? 0;
-      const total = candidate.maxParcels ?? current;
-      return {
-        id: candidate.id,
-        name: candidate.name,
-        initials: candidate.initials,
-        etaMinutes: candidate.etaMinutes,
-        distanceLabel: formatDistance(candidate.distanceM),
-        loadCurrent: current,
-        loadTotal: Math.max(total, current, 1),
-        isBest: candidate.isRecommended,
-      };
-    }),
-    hubPosition,
-  };
-}
-
 // ─── Audit log ───────────────────────────────────────────────────────────────
+
+const REPORT_STATUSES: ReportStatus[] = ['Eskalasi', 'Selesai'];
+
+function mapReportStatus(status: string | null | undefined): ReportStatus {
+  const found = REPORT_STATUSES.find(
+    (candidate) => candidate.toLowerCase() === (status ?? '').trim().toLowerCase(),
+  );
+  return found ?? 'Selesai';
+}
 
 export function mapAuditLog(raw: RawAuditLog): AuditLogEntry {
   return {
@@ -784,6 +916,7 @@ export function mapAuditLog(raw: RawAuditLog): AuditLogEntry {
     toCourierCode: raw.to_courier_code ?? '',
     incidentCategory: raw.incident_category,
     incidentDetail: raw.incident_detail ?? '',
+    reportStatus: mapReportStatus(raw.report_status),
     handlingSeconds: raw.handling_seconds,
     slaCompliant: raw.sla_compliant,
     executorName: raw.executor_name ?? undefined,
@@ -794,7 +927,7 @@ export function mapAuditLog(raw: RawAuditLog): AuditLogEntry {
 }
 
 export function mapAuditLogs(raw: RawAuditLog[]): AuditLogEntry[] {
-  return raw.map(mapAuditLog);
+  return dedupeBy(raw, (log) => log.id).map(mapAuditLog);
 }
 
 export function mapAuditKpi(summary: RawAuditSummary | undefined, logs: AuditLogEntry[]): AuditKpi {

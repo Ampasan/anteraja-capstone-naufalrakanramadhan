@@ -63,11 +63,6 @@ class Courier extends Model
         return $this->hasMany(Order::class, 'current_courier_id');
     }
 
-    public function assignments(): HasMany
-    {
-        return $this->hasMany(OrderAssignment::class);
-    }
-
     public function incidentReports(): HasMany
     {
         return $this->hasMany(IncidentReport::class);
@@ -81,21 +76,5 @@ class Courier extends Model
     public function auditLogsAsReplacement(): HasMany
     {
         return $this->hasMany(AuditLog::class, 'replacement_courier_id');
-    }
-
-    /**
-     * Scope: Kurir yang available (ONLINE atau IDLE).
-     */
-    public function scopeAvailable($query)
-    {
-        return $query->whereIn('status', ['ONLINE', 'IDLE']);
-    }
-
-    /**
-     * Scope: Kurir dengan beban kurang dari X paket.
-     */
-    public function scopeWithLowLoad($query, int $maxParcels = 10)
-    {
-        return $query->where('current_parcel_count', '<', $maxParcels);
     }
 }

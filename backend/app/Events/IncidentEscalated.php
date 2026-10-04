@@ -6,11 +6,7 @@ use Illuminate\Broadcasting\Channel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
 /**
- * Insiden REPORTED tidak ditanggapi > 10 menit -> status ESCALATED
- * (PRD F-03 / FRD-03 BR-04: alarm audio + visual wajib berbunyi).
- *
- * Disiarkan lewat antrean oleh command `incident:escalate`, sehingga
- * proses eskalasi tidak pernah menunggu koneksi ke server Reverb.
+ * Insiden REPORTED tidak ditanggapi
  */
 class IncidentEscalated implements ShouldBroadcast
 {

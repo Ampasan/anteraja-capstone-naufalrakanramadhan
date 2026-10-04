@@ -2,36 +2,55 @@
 
 namespace App\Http\Middleware;
 
+use Closure;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Middleware\Authenticate as Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Middleware autentikasi khusus aplikasi ini (Sanctum token, murni API).
- *
- * Terdaftar sebagai alias `auth` di bootstrap/app.php sehingga dipakai oleh
- * semua route `auth:sanctum`, bukan bawaan framework.
  */
 class Authenticate extends Middleware
 {
-    /**
-     * Aplikasi tidak punya route web `login`, jadi tidak ada tujuan redirect.
-     * Mengembalikan null mencegah RouteNotFoundException pada request non-JSON.
-     */
+    public function handle($request, Closure $next, ...$guards)
+    {
+        try {
+            return parent::handle($request, $next, ...$guards);
+        } finally {
+            $this->markActiveHub($request);
+        }
+    }
+
+    private function markActiveHub(Request $request): void
+    {
+        $hubId = $request->user()?->hub_id;
+
+        if (! $hubId) {
+            return;
+        }
+
+        try {
+            $justBecameActive = Cache::add("active_hub:{$hubId}", 1, 120);
+
+            $active = Cache::get('active_hubs', []);
+            if (! in_array($hubId, $active, true)) {
+                $active[] = $hubId;
+                Cache::put('active_hubs', $active, 600);
+            }
+            if ($justBecameActive) {
+                Artisan::queue('cache:warm');
+            }
+        } catch (\Throwable) {
+        }
+    }
+
     protected function redirectTo(Request $request): ?string
     {
         return null;
     }
 
-    /**
-     * Tolak request yang belum login.
-     *
-     * PENTING: method ini harus MELEMPAR exception. Nilai kembaliannya diabaikan
-     * oleh authenticate(); jika hanya mengembalikan response, request akan
-     * diteruskan ke controller dalam keadaan user null.
-     *
-     * Pesannya dibungkus envelope oleh renderer exception di bootstrap/app.php.
-     */
     protected function unauthenticated($request, array $guards)
     {
         if ($request->expectsJson() || $request->is('api/*')) {

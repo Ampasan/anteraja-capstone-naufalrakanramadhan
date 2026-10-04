@@ -11,150 +11,211 @@ import type {
 } from '../types';
 
 const PAGE_SIZE = 8;
-/** Panel SLA ikut memutakhirkan tiap 10 detik (FRD-02). */
 const POLL_MS = 10_000;
 const CACHE_TTL_MS = 8_000;
+const TABLE_TTL_MS = 4_000;
+const COURIERS_TTL_MS = 60_000;
+const SEARCH_DEBOUNCE_MS = 300;
+
+/** Respons /api/tugas/tabel — server-side processing. */
+interface TabelTugas {
+  data: RawOrder[];
+  total: number;
+  page: number;
+  per_page: number;
+  last_page: number;
+}
 
 export function useSlaRisk() {
-  const [orders, setOrders] = useState<SlaOrder[]>([]);
+  // ── Tabel (server-side) ──
+  const [rawOrders, setRawOrders] = useState<RawOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // ── Ringkasan + pill (dari /orders/sla-risk, cache 10 dtk) ──
+  const [summary, setSummary] = useState<SlaSummary>({ kritis: 0, waspada: 0, aman: 0, total: 0 });
+  const [servicePills, setServicePills] = useState<ServicePill[]>([]);
+
+  // ── Daftar kurir ──
+  const [couriers, setCouriers] = useState<RawCourier[]>([]);
+
   // ── Filters ───
   const [searchQuery, setSearchQuery]       = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [riskFilter, setRiskFilter]         = useState<RiskFilter>('Semua');
   const [serviceFilter, setServiceFilter]   = useState<ServiceFilter>('Semua');
 
-  // ── Pagination ───
+  // ── Pagination (server-side) ───
   const [pagination, setPagination] = useState<PaginationState>({
     page: 1,
     pageSize: PAGE_SIZE,
   });
+  const [total, setTotal] = useState(0);
+  const [lastPage, setLastPage] = useState(1);
 
   // ── Modal ───
-  // Disimpan berdasarkan waybill supaya selalu menunjuk versi data terbaru
-  // tanpa effect yang menulis state.
   const [selectedWaybill, setSelectedWaybill] = useState<string | null>(null);
 
-  // Rantai .then agar setState hanya berjalan di dalam callback.
-  const load = useCallback(
-    () =>
-      Promise.all([
-        apiCached<{ orders: RawOrder[] }>('/orders/sla-risk', CACHE_TTL_MS),
-        apiCached<{ couriers: RawCourier[] }>('/couriers', CACHE_TTL_MS),
-      ])
-        .then(([slaRes, couriersRes]) => {
-          setOrders(mapSlaOrders(slaRes.orders ?? [], couriersRes.couriers ?? []));
+  const orders = useMemo(() => mapSlaOrders(rawOrders, couriers), [rawOrders, couriers]);
+
+  const loadSummary = useCallback(() => {
+    apiCached<{ orders: RawOrder[]; summary: SlaSummary }>('/orders/sla-risk?scope=panel', CACHE_TTL_MS)
+      .then((res) => {
+        // Filter risiko di frontend
+        const filteredOrders = riskFilter === 'Semua'
+          ? res.orders
+          : res.orders.filter((order) => order.risk_level === riskFilter);
+
+        setSummary({
+          kritis: riskFilter === 'Semua' ? res.summary.kritis : (riskFilter === 'Kritis' ? filteredOrders.length : 0),
+          waspada: riskFilter === 'Semua' ? res.summary.waspada : (riskFilter === 'Waspada' ? filteredOrders.length : 0),
+          aman: riskFilter === 'Semua' ? res.summary.aman : (riskFilter === 'Aman' ? filteredOrders.length : 0),
+          total: filteredOrders.length,
+        });
+
+        const keys: ServiceFilter[] = [
+          'Semua', 'Instant', 'Same Day', 'Next Day', 'Regular',
+          'Dokumen', 'Cargo', 'Mini Cargo', 'PHARMA', 'Frozen',
+        ];
+
+        // Satu pemetaan baris untuk semua pill dari data yang sudah difilter
+        const byService = new Map<string, number>();
+        for (const order of filteredOrders) {
+          byService.set(order.service_type, (byService.get(order.service_type) ?? 0) + 1);
+        }
+
+        setServicePills(
+          keys.map((key) => ({
+            key,
+            label: key,
+            count: key === 'Semua' ? filteredOrders.length : (byService.get(key) ?? 0),
+          })),
+        );
+      })
+      .catch(() => {
+        // Ringkasan gagal — tabel tetap jalan dengan data kosong.
+      });
+  }, [riskFilter]);
+
+  const loadPage = useCallback(
+    (page: number, search: string, risk: RiskFilter, service: ServiceFilter) => {
+      const params = new URLSearchParams({
+        page: String(page),
+        per_page: String(PAGE_SIZE),
+      });
+      if (search) params.set('search', search);
+      if (risk !== 'Semua') params.set('risk', risk);
+      if (service !== 'Semua') params.set('service', service);
+
+      apiCached<TabelTugas>(`/tugas/tabel?${params.toString()}`, TABLE_TTL_MS)
+        .then((res) => {
+          setRawOrders(res.data);
+          setTotal(res.total);
+          setLastPage(res.last_page);
           setErrorMessage(null);
         })
         .catch((error: unknown) => {
           setErrorMessage(error instanceof Error ? error.message : 'Gagal memuat data SLA.');
         })
-        .finally(() => setIsLoading(false)),
+        .finally(() => setIsLoading(false));
+    },
     [],
   );
 
-  useEffect(() => {
-    void load();
-    const timer = window.setInterval(() => void load(), POLL_MS);
-    return () => window.clearInterval(timer);
-  }, [load]);
+  // Kurir: dibutuhkan agar rincian kiriman menampilkan armada & muatan asli.
+  const loadCouriers = useCallback(() => {
+    apiCached<{ couriers: RawCourier[] }>('/couriers', COURIERS_TTL_MS)
+      .then((res) => setCouriers(res.couriers ?? []))
+      .catch(() => {
+        // Gagal memuat kurir — tabel tetap jalan, hanya detailnya yang polos.
+      });
+  }, []);
 
-  const selectedOrder = useMemo(
-    () =>
-      selectedWaybill ? orders.find((o) => o.waybillNumber === selectedWaybill) ?? null : null,
-    [orders, selectedWaybill],
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedSearch(searchQuery), SEARCH_DEBOUNCE_MS);
+    return () => window.clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Summary harus ikut berubah saat riskFilter berubah
+  useEffect(() => {
+    loadCouriers();
+    loadSummary();
+  }, [loadCouriers, loadSummary]);
+
+  // Polling tetap berjalan
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      loadCouriers();
+      loadSummary();
+    }, POLL_MS);
+    return () => window.clearInterval(timer);
+  }, [loadCouriers, loadSummary]);
+
+  useEffect(() => {
+    loadPage(pagination.page, debouncedSearch, riskFilter, serviceFilter);
+
+    const timer = window.setInterval(() => {
+      loadPage(pagination.page, debouncedSearch, riskFilter, serviceFilter);
+    }, POLL_MS);
+
+    return () => window.clearInterval(timer);
+  }, [loadPage, pagination.page, debouncedSearch, riskFilter, serviceFilter]);
+
+  const ordersByWaybill = useMemo(
+    () => new Map(orders.map((order) => [order.waybillNumber, order])),
+    [orders],
   );
 
-  const summary: SlaSummary = useMemo(() => ({
-    kritis: orders.filter((o) => o.slaRisk === 'Kritis').length,
-    waspada: orders.filter((o) => o.slaRisk === 'Waspada').length,
-    aman: orders.filter((o) => o.slaRisk === 'Aman').length,
-    total: orders.length,
-  }), [orders]);
-
-  const filteredOrders: SlaOrder[] = useMemo(() => {
-    return orders.filter((order) => {
-      const q = searchQuery.toLowerCase();
-      const matchesSearch =
-        !q ||
-        order.waybillNumber.toLowerCase().includes(q) ||
-        order.destinationName.toLowerCase().includes(q) ||
-        order.destinationArea.toLowerCase().includes(q);
-
-      const matchesRisk =
-        riskFilter === 'Semua' || order.slaRisk === riskFilter;
-
-      const matchesService =
-        serviceFilter === 'Semua' || order.serviceType === serviceFilter;
-
-      return matchesSearch && matchesRisk && matchesService;
-    });
-  }, [orders, searchQuery, riskFilter, serviceFilter]);
-
-  const paginatedOrders: SlaOrder[] = useMemo(() => {
-    const start = (pagination.page - 1) * pagination.pageSize;
-    return filteredOrders.slice(start, start + pagination.pageSize);
-  }, [filteredOrders, pagination]);
-
-  const isUnfiltered = !searchQuery && riskFilter === 'Semua' && serviceFilter === 'Semua';
-  const displayTotal = isUnfiltered ? orders.length : filteredOrders.length;
-  const totalPages   = Math.max(1, Math.ceil(displayTotal / PAGE_SIZE));
-
-  const servicePills: ServicePill[] = useMemo(() => {
-    const keys: ServiceFilter[] = [
-      'Semua', 'Instant', 'Same Day', 'Next Day', 'Regular',
-      'Dokumen', 'Cargo', 'Mini Cargo', 'PHARMA', 'Frozen',
-    ];
-    return keys.map((key) => ({
-      key,
-      label: key,
-      count: key === 'Semua' ? orders.length : orders.filter((order) => order.serviceType === key).length,
-    }));
-  }, [orders]);
+  const selectedOrder = useMemo(
+    () => (selectedWaybill ? (ordersByWaybill.get(selectedWaybill) ?? null) : null),
+    [ordersByWaybill, selectedWaybill],
+  );
 
   // ── Actions ───
-  const resetFilters = () => {
+  const resetFilters = useCallback(() => {
     setSearchQuery('');
+    setDebouncedSearch('');
     setRiskFilter('Semua');
     setServiceFilter('Semua');
-    setPagination({ page: 1, pageSize: PAGE_SIZE });
-  };
+    setPagination((prev) => ({ ...prev, page: 1 }));
+  }, []);
 
-  const goToPage = (page: number) => {
-    setPagination((prev) => ({ ...prev, page }));
-  };
+  const goToPage = useCallback(
+    (page: number) => {
+      setPagination((prev) => ({ ...prev, page: Math.min(Math.max(1, page), lastPage) }));
+    },
+    [lastPage],
+  );
 
-  const openDetail = (order: SlaOrder) => setSelectedWaybill(order.waybillNumber);
-  const closeDetail = () => setSelectedWaybill(null);
+  const openDetail = useCallback((order: SlaOrder) => setSelectedWaybill(order.waybillNumber), []);
+  const closeDetail = useCallback(() => setSelectedWaybill(null), []);
 
-  const handleRiskFilter = (filter: RiskFilter) => {
+  const handleRiskFilter = useCallback((filter: RiskFilter) => {
     setRiskFilter(filter);
     setPagination((prev) => ({ ...prev, page: 1 }));
-  };
+  }, []);
 
-  const handleServiceFilter = (filter: ServiceFilter) => {
+  const handleServiceFilter = useCallback((filter: ServiceFilter) => {
     setServiceFilter(filter);
     setPagination((prev) => ({ ...prev, page: 1 }));
-  };
+  }, []);
 
-  const handleSearch = (q: string) => {
+  const handleSearch = useCallback((q: string) => {
     setSearchQuery(q);
     setPagination((prev) => ({ ...prev, page: 1 }));
-  };
+  }, []);
 
   return {
     searchQuery,
     riskFilter,
     serviceFilter,
     pagination,
+    total,
+    lastPage,
     selectedOrder,
     summary,
-    filteredOrders,
-    paginatedOrders,
     servicePills,
-    totalPages,
-    displayTotal,
+    orders,
     isLoading,
     errorMessage,
     handleSearch,

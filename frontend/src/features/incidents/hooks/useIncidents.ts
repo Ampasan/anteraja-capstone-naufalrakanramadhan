@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { api, apiCached, invalidateApiCache } from '../../../lib/api';
+import { apiWithStatus, apiCached, invalidateApiCache, waitForTask, type AsyncTask } from '../../../lib/api';
 import { mapIncidents, type RawIncident } from '../../../lib/mappers';
 import type {
   IncidentReport,
@@ -26,10 +26,8 @@ export interface UseIncidentsReturn {
 
   isSuccessModalOpen: boolean;
   lastReassignment: ReassignmentPayload | null;
-
-  /** Sedang mengirim pengalihan ke server. */
+  notification: AsyncTask | null;
   isSubmitting: boolean;
-  /** Pesan galat terakhir (409 konflik, 422 muatan berlebih, dsb). */
   errorMessage: string | null;
   isLoading: boolean;
 
@@ -50,6 +48,13 @@ const DEFAULT_FILTERS: IncidentFilters = {
   statusTab: 'Semua',
   serviceType: 'Semua',
 };
+
+/** Isi `data` dari POST /incidents/{id}/reassign. */
+interface ReassignResult {
+  confirmation_code?: string;
+  audit_log_id?: string;
+  notification?: { task_id?: string; status?: string; message?: string };
+}
 
 /** Insiden ditandai "Sedang Ditinjau" hanya di tampilan, bukan di data asli. */
 const REVIEWING_LABEL = 'Sedang Ditinjau';
@@ -72,9 +77,16 @@ export function useIncidents(): UseIncidentsReturn {
   const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(null);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [lastReassignment, setLastReassignment] = useState<ReassignmentPayload | null>(null);
+  const [notification, setNotification] = useState<AsyncTask | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  /**
+   * Kepatuhan pengalihan 1-klik (%) dari server. Disimpan terpisah dari
+   * `incidents` karena tidak bisa dihitung dari daftar insiden: insiden
+   * yang masih berjalan belum punya durasi penanganan.
+   */
+  const [oneClickRate, setOneClickRate] = useState<number | null>(null);
 
   // Kunci anti klik-ganda pada tombol konfirmasi.
   const submitLock = useRef(false);
@@ -82,9 +94,13 @@ export function useIncidents(): UseIncidentsReturn {
   // Rantai .then agar setState hanya berjalan di dalam callback.
   const load = useCallback(
     () =>
-      apiCached<{ incidents: RawIncident[] }>('/incidents', CACHE_TTL_MS)
+      apiCached<{ incidents: RawIncident[]; summary?: { one_click_rate?: number } }>(
+        '/incidents',
+        CACHE_TTL_MS,
+      )
         .then((payload) => {
           setIncidents(mapIncidents(payload.incidents ?? []));
+          setOneClickRate(payload.summary?.one_click_rate ?? null);
           setErrorMessage(null);
         })
         .catch((error: unknown) => {
@@ -100,7 +116,10 @@ export function useIncidents(): UseIncidentsReturn {
     return () => window.clearInterval(timer);
   }, [load]);
 
-  /** Versi tampilan: insiden terpilih diberi label "Sedang Ditinjau". */
+  /**
+   * Versi tampilan: tampilkan SEMUA insiden (termasuk RESOLVED).
+   * Insiden terpilih diberi label "Sedang Ditinjau".
+   */
   const displayIncidents = useMemo(
     () =>
       incidents.map((inc) =>
@@ -113,9 +132,16 @@ export function useIncidents(): UseIncidentsReturn {
     [incidents, selectedIncidentId],
   );
 
+  // Indeks id -> baris tampilan. Dibangun sekali tiap daftar berubah, lalu
+  // dipakai pemilihan insiden dan pencarian kandidat tanpa pemindaian linear.
+  const displayById = useMemo(
+    () => new Map(displayIncidents.map((inc) => [inc.id, inc])),
+    [displayIncidents],
+  );
+
   const selectedIncident = useMemo(
-    () => displayIncidents.find((i) => i.id === selectedIncidentId) ?? null,
-    [displayIncidents, selectedIncidentId],
+    () => (selectedIncidentId ? (displayById.get(selectedIncidentId) ?? null) : null),
+    [displayById, selectedIncidentId],
   );
 
   const selectedCandidate = useMemo(() => {
@@ -145,12 +171,12 @@ export function useIncidents(): UseIncidentsReturn {
   }, [displayIncidents, filters]);
 
   const serviceTypeCounts = useMemo(() => {
-    const counts: Record<string, number> = { 'Semua': displayIncidents.length };
-    displayIncidents.forEach((inc) => {
+    const counts: Record<string, number> = { 'Semua': filteredIncidents.length };
+    filteredIncidents.forEach((inc) => {
       counts[inc.serviceType] = (counts[inc.serviceType] ?? 0) + 1;
     });
     return counts;
-  }, [displayIncidents]);
+  }, [filteredIncidents]);
 
   const selectIncident = useCallback(
     (id: string) => {
@@ -158,11 +184,11 @@ export function useIncidents(): UseIncidentsReturn {
       setSelectedIncidentId(id);
 
       // Auto-select kandidat terbaik saat insiden dibuka.
-      const target = displayIncidents.find((inc) => inc.id === id);
+      const target = displayById.get(id);
       const recommended = target?.candidates.find((c) => c.isRecommended);
       setSelectedCandidateId(recommended?.id ?? target?.candidates[0]?.id ?? null);
     },
-    [displayIncidents, selectedIncidentId],
+    [displayById, selectedIncidentId],
   );
 
   const selectCandidate = useCallback((id: string) => {
@@ -196,14 +222,18 @@ export function useIncidents(): UseIncidentsReturn {
     setErrorMessage(null);
 
     try {
-      await api(`/incidents/${selectedIncident.id}/reassign`, {
-        method: 'POST',
-        body: JSON.stringify({ replacement_courier_id: selectedCandidate.id }),
-      });
+      const result = await apiWithStatus<ReassignResult>(
+        `/incidents/${selectedIncident.id}/reassign`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ replacement_courier_id: selectedCandidate.id }),
+        },
+      );
 
       const payload: ReassignmentPayload = {
         incidentId: selectedIncident.id,
         waybillNumber: selectedIncident.waybillNumber,
+        serviceLabel: selectedIncident.serviceLabel,
         originalCourier: selectedIncident.courier,
         selectedCandidate,
         confirmedAt: new Date().toISOString(),
@@ -211,9 +241,28 @@ export function useIncidents(): UseIncidentsReturn {
       setLastReassignment(payload);
       setIsSuccessModalOpen(true);
 
-      // Insiden sudah berstatus RESOLVED di server — muat ulang agar panel,
-      // KPI, dan audit trail langsung mencerminkan hasilnya.
-      invalidateApiCache();
+      const taskId = result.data?.notification?.task_id;
+      if (taskId) {
+        setNotification({
+          id: taskId,
+          type: 'notifikasi_pengalihan',
+          status: result.data?.notification?.status === 'processing' ? 'processing' : 'accepted',
+          message: result.data?.notification?.message ?? 'Permintaan diterima, menunggu diproses.',
+          updated_at: new Date().toISOString(),
+        });
+        void waitForTask(taskId, { onUpdate: setNotification });
+      } else {
+        setNotification(null);
+      }
+
+      invalidateApiCache([
+        '/incidents',
+        '/audit-logs',
+        '/dashboard/summary',
+        '/orders/sla-risk',
+        '/tugas/tabel',
+        '/couriers',
+      ]);
       await load();
     } catch (error) {
       setErrorMessage(
@@ -231,28 +280,29 @@ export function useIncidents(): UseIncidentsReturn {
     setSelectedCandidateId(null);
   }, []);
 
-  /** Segarkan paksa: buang cache lalu ambil ulang dari server. */
   const refreshData = useCallback(() => {
     invalidateApiCache('/incidents');
     void load();
   }, [load]);
 
   const kpi = useMemo<IncidentKpiSummary>(() => {
-    // Insiden RESOLVED sudah ditangani — jangan lagi dihitung sebagai kendala aktif.
-    const active = displayIncidents.filter((incident) => incident.status !== 'RESOLVED');
+    let resolved = 0;
+    let critical = 0;
+    let warning = 0;
 
-    return {
-      critical: active.filter((incident) => incident.severity === 'CRITICAL').length,
-      warning: active.filter((incident) => incident.severity === 'WARNING').length,
-      safePercent: displayIncidents.length
-        ? Math.round(
-            (displayIncidents.filter((incident) => incident.status === 'RESOLVED').length /
-              displayIncidents.length) *
-              100,
-          )
-        : 0,
-    };
-  }, [displayIncidents]);
+    for (const incident of incidents) {
+      if (incident.status === 'RESOLVED') resolved++;
+    }
+    for (const incident of displayIncidents) {
+      if (incident.severity === 'CRITICAL') critical++;
+      else if (incident.severity === 'WARNING') warning++;
+    }
+
+    const safePercent =
+      oneClickRate ?? (incidents.length ? Math.round((resolved / incidents.length) * 100) : 0);
+
+    return { critical, warning, safePercent };
+  }, [displayIncidents, incidents, oneClickRate]);
 
   return {
     incidents: displayIncidents,
@@ -266,6 +316,7 @@ export function useIncidents(): UseIncidentsReturn {
     serviceTypeCounts,
     isSuccessModalOpen,
     lastReassignment,
+    notification,
     isSubmitting,
     errorMessage,
     isLoading,

@@ -5,7 +5,30 @@ interface AuditSummaryCardsProps {
   kpi: AuditKpi;
 }
 
+/** Target pengalihan 1-klik dalam detik (AuditLogService::ONE_CLICK_TARGET_SECONDS). */
+const ONE_CLICK_TARGET_S = 30;
+
 export function AuditSummaryCards({ kpi }: AuditSummaryCardsProps) {
+  const withinTarget = kpi.avgHandlingSeconds <= ONE_CLICK_TARGET_S;
+
+  const timePalette = withinTarget
+    ? {
+        bg: 'bg-[#ECFDF5]',
+        border: 'border-[#A7F3D0]',
+        dotColor: 'bg-[#10B981]',
+        labelColor: 'text-[#065F46]',
+        iconRingColor: 'bg-[#D1FAE5] border-[#A7F3D0]',
+        iconColor: 'text-[#10B981]',
+      }
+    : {
+        bg: 'bg-[#FFFBEB]',
+        border: 'border-[#FDE68A]',
+        dotColor: 'bg-[#F59E0B]',
+        labelColor: 'text-[#B45309]',
+        iconRingColor: 'bg-[#FEF3C7] border-[#FDE68A]',
+        iconColor: 'text-[#F59E0B]',
+      };
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
@@ -28,16 +51,20 @@ export function AuditSummaryCards({ kpi }: AuditSummaryCardsProps) {
       {/* Card 2 — Waktu Penanganan */}
       <KpiCard
         delay={80}
-        bg="bg-[#FFFBEB]"
-        border="border-[#FDE68A]"
-        dotColor="bg-[#F59E0B]"
-        labelColor="text-[#B45309]"
+        bg={timePalette.bg}
+        border={timePalette.border}
+        dotColor={timePalette.dotColor}
+        labelColor={timePalette.labelColor}
         label="Rata-rata Waktu Penanganan"
-        icon={<Hourglass size={26} className="text-[#F59E0B]" />}
-        iconRingColor="bg-[#FEF3C7] border-[#FDE68A]"
+        icon={<Hourglass size={26} className={timePalette.iconColor} />}
+        iconRingColor={timePalette.iconRingColor}
         value={String(kpi.avgHandlingSeconds)}
         unit="detik"
-        hint="Rata-rata durasi sejak insiden terdeteksi hingga kurir pengganti ditetapkan"
+        hint={
+          withinTarget
+            ? `Durasi sejak insiden terdeteksi hingga kurir pengganti ditetapkan, di bawah target 1-klik (< ${ONE_CLICK_TARGET_S} detik)`
+            : `Durasi sejak insiden terdeteksi hingga kurir pengganti ditetapkan, melewati target 1-klik (< ${ONE_CLICK_TARGET_S} detik)`
+        }
         valueColor="text-[#111827]"
       />
 

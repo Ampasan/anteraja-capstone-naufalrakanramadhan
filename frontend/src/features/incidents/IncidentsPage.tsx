@@ -1,21 +1,22 @@
-import { useState, useCallback } from 'react';
-import { ArrowLeftRight, RefreshCw, Radio, Download, AlertTriangle } from 'lucide-react';
+import { useState, useCallback, useEffect } from 'react';
+import { ArrowLeftRight, RefreshCw, Radio, AlertTriangle } from 'lucide-react';
 import { useIncidents } from './hooks/useIncidents';
 import { IncidentSummaryCards } from './components/IncidentSummaryCards';
 import { IncidentFilterBar } from './components/IncidentFilterBar';
 import { IncidentList } from './components/IncidentList';
 import { ReassignPanel } from './components/ReassignPanel';
 import { ReassignSuccessModal } from './components/ReassignSuccessModal';
+import { IncidentExportDropdown } from './components/IncidentExportDropdown';
 import { Button } from '../../components/ui/Button';
-import { useNavigate } from 'react-router-dom';
-import { downloadFile } from '../../lib/api';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { EvidencePhotoModal, type EvidenceModalData } from '../../components/evidence/EvidencePhotoModal';
 import type { IncidentReport } from './types';
 
 export function IncidentsPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedEvidence, setSelectedEvidence] = useState<EvidenceModalData | null>(null);
-  const [isExporting, setIsExporting] = useState(false);
+  const [isExportOpen, setIsExportOpen] = useState(false);
 
   const {
     filteredIncidents,
@@ -28,8 +29,10 @@ export function IncidentsPage() {
     serviceTypeCounts,
     isSuccessModalOpen,
     lastReassignment,
+    notification,
     isSubmitting,
     errorMessage,
+    isLoading,
     selectIncident,
     selectCandidate,
     setSearch,
@@ -41,22 +44,6 @@ export function IncidentsPage() {
     closeSuccessModal,
     refreshData,
   } = useIncidents();
-
-  /** Unduh laporan harian insiden (CSV) langsung dari endpoint backend. */
-  const handleExportDailyReport = useCallback(async () => {
-    if (isExporting) return;
-    setIsExporting(true);
-    try {
-      const today = new Date().toISOString().slice(0, 10);
-      await downloadFile('/incidents/export', `laporan-insiden-${today}.csv`);
-    } catch (error) {
-      window.alert(
-        error instanceof Error ? error.message : 'Gagal mengunduh laporan insiden.',
-      );
-    } finally {
-      setIsExporting(false);
-    }
-  }, [isExporting]);
 
   const handleViewEvidence = useCallback((inc: IncidentReport) => {
     if (!inc.evidenceImageUrl) return;
@@ -74,6 +61,14 @@ export function IncidentsPage() {
       location: inc.stoppedLocation,
     });
   }, []);
+
+  useEffect(() => {
+    const wanted = searchParams.get('incident');
+    if (!wanted) return;
+    if (!incidents.some((inc) => inc.id === wanted)) return;
+    selectIncident(wanted);
+    setSearchParams({}, { replace: true });
+  }, [searchParams, incidents, selectIncident]);
 
   return (
     <div className="h-full overflow-y-auto bg-[#F8FAFC]">
@@ -104,17 +99,12 @@ export function IncidentsPage() {
           </div>
           {/* Kanan: tombol laporan & refresh */}
           <div className="flex items-center gap-2 flex-shrink-0">
-            <Button
-              variant="outline-magenta"
-              size="sm"
-              onClick={handleExportDailyReport}
-              loading={isExporting}
-              disabled={isExporting}
-              className="gap-1.5 rounded-full px-3 sm:px-4 hover:scale-105 active:scale-95 transition-transform duration-150"
-            >
-              <Download size={13} />
-              <span className="hidden sm:inline">Laporan Harian</span>
-            </Button>
+            <IncidentExportDropdown
+              open={isExportOpen}
+              onToggle={() => setIsExportOpen((v) => !v)}
+              onClose={() => setIsExportOpen(false)}
+              incidentCount={filteredIncidents.length}
+            />
             <Button
               variant="primary"
               size="sm"
@@ -173,6 +163,7 @@ export function IncidentsPage() {
               incidents={filteredIncidents}
               totalCount={incidents.length}
               selectedIncidentId={selectedIncidentId}
+              isLoading={isLoading}
               onSelectIncident={selectIncident}
               onViewEvidence={handleViewEvidence}
             />
@@ -182,7 +173,7 @@ export function IncidentsPage() {
           <div className="h-px lg:h-auto lg:w-px bg-[#F1F5F9] flex-shrink-0" />
 
           {/* Right: Reassign Panel */}
-          <div className="flex-[9] min-w-0 p-4 bg-[#FFF8FB]">
+          <div id="reassign-panel" className="flex-[9] min-w-0 p-4 bg-[#FFF8FB] scroll-mt-4">
             <ReassignPanel
               incident={selectedIncident}
               selectedCandidateId={selectedCandidateId}
@@ -201,11 +192,8 @@ export function IncidentsPage() {
       <ReassignSuccessModal
         open={isSuccessModalOpen}
         payload={lastReassignment}
-        serviceLabel={
-          lastReassignment
-            ? (incidents.find((i) => i.id === lastReassignment.incidentId)?.serviceLabel ?? 'Cargo')
-            : undefined
-        }
+        notification={notification}
+        serviceLabel={lastReassignment?.serviceLabel}
         onClose={closeSuccessModal}
         onGoToAuditLog={() => {
           closeSuccessModal();

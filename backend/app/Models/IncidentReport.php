@@ -71,13 +71,6 @@ class IncidentReport extends Model
         return $this->hasMany(IncidentEvidence::class, 'incident_id');
     }
 
-    public function assignments(): HasMany
-    {
-        // Foreign key eksplisit: kolomnya `incident_id`, bukan nama bawaan
-        // `incident_report_id` yang tidak ada di tabel order_assignments.
-        return $this->hasMany(OrderAssignment::class, 'incident_id');
-    }
-
     public function auditLogs(): HasMany
     {
         return $this->hasMany(AuditLog::class, 'incident_id');

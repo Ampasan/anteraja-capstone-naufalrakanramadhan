@@ -5,10 +5,9 @@ import { LoginPage } from './features/auth/LoginPage';
 import { NotFoundPage } from './features/NotFoundPage';
 import { apiVoid, invalidateApiCache, UNAUTHORIZED_EVENT } from './lib/api';
 import { clearSession, hasSession } from './lib/session';
+import { warmAppShell } from './lib/prefetch';
 import { disconnectRealtime } from './lib/realtime';
 
-// Halaman dimuat sesuai kebutuhan (code-split) supaya bundle awal jauh lebih
-// kecil — Leaflet (peta) dan pustaka ekspor tidak dibawa saat halaman login.
 const AuditLogsPage = lazy(() =>
   import('./features/audit-logs/AuditLogsPage').then((m) => ({ default: m.AuditLogsPage })),
 );
@@ -36,24 +35,18 @@ function RouteFallback() {
   );
 }
 
-/**
- * Bungkus tiap rute dengan Suspense miliknya sendiri. Bila Suspense ditaruh di
- * luar <Routes>, shell (Header + Sidebar ikut hilang sejenak saat modul
- * dimuat. Dengan pembungkus per-rute, hanya area konten yang menampilkan
- * skeleton sementara modulnya diunduh.
- */
 function lazyRoute(element: ReactNode) {
   return <Suspense fallback={<RouteFallback />}>{element}</Suspense>;
 }
 
 function App() {
   const navigate = useNavigate();
-  // Sesi dibaca dari penyimpanan (localStorage / sessionStorage) sehingga
-  // refresh halaman tidak langsung melempar pengguna ke halaman login.
   const [isAuthenticated, setIsAuthenticated] = useState(() => hasSession());
 
-  // Token kedaluwarsa / dicabut -> backend menjawab 401 -> API memancarkan
-  // event ini. Tutup sesi dan kembalikan ke halaman login.
+  useEffect(() => {
+    if (isAuthenticated) warmAppShell();
+  }, [isAuthenticated]);
+
   useEffect(() => {
     const handleUnauthorized = () => {
       setIsAuthenticated(false);
@@ -70,8 +63,6 @@ function App() {
   }, [navigate]);
 
   const handleLogout = useCallback(() => {
-    // Revoke token di server. Header dibangun secara sinkron di dalam apiVoid,
-    // sehingga aman menutup sesi tepat sesudahnya.
     void apiVoid('/auth/logout', { method: 'POST' }).catch(() => undefined);
     clearSession();
     invalidateApiCache();

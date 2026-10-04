@@ -4,34 +4,32 @@ import { apiCached, invalidateApiCache } from '../../../lib/api';
 import {
   mapCourierDetail,
   mapCouriers,
-  mapEmergencyPayload,
   mapIncident,
-  mapIncidentAlert,
   type RawCourier,
   type RawCourierDetail,
   type RawIncident,
   type RawOrder,
 } from '../../../lib/mappers';
 import { getUser } from '../../../lib/session';
-import { useRealtime } from '../../../hooks/useRealtime';
+import { useRealtime, type RealtimeEvent } from '../../../hooks/useRealtime';
+import { useIncidentToast } from '../../../hooks/useIncidentToast';
 import { useAppContext } from '../../../context/useAppContext';
 import type {
   Courier,
   CourierFilter,
-  EmergencyReassignPayload,
   IncidentAlert,
-  LatLng,
 } from '../types';
 import type { IncidentReport } from '../../incidents/types';
 
-/** Panel monitoring menyegarkan data tiap 10 detik (FRD-01). */
-const POLL_MS = 10_000;
+/**
+ * Penanda kurir disegarkan tiap 2 detik setelah login dan semua data selesai
+ * dimuat. Interval pendek membuat pergerakan kurir terasa real-time.
+ */
+const POLL_MS = 2_000;
 /** TTL lebih pendek dari interval poll supaya tiap siklus benar-benar menembus server. */
-const CACHE_TTL_MS = 8_000;
+const CACHE_TTL_MS = 1_500;
 /** Jarak minimal dua refresh yang dipicu realtime, supaya API tidak dibanjiri. */
 const REALTIME_THROTTLE_MS = 2_000;
-
-const DEFAULT_HUB_POSITION: LatLng = { lat: -6.2651893, lng: 106.8767953 };
 
 export interface MonitoringState {
   allCouriers: Courier[];
@@ -41,15 +39,14 @@ export interface MonitoringState {
   searchQuery: string;
   isFocusingRoute: boolean;
   isFullscreen: boolean;
+  /** Toast peringatan insiden (jeda 5 detik tiap muat halaman, refresh selalu mengulang). */
   showAnomalyToast: boolean;
-  showReassignModal: boolean;
+  /** Insiden yang sedang dibawa toast, dipakai tombol "Alihkan Paket". */
+  currentAlert: IncidentAlert | null;
+  currentIncident: IncidentReport | null;
   showRoutes: boolean;
   mapRef: LeafletMap | null;
   counts: { all: number; online: number; idle: number };
-  incidentAlerts: IncidentAlert[];
-  currentIncidentIndex: number;
-  /** Payload modal pengalihan darurat untuk insiden yang sedang tampil. */
-  reassignPayload: EmergencyReassignPayload | null;
   isLoading: boolean;
   errorMessage: string | null;
 }
@@ -60,12 +57,8 @@ export interface MonitoringActions {
   setSearchQuery: (q: string) => void;
   toggleFocusRoute: () => void;
   toggleFullscreen: () => void;
-  dismissAnomalyToast: () => void;
-  openReassignModal: () => void;
-  closeReassignModal: () => void;
   toggleShowRoutes: () => void;
   setMapRef: (map: LeafletMap | null) => void;
-  nextIncident: () => void;
   dismissCurrentIncident: () => void;
   refreshData: () => void;
 }
@@ -80,20 +73,26 @@ export function useMonitoring(): MonitoringState & MonitoringActions {
   const [searchQuery, setSearchQuery] = useState('');
   const [isFocusingRoute, setIsFocusingRoute] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showAnomalyToast, setShowAnomalyToast] = useState(true);
-  const [showReassignModal, setShowReassignModal] = useState(false);
   const [showRoutes, setShowRoutes] = useState(true);
   const [mapRef, setMapRef] = useState<LeafletMap | null>(null);
-  const [currentIncidentIndex, setCurrentIncidentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Snapshot baris SLA — dipakai menghitung sisa/estimasi SLA pada panel
   // detail kurir tanpa menambah request baru.
   const slaOrdersRef = useRef<RawOrder[]>([]);
-  const knownIncidentIds = useRef<Set<string>>(new Set());
-  const hasLoadedOnce = useRef(false);
   const lastRefreshAt = useRef(0);
+
+  // Indeks id -> kurir untuk panel detail, dibangun sekali tiap baris datang.
+  const couriersById = useMemo(
+    () => new Map(allCouriers.map((courier) => [courier.id, courier])),
+    [allCouriers],
+  );
+
+  // ── Toast peringatan insiden: jeda 5 detik tiap muat halaman, jadi refresh
+  //    peta selalu menampilkan peringatan itu lagi (hanya halaman Live
+  //    Monitoring yang memasang hook ini).
+  const incidentToast = useIncidentToast(incidents);
 
   // Rantai .then agar setState hanya berjalan di dalam callback.
   const load = useCallback(
@@ -108,18 +107,7 @@ export function useMonitoring(): MonitoringState & MonitoringActions {
           slaOrdersRef.current = orders;
           setAllCouriers(mapCouriers(couriersRes.couriers ?? [], orders));
 
-          const mapped = (incidentsRes.incidents ?? []).map(mapIncident);
-
-          // Insiden yang belum pernah terlihat -> nyalakan kembali toast peringatan.
-          let newIncidents = 0;
-          for (const incident of mapped) {
-            if (!knownIncidentIds.current.has(incident.id)) newIncidents++;
-            knownIncidentIds.current.add(incident.id);
-          }
-          if (newIncidents > 0 && hasLoadedOnce.current) setShowAnomalyToast(true);
-          hasLoadedOnce.current = true;
-
-          setIncidents(mapped);
+          setIncidents((incidentsRes.incidents ?? []).map(mapIncident));
           setErrorMessage(null);
         })
         .catch((error: unknown) => {
@@ -137,14 +125,21 @@ export function useMonitoring(): MonitoringState & MonitoringActions {
   }, [load]);
 
   // ── Realtime: penyegaran ekstra saat ada kejadian baru dari Reverb ──
-  const hubId = getUser()?.hub_id;
-  const handleRealtime = useCallback(() => {
-    const now = Date.now();
-    if (now - lastRefreshAt.current < REALTIME_THROTTLE_MS) return;
-    lastRefreshAt.current = now;
-    invalidateApiCache();
-    void load();
-  }, [load]);
+  const hubId = useMemo(() => getUser()?.hub_id, []);
+  const handleRealtime = useCallback(
+    (event: RealtimeEvent) => {
+      const now = Date.now();
+      if (now - lastRefreshAt.current < REALTIME_THROTTLE_MS) return;
+      lastRefreshAt.current = now;
+      // Hapus cache endpoint yang benar-benar berubah oleh event ini.
+      // Menyapu seluruh cache membuat halaman audit, tabel tugas, dan dropdown
+      // hub ikut kedinginan, lalu menembus Supabase lagi pada giliran berikutnya.
+      invalidateApiCache(['/couriers', '/orders/sla-risk', '/dashboard/summary']);
+      if (event !== 'courier.telemetry') invalidateApiCache('/incidents');
+      void load();
+    },
+    [load],
+  );
   useRealtime(hubId, handleRealtime);
 
   // ── Detail kurir terpilih (nama penerima + paket lengkap) ──
@@ -155,7 +150,7 @@ export function useMonitoring(): MonitoringState & MonitoringActions {
 
     let cancelled = false;
     const refreshDetail = () => {
-      apiCached<RawCourierDetail>(`/couriers/${selectedCourierId}`, 6000)
+      apiCached<RawCourierDetail>(`/couriers/${selectedCourierId}`, 4000)
         .then((raw) => {
           if (cancelled) return;
           setDetailState({
@@ -177,65 +172,46 @@ export function useMonitoring(): MonitoringState & MonitoringActions {
   const selectedCourier = useMemo(() => {
     if (!selectedCourierId) return null;
     if (detailState && detailState.id === selectedCourierId) return detailState.courier;
-    return allCouriers.find((courier) => courier.id === selectedCourierId) ?? null;
-  }, [selectedCourierId, detailState, allCouriers]);
+    // Pencarian berbasis Map: daftar kurir berubah tiap poll, jadi peta id ->
+    // kurir dibangun sekali per perubahan daftar, bukan dijejaki per pemilihan.
+    return couriersById.get(selectedCourierId) ?? null;
+  }, [selectedCourierId, detailState, couriersById]);
 
-  const counts = useMemo(
-    () => ({
-      all: allCouriers.length,
-      online: allCouriers.filter((c) => c.status === 'ONLINE').length,
-      idle: allCouriers.filter((c) => c.status === 'IDLE').length,
-    }),
-    [allCouriers],
-  );
+  // Satu pass untuk ketiga angka. Sebelumnya daftar dipindai tiga kali
+  // (length + dua filter) tiap kali berubah — murah untuk 9 kurir, tetap
+  // pemborosan yang tidak perlu karena efek ini berjalan tiap poll.
+  const counts = useMemo(() => {
+    let online = 0;
+    let idle = 0;
+    for (const courier of allCouriers) {
+      if (courier.status === 'ONLINE') online++;
+      else if (courier.status === 'IDLE') idle++;
+    }
+    return { all: allCouriers.length, online, idle };
+  }, [allCouriers]);
 
+  // Satu pass untuk filter status sekaligus pencarian. Versi lama menjalankan
+  // dua `filter` berurutan, jadi tiap baris dua kali diuji dan array sementara
+  // dibuat hanya untuk dilewati lagi oleh pencarian.
   const filteredCouriers = useMemo(() => {
-    let list = allCouriers;
-
-    if (activeFilter === 'online') {
-      list = list.filter((c) => c.status === 'ONLINE' || c.status === 'ALERT');
-    } else if (activeFilter === 'idle') {
-      list = list.filter((c) => c.status === 'IDLE');
-    }
-
     const q = searchQuery.trim().toLowerCase();
-    if (q) {
-      list = list.filter(
-        (c) =>
-          c.name.toLowerCase().includes(q) ||
-          c.activePackages.some((p) => p.waybillNumber.toLowerCase().includes(q)),
+
+    return allCouriers.filter((courier) => {
+      const matchesStatus =
+        activeFilter === 'all' ||
+        (activeFilter === 'online'
+          ? courier.status === 'ONLINE' || courier.status === 'ALERT'
+          : courier.status === 'IDLE');
+
+      if (!matchesStatus) return false;
+      if (!q) return true;
+
+      return (
+        courier.name.toLowerCase().includes(q) ||
+        courier.activePackages.some((p) => p.waybillNumber.toLowerCase().includes(q))
       );
-    }
-
-    return list;
+    });
   }, [allCouriers, activeFilter, searchQuery]);
-
-  // Toast anomali hanya untuk insiden yang masih aktif — insiden RESOLVED
-  // tidak boleh muncul sebagai peringatan hidup.
-  const incidentAlerts = useMemo(
-    () => incidents.filter((incident) => incident.status !== 'RESOLVED').map(mapIncidentAlert),
-    [incidents],
-  );
-
-  const activeAlertIndex =
-    incidentAlerts.length === 0 ? 0 : currentIncidentIndex % incidentAlerts.length;
-
-  const reassignPayload = useMemo<EmergencyReassignPayload | null>(() => {
-    if (incidents.length === 0) return null;
-    const incident = incidents[activeAlertIndex];
-    if (!incident) return null;
-    const hubPosition = allCouriers[0]?.hubPosition ?? DEFAULT_HUB_POSITION;
-    return mapEmergencyPayload(incident, hubPosition);
-  }, [incidents, activeAlertIndex, allCouriers]);
-
-  // Auto-rotasi insiden tiap 8 detik.
-  useEffect(() => {
-    if (!showAnomalyToast || incidentAlerts.length < 2) return;
-    const timer = window.setInterval(() => {
-      setCurrentIncidentIndex((prev) => (prev + 1) % incidentAlerts.length);
-    }, 8000);
-    return () => window.clearInterval(timer);
-  }, [showAnomalyToast, incidentAlerts.length]);
 
   /** Pilih kurir — sekalian terbangkan peta ke posisinya. */
   const selectCourier = useCallback(
@@ -282,23 +258,14 @@ export function useMonitoring(): MonitoringState & MonitoringActions {
     });
   }, []);
 
-  const dismissAnomalyToast = useCallback(() => setShowAnomalyToast(false), []);
-  const openReassignModal = useCallback(() => setShowReassignModal(true), []);
-  const closeReassignModal = useCallback(() => setShowReassignModal(false), []);
   const toggleShowRoutes = useCallback(() => setShowRoutes((prev) => !prev), []);
   const handleSetFilter = useCallback((f: CourierFilter) => setActiveFilter(f), []);
   const handleSetSearch = useCallback((q: string) => setSearchQuery(q), []);
   const handleSetMapRef = useCallback((m: LeafletMap | null) => setMapRef(m), []);
 
-  const nextIncident = useCallback(() => {
-    setCurrentIncidentIndex((prev) => (prev + 1) % Math.max(incidentAlerts.length, 1));
-  }, [incidentAlerts.length]);
-
-  const dismissCurrentIncident = useCallback(() => setShowAnomalyToast(false), []);
-
-  /** Segarkan paksa: buang cache lalu ambil ulang dari server. */
+  /** Segarkan paksa: buang cache halaman ini lalu ambil ulang dari server. */
   const refreshData = useCallback(() => {
-    invalidateApiCache();
+    invalidateApiCache(['/couriers', '/orders/sla-risk', '/incidents']);
     void load();
   }, [load]);
 
@@ -310,14 +277,12 @@ export function useMonitoring(): MonitoringState & MonitoringActions {
     searchQuery,
     isFocusingRoute,
     isFullscreen,
-    showAnomalyToast,
-    showReassignModal,
+    showAnomalyToast: incidentToast.visible,
+    currentAlert: incidentToast.alert,
+    currentIncident: incidentToast.incident,
     showRoutes,
     mapRef,
     counts,
-    incidentAlerts,
-    currentIncidentIndex: activeAlertIndex,
-    reassignPayload,
     isLoading,
     errorMessage,
     selectCourier,
@@ -325,13 +290,9 @@ export function useMonitoring(): MonitoringState & MonitoringActions {
     setSearchQuery: handleSetSearch,
     toggleFocusRoute,
     toggleFullscreen,
-    dismissAnomalyToast,
-    openReassignModal,
-    closeReassignModal,
     toggleShowRoutes,
     setMapRef: handleSetMapRef,
-    nextIncident,
-    dismissCurrentIncident,
+    dismissCurrentIncident: incidentToast.dismiss,
     refreshData,
   };
 }

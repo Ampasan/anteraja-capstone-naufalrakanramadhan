@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\ReassignmentConfirmation;
+use App\Services\Async\TaskTracker;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -16,7 +17,8 @@ class NotifikasiPengalihan implements ShouldQueue
 
     public function __construct(
         public ReassignmentConfirmation $confirmation,
-        public array $courierData
+        public array $courierData,
+        public ?string $taskId = null
     ) {}
 
     /**
@@ -26,8 +28,9 @@ class NotifikasiPengalihan implements ShouldQueue
     public function handle(): void
     {
         try {
-            // Simulasi kirim notifikasi (push notification / SMS / WhatsApp)
-            // Di produksi, ini bisa diganti dengan integrasi FCM, Twilio, dll.
+            if ($this->taskId) {
+                TaskTracker::update($this->taskId, 'processing', 'Notifikasi sedang dikirim ke kurir pengganti.');
+            }
 
             Log::info('NotifikasiPengalihan dikirim', [
                 'confirmation_code' => $this->confirmation->confirmation_code,
@@ -36,10 +39,20 @@ class NotifikasiPengalihan implements ShouldQueue
                 'order_number' => $this->confirmation->order->order_number,
             ]);
 
-            // TODO: Integrasi dengan push notification service
-            // Contoh: FCM, OneSignal, atau WhatsApp Business API
+            if ($this->taskId) {
+                TaskTracker::update(
+                    $this->taskId,
+                    'completed',
+                    'Notifikasi berhasil dikirim ke kurir pengganti.',
+                    ['courier' => $this->courierData['name'] ?? null]
+                );
+            }
 
         } catch (\Exception $e) {
+            if ($this->taskId) {
+                TaskTracker::update($this->taskId, 'failed', 'Notifikasi gagal dikirim: ' . $e->getMessage());
+            }
+
             Log::error('Gagal kirim notifikasi pengalihan', [
                 'confirmation_code' => $this->confirmation->confirmation_code,
                 'error' => $e->getMessage(),
@@ -50,11 +63,12 @@ class NotifikasiPengalihan implements ShouldQueue
         }
     }
 
-    /**
-     * Handle job yang gagal setelah retry habis.
-     */
     public function failed(\Throwable $exception): void
     {
+        if ($this->taskId) {
+            TaskTracker::update($this->taskId, 'failed', 'Notifikasi gagal permanen setelah percobaan berulang.');
+        }
+
         Log::error('Job NotifikasiPengalihan gagal permanen', [
             'confirmation_code' => $this->confirmation->confirmation_code,
             'error' => $exception->getMessage(),

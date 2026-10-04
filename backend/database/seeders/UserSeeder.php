@@ -9,10 +9,6 @@ use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
-    /**
-     * Seed 3 user admin untuk Hub Halim - Jakarta Timur.
-     * Password default: Anteraja2026!
-     */
     public function run(): void
     {
         $hub = Hub::where('hub_code', 'HUB-JAKTIM-HALIM')->firstOrFail();

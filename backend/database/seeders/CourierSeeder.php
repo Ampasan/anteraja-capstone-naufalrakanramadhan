@@ -8,17 +8,23 @@ use Illuminate\Database\Seeder;
 
 class CourierSeeder extends Seeder
 {
-    /**
-     * Seed 10 kurir untuk Hub Halim.
-     * Status: 3 ONLINE, 5 IDLE, 2 OFFLINE (tidak ditampilkan di frontend).
-     */
+    private const LEGACY_CODES = [
+        'STR-JKT-001' => 'HLM-001',
+        'HLM-VAN-02' => 'HLM-010',
+        'STR-JKT-008' => 'HLM-011',
+    ];
+
     public function run(): void
     {
+        foreach (self::LEGACY_CODES as $old => $new) {
+            Courier::where('courier_code', $old)->update(['courier_code' => $new]);
+        }
+
         $hub = Hub::where('hub_code', 'HUB-JAKTIM-HALIM')->firstOrFail();
 
         $couriers = [
             [
-                'courier_code' => 'STR-JKT-001',
+                'courier_code' => 'HLM-001',
                 'name' => 'Budi Santoso',
                 'phone_number' => '081234567801',
                 'license_plate' => 'B 3481 HLM',
@@ -33,7 +39,7 @@ class CourierSeeder extends Seeder
                 'has_thermal_box' => true,
             ],
             [
-                'courier_code' => 'HLM-VAN-02',
+                'courier_code' => 'HLM-010',
                 'name' => 'Teguh Wibowo',
                 'phone_number' => '081234567802',
                 'license_plate' => 'B 9281 HLM',
@@ -114,7 +120,7 @@ class CourierSeeder extends Seeder
                 'license_plate' => 'B 5512 HLM',
                 'vehicle_type' => 'Blind Van',
                 'status' => 'IDLE',
-                'current_parcel_count' => 11,
+                'current_parcel_count' => 9,
                 'max_parcel_count' => 20,
                 'current_load_kg' => 35.00,
                 'max_capacity_kg' => 800.00,
@@ -138,10 +144,10 @@ class CourierSeeder extends Seeder
                 'has_thermal_box' => false,
             ],
             [
-                'courier_code' => 'STR-JKT-008',
+                'courier_code' => 'HLM-011',
                 'name' => 'Andi Wijaya',
                 'phone_number' => '081234567809',
-                'license_plate' => 'B 1234 STR',
+                'license_plate' => 'B 1234 HLM',
                 'vehicle_type' => 'Motorcycle',
                 'status' => 'IDLE',
                 'current_parcel_count' => 3,
@@ -172,11 +178,11 @@ class CourierSeeder extends Seeder
                 'name' => 'Bayu Nugroho',
                 'phone_number' => '081234567811',
                 'license_plate' => 'B 9900 HLM',
-                'vehicle_type' => 'Motorcycle',
-                'status' => 'OFFLINE',
-                'current_parcel_count' => 0,
+                'vehicle_type' => 'Motor Listrik',
+                'status' => 'IDLE',
+                'current_parcel_count' => 1,
                 'max_parcel_count' => 20,
-                'current_load_kg' => 0.00,
+                'current_load_kg' => 1.60,
                 'max_capacity_kg' => 50.00,
                 'current_address' => 'Jl. Pendidikan No. 20, Jakarta Timur',
                 'is_bpom_certified' => false,

@@ -20,15 +20,11 @@ class IncidentEvidence extends Model
         'incident_id',
         'cloudinary_public_id',
         'secure_url',
-        'folder',
-        'file_format',
-        'file_size_bytes',
         'caption',
         'uploaded_at',
     ];
 
     protected $casts = [
-        'file_size_bytes' => 'integer',
         'uploaded_at' => 'datetime',
     ];
 

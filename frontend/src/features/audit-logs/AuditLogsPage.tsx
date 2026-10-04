@@ -5,6 +5,7 @@ import { AuditSummaryCards } from './components/AuditSummaryCards';
 import { AuditFilterBar } from './components/AuditFilterBar';
 import { AuditTable } from './components/AuditTable';
 import { ExportDropdown } from './components/ExportDropdown';
+import { getUser } from '../../lib/session';
 
 function FadeUp({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
   return (
@@ -23,6 +24,7 @@ export function AuditLogsPage() {
     pagedData,
     filteredAll,
     kpi,
+    isLoading,
     filters,
     categoryCounts,
     setSearch,
@@ -34,6 +36,8 @@ export function AuditLogsPage() {
   } = useAuditLogs();
 
   const [exportOpen, setExportOpen] = useState(false);
+
+  const hubName = getUser()?.hub_name ?? 'Hub Tebet';
 
   return (
     <div className="h-full overflow-y-auto bg-[#F8FAFC]">
@@ -53,7 +57,7 @@ export function AuditLogsPage() {
                 </h1>
                 <p className="text-[11px] sm:text-[13px] text-[#4B5563] mt-0.5 leading-snug font-medium">
                   Rekapitulasi jejak digital pengalihan paket{' '}
-                  <span className="font-semibold text-[#C91076]">Hub Tebet</span>
+                  <span className="font-semibold text-[#C91076]">{hubName}</span>
                 </p>
               </div>
             </div>
@@ -97,6 +101,7 @@ export function AuditLogsPage() {
           <AuditTable
             data={pagedData}
             pagination={pagination}
+            isLoading={isLoading}
             onPageChange={goToPage}
           />
         </FadeUp>

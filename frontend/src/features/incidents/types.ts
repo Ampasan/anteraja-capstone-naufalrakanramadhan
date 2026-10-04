@@ -1,9 +1,7 @@
   /** Tingkat keparahan insiden */
 export type SeverityLevel = 'CRITICAL' | 'WARNING' | 'SAFE';
 
-/** Status penanganan insiden.
- *  Pilihan REPORTED/ACKNOWLEDGED/REASSIGNING/ESCALATED/RESOLVED dipakai backend,
- *  PENDING/REVIEWING/REASSIGNED dipertahankan untuk kompatibilitas UI lama. */
+/** Status penanganan insiden. */
 export type IncidentStatusType =
   | 'PENDING'
   | 'REVIEWING'
@@ -27,6 +25,15 @@ export interface CourierProfile {
   vehicleType: string;
   vehiclePlate: string;
   phone: string;
+}
+
+/** Kurir penerima paket setelah pengalihan 1-klik (insiden RESOLVED). */
+export interface ReplacementCourier {
+  id: string;
+  name: string;
+  courierCode?: string;
+  vehicleType?: string;
+  vehiclePlate?: string;
 }
 
 /** Kandidat kurir pengganti untuk pengalihan tugas */
@@ -65,6 +72,10 @@ export interface IncidentReport {
   weightKg: number;
   reportedAt: string;
   statusLabel: string;
+  /** Waktu pengalihan tuntas — hanya terisi bila status RESOLVED. */
+  resolvedAt?: string;
+  /** Kurir pengganti — menghubungkan kartu insiden dengan baris audit log. */
+  replacementCourier?: ReplacementCourier;
   evidenceImageUrl?: string;
   evidencePublicId?: string;
   evidenceCaption?: string;
@@ -82,6 +93,8 @@ export interface IncidentReport {
 export interface ReassignmentPayload {
   incidentId: string;
   waybillNumber: string;
+  /** Jenis layanan, disimpan di sini karena insidennya sudah RESOLVED setelah konfirmasi. */
+  serviceLabel: string;
   originalCourier: CourierProfile;
   selectedCandidate: CandidateCourier;
   confirmedAt: string;

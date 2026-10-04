@@ -44,9 +44,4 @@ class User extends Model
     {
         return $this->hasMany(AuditLog::class, 'executor_user_id');
     }
-
-    public function reassignmentConfirmations(): HasMany
-    {
-        return $this->hasMany(ReassignmentConfirmation::class, 'confirmed_by_user_id');
-    }
 }

@@ -1,8 +1,18 @@
-import { X, Bike, Package, MapPin, Clock, Phone, Navigation, AlertTriangle, Snowflake } from 'lucide-react';
+import { X, Bike, Car, Truck, Package, MapPin, Clock, Phone, Navigation, AlertTriangle, Snowflake, Route } from 'lucide-react';
 import { Badge } from '../../../components/ui/Badge';
 import { Button } from '../../../components/ui/Button';
 import { cn } from '../../../lib/utils';
-import type { Courier } from '../types';
+import { formatDistance } from '../../../lib/mappers';
+import type { ActivePackage, Courier } from '../types';
+
+/** Icon kendaraan sesuai tipe armada. */
+function VehicleIcon({ type }: { type: string }) {
+  const t = type.toLowerCase();
+  if (t.includes('motor') || t.includes('motorcycle') || t.includes('motor listrik')) return <Bike size={12} />;
+  if (t.includes('van') || t.includes('blind van')) return <Car size={12} />;
+  if (t.includes('truk') || t.includes('truck') || t.includes('pick up') || t.includes('pickup')) return <Truck size={12} />;
+  return <Bike size={12} />;
+}
 
 interface CourierDetailPanelProps {
   courier: Courier;
@@ -12,31 +22,56 @@ interface CourierDetailPanelProps {
   onContact: () => void;
 }
 
+/**
+ * Baris sisa SLA pada kartu paket.
+ */
 function SlaBar({ remainingMinutes, elapsedPct }: { remainingMinutes: number; elapsedPct: number }) {
-  const danger = elapsedPct >= 80 || remainingMinutes <= 15;
-  const fill   = danger ? '#EF4444' : '#F59E0B';
+  const isLate = remainingMinutes < 0;
+  const pct = Math.max(0, Math.min(100, Math.round(elapsedPct)));
+  const danger = isLate || elapsedPct >= 80 || remainingMinutes <= 15;
+  const fill = danger ? '#EF4444' : '#F59E0B';
 
   return (
-    <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-3">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-[13px] font-bold text-amber-700 flex items-center gap-1.5">
+    <div className={cn(
+      'rounded-lg border px-3 py-3',
+      isLate ? 'border-red-200 bg-red-50' : 'border-amber-200 bg-amber-50',
+    )}>
+      <div className="flex items-center justify-between mb-2 gap-2">
+        <span className={cn(
+          'text-[13px] font-bold flex items-center gap-1.5',
+          isLate ? 'text-red-600' : 'text-amber-700',
+        )}>
           <Clock size={13} />
-          Sisa SLA: {remainingMinutes} Menit
+          {isLate
+            ? `Terlambat ${Math.abs(remainingMinutes)} Menit`
+            : `Sisa SLA: ${remainingMinutes} Menit`}
         </span>
-        <span className="text-[12px] font-bold text-[#0F172A]">
-          {elapsedPct}% Menuju Batas
+        <span className="text-[12px] font-bold text-[#0F172A] whitespace-nowrap">
+          {pct}% Menuju Batas
         </span>
       </div>
-      <div className="h-2.5 bg-amber-100 rounded-full overflow-hidden">
+      <div className="h-2.5 bg-white/70 border border-black/5 rounded-full overflow-hidden">
         <div
-          className="h-full rounded-full"
-          style={{ width: `${Math.min(elapsedPct, 100)}%`, background: fill }}
+          className="h-full rounded-full transition-[width] duration-500"
+          style={{ width: `${pct}%`, background: fill }}
         />
       </div>
     </div>
   );
 }
 
+/**
+ * Panel detail pengiriman di atas peta.
+ *
+ * Dua tata letak, sesuai status kurir:
+ *
+ *  - IDLE  : kurir sedang menahan paket, jadi panelnya lengkap — label
+ *            "Paket Dalam Rute", no resi, jenis layanan, penerima, dan
+ *            baris sisa SLA.
+ *  - ONLINE: cukup identitas armada (foto inisial, nama, kendaraan, status),
+ *            jarak ke hub, radius layanan, Fokus Rute, dan Hubungi. Tidak ada
+ *            rute yang sedang berjalan untuk kurir yang sedang bergerak.
+ */
 export function CourierDetailPanel({
   courier,
   isFocusingRoute,
@@ -44,9 +79,20 @@ export function CourierDetailPanel({
   onFocusRoute,
   onContact,
 }: CourierDetailPanelProps) {
-  const firstPkg = courier.activePackages[0];
+  const isIdle = courier.status === 'IDLE';
+  const hasRoute = !!courier.route && courier.route.polyline.length > 1;
   const hasAnomaly = !!courier.coldChainAnomaly;
-  const isFrozen = firstPkg?.serviceType === 'Frozen';
+
+  // Kartu paket hanya untuk kurir IDLE; paket paling mendesak jadi wajahnya.
+  const shownPkg: ActivePackage | undefined = isIdle
+    ? courier.activePackages.reduce<ActivePackage | undefined>(
+        (worst, pkg) =>
+          !worst || pkg.slaRemainingMinutes < worst.slaRemainingMinutes ? pkg : worst,
+        undefined,
+      )
+    : undefined;
+
+  const isFrozen = shownPkg?.serviceType === 'Frozen';
 
   return (
     <div className="flex flex-col w-[calc(100vw-24px)] max-w-[310px] bg-white rounded-xl overflow-hidden border-2 border-[#C91076] shadow-[0_4px_24px_rgba(201,16,118,0.18)]">
@@ -84,7 +130,7 @@ export function CourierDetailPanel({
                   </Badge>
                 </div>
                 <span className="flex items-center gap-1 text-[12px] text-[#475569] mt-0.5">
-                  <Bike size={12} />
+                  <VehicleIcon type={courier.vehicle} />
                   {courier.vehicle}
                 </span>
               </div>
@@ -100,45 +146,83 @@ export function CourierDetailPanel({
         </button>
       </div>
 
-      {/* ── Package section ── */}
-      {firstPkg && (
-        <div className="px-4 py-3 flex flex-col gap-3">
+      {/* ── Posisi relatif terhadap hub ── */}
+      <div className="px-4 py-2.5 border-b border-[#E2E8F0] bg-[#F8FAFC] flex flex-col gap-1">
+        <div className="flex items-center justify-between">
+          <span className="text-[12px] text-[#475569] flex items-center gap-1.5">
+            <MapPin size={12} className="text-[#C91076]" />
+            Jarak ke hub
+          </span>
+          <span className="text-[12px] font-bold text-[#0F172A]">
+            {courier.distanceFromHubM === undefined ? '—' : formatDistance(courier.distanceFromHubM)}
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <span className="text-[12px] text-[#475569]">Radius layanan</span>
+          <span
+            className={cn(
+              'text-[12px] font-bold flex items-center gap-1',
+              courier.insideRadius === false ? 'text-red-600' : 'text-emerald-600',
+            )}
+          >
+            <span
+              className={cn(
+                'w-1.5 h-1.5 rounded-full',
+                courier.insideRadius === false ? 'bg-red-500' : 'bg-emerald-500',
+              )}
+            />
+            {courier.insideRadius === false
+              ? `Di luar ${courier.hubRadiusKm ?? '—'} km`
+              : `Di dalam ${courier.hubRadiusKm ?? '—'} km`}
+          </span>
+        </div>
+      </div>
+
+      {/* ── Paket dalam rute (khusus kurir IDLE) ── */}
+      {shownPkg && (
+        <div className="px-4 py-3 flex flex-col gap-3 border-b border-[#E2E8F0]">
           {/* Label + service badge */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">
               Paket Dalam Rute
             </span>
-            <Badge
-              variant={
-                firstPkg.serviceType === 'Same Day' ? 'same-day' :
-                firstPkg.serviceType === 'Frozen'   ? 'frozen'   :
-                firstPkg.serviceType === 'PHARMA'   ? 'pharma'   : 'regular'
-              }
-            >
-              {firstPkg.serviceType}
-            </Badge>
+            <span className="flex items-center gap-1.5">
+              <Badge
+                variant={
+                  shownPkg.serviceType === 'Same Day' ? 'same-day' :
+                  shownPkg.serviceType === 'Frozen'   ? 'frozen'   :
+                  shownPkg.serviceType === 'PHARMA'   ? 'pharma'   : 'regular'
+                }
+              >
+                {shownPkg.serviceType}
+              </Badge>
+            </span>
           </div>
 
           {/* Waybill + weight */}
           <div className="flex items-center justify-between bg-[#F8FAFC] rounded-lg border border-[#E2E8F0] px-3 py-2.5">
             <span className="flex items-center gap-2 font-mono text-[14px] font-bold text-[#0F172A]">
               <Package size={14} className="text-[#C91076]" />
-              {firstPkg.waybillNumber}
+              {shownPkg.waybillNumber}
             </span>
-            <span className="text-[13px] font-semibold text-[#475569]">{firstPkg.weightKg} Kg</span>
+            <span className="text-[13px] font-semibold text-[#475569]">{shownPkg.weightKg} Kg</span>
           </div>
 
           {/* Recipient */}
           <div className="flex items-start gap-2">
             <MapPin size={15} className="text-[#C91076] mt-0.5 flex-shrink-0" />
             <div>
-              <p className="text-[13px] font-bold text-[#0F172A]">{firstPkg.recipientName}</p>
-              <p className="text-[12px] text-[#475569] leading-snug mt-0.5">{firstPkg.recipientAddress}</p>
+              <p className="text-[13px] font-bold text-[#0F172A]">{shownPkg.recipientName}</p>
+              <p className="text-[12px] text-[#475569] leading-snug mt-0.5">{shownPkg.recipientAddress}</p>
             </div>
           </div>
 
           {/* SLA bar */}
-          <SlaBar remainingMinutes={firstPkg.slaRemainingMinutes} elapsedPct={firstPkg.slaElapsedPct} />
+          <SlaBar
+            remainingMinutes={shownPkg.slaRemainingMinutes}
+            elapsedPct={shownPkg.slaElapsedPct}
+          />
 
           {/* Cold-chain info for Frozen packages */}
           {(isFrozen || hasAnomaly) && (
@@ -180,19 +264,29 @@ export function CourierDetailPanel({
       )}
 
       {/* ── Actions ── */}
-      <div className="px-4 pb-4 pt-2 grid grid-cols-2 gap-2">
-        <Button
-          variant="primary"
-          size="md"
-          fullWidth
-          onClick={onFocusRoute}
-          className="bg-[#C91076] border-[#C91076] hover:bg-[#E51A8A] font-bold text-[13px]"
-        >
-          <Navigation size={14} />
-          {isFocusingRoute ? 'Sedang Fokus' : 'Fokus Rute'}
-        </Button>
+      <div className="px-4 pb-4 pt-3 grid grid-cols-2 gap-2">
+        <div className="flex flex-col gap-1">
+          <Button
+            variant="primary"
+            size="md"
+            fullWidth
+            onClick={onFocusRoute}
+            className="bg-[#C91076] border-[#C91076] hover:bg-[#E51A8A] font-bold text-[13px]"
+          >
+            <Navigation size={14} />
+            {isFocusingRoute ? 'Sedang Fokus' : 'Fokus Rute'}
+          </Button>
+          {/* Status rute: kurir yang sedang bergerak tidak punya rute berjalan. */}
+          <span className={cn(
+            'flex items-center justify-center gap-1 text-[10px] font-semibold leading-tight text-center',
+            hasRoute ? 'text-[#64748B]' : 'text-[#94A3B8]',
+          )}>
+            <Route size={10} aria-hidden="true" />
+            {hasRoute ? 'Hub → kurir → titik drop' : 'Tidak ada rute aktif'}
+          </span>
+        </div>
 
-        <Button variant="secondary" size="md" fullWidth onClick={onContact} className="font-semibold text-[13px]">
+        <Button variant="secondary" size="md" fullWidth onClick={onContact} className="font-semibold text-[13px] self-start">
           <Phone size={14} />
           Hubungi
         </Button>

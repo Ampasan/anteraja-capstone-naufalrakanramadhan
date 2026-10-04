@@ -1,10 +1,18 @@
 /* Global CSS — Anteraja Dispatch Ops Design System */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+/* Font Google dimuat lewat <link> non-blocking di index.html.
+   @import di baris pertama ini menahan seluruh proses Tailwind sampai
+   fonts.googleapis.com menjawab, sehingga satu jaringan lambat membuat
+   halaman kosong jauh melewati target 1 detik. */
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Sembunyikan attribution Leaflet */
+.leaflet-control-attribution {
+  display: none !important;
+}
 
 /* ─── Anteraja Design Tokens ── */
 :root {
@@ -131,6 +139,13 @@ body {
 }
 
 /* ─── Courier Marker Styles ───*/
+.courier-marker-pop { animation: courier-pop 0.35s cubic-bezier(0.34, 1.4, 0.64, 1); }
+
+@keyframes courier-pop {
+  from { transform: scale(0.35); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
 .courier-marker-online {
   background: var(--status-online);
   border: 2.5px solid white;
@@ -138,20 +153,23 @@ body {
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
 }
 
+/* Titik kurir di peta: hijau = online, kuning = idle, oranye = cold/frozen.
+   Kuning dan oranye sengaja dipisah lebar (bukan amber vs oranye) supaya
+   armada dingin tidak tertukar dengan kurir yang sedang diam. */
 .courier-marker-idle {
-  background: var(--status-idle);
+  background: #EAB308;
   border: 2.5px solid white;
   border-radius: 50%;
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3);
+  box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.3);
   animation: pulse-idle 2s ease-in-out infinite;
 }
 
-.courier-marker-alert {
-  background: var(--status-alert);
+.courier-marker-cold {
+  background: #F97316;
   border: 2.5px solid white;
   border-radius: 50%;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3);
-  animation: pulse-alert 1s ease-in-out infinite;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.3);
+  animation: pulse-cold 1s ease-in-out infinite;
 }
 
 .courier-marker-selected {
@@ -162,13 +180,13 @@ body {
 }
 
 @keyframes pulse-idle {
-  0%, 100% { box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3); }
-  50%       { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.1); }
+  0%, 100% { box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.3); }
+  50%       { box-shadow: 0 0 0 6px rgba(234, 179, 8, 0.1); }
 }
 
-@keyframes pulse-alert {
-  0%, 100% { box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.4); }
-  50%       { box-shadow: 0 0 0 7px rgba(239, 68, 68, 0.1); }
+@keyframes pulse-cold {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.4); }
+  50%       { box-shadow: 0 0 0 7px rgba(249, 115, 22, 0.1); }
 }
 
 /* ─── Scrollbar ─── */

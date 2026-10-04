@@ -30,7 +30,7 @@ export function SlaSummaryCards({ summary }: SlaSummaryCardsProps) {
     {
       risk: 'Waspada' as const,
       label: 'Waspada',
-      timeHint: '15 – 30 menit tersisa',
+      timeHint: '15 – 60 menit tersisa',
       description: 'Pantau & siapkan tindakan',
       count: summary.waspada,
       Icon: Hourglass,
@@ -48,7 +48,7 @@ export function SlaSummaryCards({ summary }: SlaSummaryCardsProps) {
     {
       risk: 'Aman' as const,
       label: 'Aman',
-      timeHint: '> 30 menit tersisa',
+      timeHint: '> 60 menit tersisa',
       description: 'Pengiriman berjalan normal',
       count: summary.aman,
       Icon: CheckCircle2,

@@ -40,13 +40,11 @@ class AuditLogController extends Controller
 
     /**
      * GET /api/audit-logs/export?format=csv|xlsx|pdf
-     * Ekspor laporan audit log (FRD-04 / F-04.4).
+     * Ekspor laporan audit log.
      *
      * csv  -> ditulis manual, paling ringan
      * xlsx -> maatwebsite/excel, dua sheet: Rekap KPI + Rincian Transaksi
-     * pdf  -> barryvdh/laravel-dompdf, Rekap KPI + tabel rincian
-     *
-     * Batas FRD-04 / BR-03: maksimal 10.000 baris per unduhan.
+     * pdf  -> barryvdh/laravel-dompdf, Rekap KPI + tabel rincian.
      */
     public function export(Request $request): Response|JsonResponse
     {
@@ -144,7 +142,7 @@ class AuditLogController extends Controller
     }
 
     /**
-     * Nama berkas mengikuti pola FRD-04: Audit_Report_{KODE-HUB}_{YYYYMMDD}.{ext}
+     * Audit_Report_{KODE-HUB}_{YYYYMMDD}.{ext}
      */
     private function filename(string $hubId, string $extension): string
     {

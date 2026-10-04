@@ -6,14 +6,7 @@ use Illuminate\Broadcasting\Channel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
 /**
- * Titik posisi kurir terbaru (PRD F-01 Live Monitoring Map).
- *
- * Dipanggil setiap kali perangkat kurir mengirim telemetri, sehingga pin di
- * peta bergerak real-time tanpa polling. Payload hanya berisi id, koordinat,
- * dan status sehingga ukurannya kecil.
- *
- * Sengaja memakai antrean: telemetri datang berkali-kali per menit dan
- * POST /couriers/{id}/telemetry wajib tetap di bawah 1 detik.
+ * Titik posisi kurir terbaru
  */
 class CourierTelemetryUpdated implements ShouldBroadcast
 {

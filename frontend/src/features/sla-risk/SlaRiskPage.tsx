@@ -13,8 +13,8 @@ interface SlaRiskPageProps {
 export function SlaRiskPage({ onNavigateToMap }: SlaRiskPageProps) {
   const {
     searchQuery, riskFilter, serviceFilter,
-    pagination, selectedOrder, summary,
-    paginatedOrders, servicePills, totalPages, displayTotal,
+    pagination, total, lastPage, selectedOrder, summary,
+    orders, servicePills, isLoading,
     handleSearch, handleRiskFilter, handleServiceFilter,
     resetFilters, goToPage, openDetail, closeDetail,
   } = useSlaRisk();
@@ -44,8 +44,8 @@ export function SlaRiskPage({ onNavigateToMap }: SlaRiskPageProps) {
               </span>
             </div>
             <p className="text-[12px] sm:text-[13px] text-[#64748B] font-medium mt-0.5 leading-snug">
-              Pantau risiko keterlambatan semua pengiriman aktif secara real-time.{' '}
-              <span className="hidden sm:inline text-[#94A3B8]">Klik <strong className="text-[#0F172A]">Detail</strong> atau <strong className="text-[#0F172A]">Peta</strong> untuk tindak lanjut.</span>
+              Pantau risiko keterlambatan kiriman tiap kurir idle.{' '}
+              <span className="hidden sm:inline text-[#94A3B8]">Satu baris per kurir, sama persis dengan yang tampil di Live Monitoring Map. Klik <strong className="text-[#0F172A]">Detail</strong> atau <strong className="text-[#0F172A]">Peta</strong> untuk tindak lanjut.</span>
             </p>
           </div>
         </div>
@@ -67,12 +67,13 @@ export function SlaRiskPage({ onNavigateToMap }: SlaRiskPageProps) {
           onReset={resetFilters}
         />
 
-        {/* ── 3. Table ── */}
+        {/* ── 3. Table (server-side processing) ── */}
         <SlaTable
-          orders={paginatedOrders}
-          displayTotal={displayTotal}
+          orders={orders}
+          displayTotal={total}
           currentPage={pagination.page}
-          totalPages={totalPages}
+          totalPages={lastPage}
+          isLoading={isLoading}
           onPageChange={goToPage}
           onOpenDetail={openDetail}
           onOpenMap={handleOpenMap}

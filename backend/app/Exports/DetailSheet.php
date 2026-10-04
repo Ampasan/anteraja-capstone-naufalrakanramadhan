@@ -8,7 +8,6 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 
 /**
  * Sheet 2: tabel rincian transaksi pengalihan kurir.
- * Kolom sengaja disamakan dengan ekspor CSV agar format laporan konsisten.
  */
 class DetailSheet implements FromCollection, WithHeadings, WithTitle
 {

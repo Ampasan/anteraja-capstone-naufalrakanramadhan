@@ -2,19 +2,25 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\IncidentDailyExport;
 use App\Http\Requests\ReassignIncidentRequest;
 use App\Http\Requests\StoreIncidentRequest;
+use App\Models\Hub;
+use App\Services\AuditLog\AuditLogService;
 use App\Services\Cloudinary\CloudinaryService;
 use App\Services\Incident\DailyIncidentReportService;
 use App\Services\Incident\IncidentService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\Response;
 
 class IncidentController extends Controller
 {
     public function __construct(
         private IncidentService $incidentService,
+        private AuditLogService $auditLogService,
         private CloudinaryService $cloudinaryService,
         private DailyIncidentReportService $dailyReportService
     ) {}
@@ -32,29 +38,55 @@ class IncidentController extends Controller
         return $this->success([
             'incidents' => $incidents,
             'total' => count($incidents),
+            'summary' => [
+                'one_click_rate' => $this->auditLogService->getAuditSummary($hubId)['one_click_rate'],
+            ],
         ]);
     }
 
     /**
-     * GET /api/incidents/export?date=YYYY-MM-DD
-     * Unduh laporan insiden harian (CSV) — default hari ini.
-     * Format kolom identik dengan file yang dihasilkan `report:daily-incidents`.
+     * GET /api/incidents/export?date=YYYY-MM-DD&format=csv|xlsx|pdf
+     * Unduh laporan insiden harian — default CSV untuk hari ini.
      */
-    public function export(Request $request): StreamedResponse
+    public function export(Request $request): Response
     {
         $validated = $request->validate([
             'date' => 'nullable|date_format:Y-m-d',
+            'format' => 'nullable|in:csv,xlsx,excel,pdf',
         ]);
 
         $date = $validated['date'] ?? now()->toDateString();
-        $rows = $this->dailyReportService->rows($date, $request->user()->hub_id);
-        $csv = $this->dailyReportService->toCsv($rows);
+        $format = strtolower($validated['format'] ?? 'csv');
+        $hubId = $request->user()->hub_id;
 
-        $filename = 'Laporan_Insiden_' . str_replace('-', '', $date) . '.csv';
+        $rows = $this->dailyReportService->rows($date, $hubId);
+        $basename = 'Laporan_Insiden_' . str_replace('-', '', $date);
 
-        return response()->streamDownload(function () use ($csv) {
-            echo $csv;
-        }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
+        try {
+            return match ($format) {
+                'pdf' => Pdf::loadHtml($this->dailyReportService->toHtml($rows, [
+                    'date' => $date,
+                    'hub_id' => $hubId,
+                    'hub_name' => Hub::cached($hubId)?->hub_name ?? '-',
+                    'generated_at' => now()->format('d-m-Y H:i'),
+                ]))
+                    ->setPaper('a4', 'landscape')
+                    ->download($basename . '.pdf'),
+
+                'xlsx', 'excel' => Excel::download(
+                    new IncidentDailyExport($this->dailyReportService, $rows),
+                    $basename . '.xlsx'
+                ),
+
+                default => response()->streamDownload(function () use ($rows) {
+                    echo $this->dailyReportService->toCsv($rows);
+                }, $basename . '.csv', ['Content-Type' => 'text/csv; charset=UTF-8']),
+            };
+        } catch (\Throwable $e) {
+            report($e);
+
+            return $this->error('Gagal membuat berkas ekspor: ' . $e->getMessage(), 500);
+        }
     }
 
     /**
@@ -121,9 +153,6 @@ class IncidentController extends Controller
             $incident->evidences()->create([
                 'cloudinary_public_id' => $uploadResult['public_id'],
                 'secure_url' => $uploadResult['secure_url'],
-                'folder' => 'foto_bukti',
-                'file_format' => $uploadResult['format'],
-                'file_size_bytes' => $uploadResult['bytes'],
                 'caption' => $request->input('caption'),
                 'uploaded_at' => now(),
             ]);

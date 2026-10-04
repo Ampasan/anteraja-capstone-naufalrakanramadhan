@@ -2,13 +2,31 @@
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/anteraja_logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Anteraja Dispatch — Ops Control Tower</title>
     <meta
       name="description"
       content="Layanan logistik dan pengiriman paket terintegrasi berbasis teknologi di Indonesia."
     />
+
+    <!-- preconnect memangkas handshake TLS ke CDN font sebelum CSS-nya diminta. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- media="print" membuat pemuatan tidak memblokir render; teks sudah
+         tampil dengan font sistem lebih dulu (display=swap), lalu berganti. -->
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      />
+    </noscript>
 
     <!-- JSON-LD: Organization schema (schema.org) -->
     <script type="application/ld+json">

@@ -25,11 +25,14 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Check constraints
-        DB::statement('ALTER TABLE courier_telemetries ADD CONSTRAINT chk_telemetries_latitude CHECK (latitude BETWEEN -90 AND 90)');
-        DB::statement('ALTER TABLE courier_telemetries ADD CONSTRAINT chk_telemetries_longitude CHECK (longitude BETWEEN -180 AND 180)');
-        DB::statement('ALTER TABLE courier_telemetries ADD CONSTRAINT chk_telemetries_speed CHECK (speed_kmh >= 0)');
-        DB::statement('ALTER TABLE courier_telemetries ADD CONSTRAINT chk_telemetries_battery CHECK (battery_level BETWEEN 0 AND 100)');
+        // Check constraints. SQLite tidak mendukung ALTER ADD CONSTRAINT,
+        // jadi driver itu melewati blok ini (hanya dipakai test).
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement('ALTER TABLE courier_telemetries ADD CONSTRAINT chk_telemetries_latitude CHECK (latitude BETWEEN -90 AND 90)');
+            DB::statement('ALTER TABLE courier_telemetries ADD CONSTRAINT chk_telemetries_longitude CHECK (longitude BETWEEN -180 AND 180)');
+            DB::statement('ALTER TABLE courier_telemetries ADD CONSTRAINT chk_telemetries_speed CHECK (speed_kmh >= 0)');
+            DB::statement('ALTER TABLE courier_telemetries ADD CONSTRAINT chk_telemetries_battery CHECK (battery_level BETWEEN 0 AND 100)');
+        }
 
         // Index untuk query telemetri terbaru per kurir
         DB::statement('CREATE INDEX idx_telemetries_courier_time ON courier_telemetries(courier_id, recorded_at DESC)');
