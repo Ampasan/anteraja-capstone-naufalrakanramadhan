@@ -88,4 +88,30 @@ describe('IncidentList', () => {
     expect(footer.textContent).toContain('dari');
     expect(footer.textContent).toContain('insiden');
   });
+
+  it('menautkan nomor telepon kurir asli lewat skema tel', () => {
+    renderList();
+
+    const call = screen.getByRole('link', { name: /081234567890/ });
+
+    expect(call).toHaveAttribute('href', 'tel:081234567890');
+    expect(call).toHaveAttribute('title', 'Telepon Budi Santoso');
+  });
+
+  it('klik nomor telepon tidak ikut memilih insiden', async () => {
+    const user = userEvent.setup();
+    const props = renderList();
+
+    await user.click(screen.getByRole('link', { name: /081234567890/ }));
+
+    expect(props.onSelectIncident).not.toHaveBeenCalled();
+  });
+
+  it('menyembunyikan baris telepon ketika nomor kurir kosong', () => {
+    renderList({
+      incidents: [{ ...INCIDENT, courier: { ...INCIDENT.courier, phone: '' } }],
+    });
+
+    expect(screen.queryByRole('link', { name: /081234567890/ })).not.toBeInTheDocument();
+  });
 });

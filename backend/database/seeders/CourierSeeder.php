@@ -8,6 +8,9 @@ use Illuminate\Database\Seeder;
 
 class CourierSeeder extends Seeder
 {
+    /** Nomor kontak tunggal untuk menghubungi seluruh kurir. */
+    private const CONTACT_PHONE = '087723305893';
+
     private const LEGACY_CODES = [
         'STR-JKT-001' => 'HLM-001',
         'HLM-VAN-02' => 'HLM-010',
@@ -26,7 +29,7 @@ class CourierSeeder extends Seeder
             [
                 'courier_code' => 'HLM-001',
                 'name' => 'Budi Santoso',
-                'phone_number' => '081234567801',
+                'phone_number' => self::CONTACT_PHONE,
                 'license_plate' => 'B 3481 HLM',
                 'vehicle_type' => 'Motorcycle',
                 'status' => 'ONLINE',
@@ -41,7 +44,7 @@ class CourierSeeder extends Seeder
             [
                 'courier_code' => 'HLM-010',
                 'name' => 'Teguh Wibowo',
-                'phone_number' => '081234567802',
+                'phone_number' => self::CONTACT_PHONE,
                 'license_plate' => 'B 9281 HLM',
                 'vehicle_type' => 'Truk',
                 'status' => 'IDLE',
@@ -56,7 +59,7 @@ class CourierSeeder extends Seeder
             [
                 'courier_code' => 'HLM-004',
                 'name' => 'Fajar Ramadhan',
-                'phone_number' => '081234567803',
+                'phone_number' => self::CONTACT_PHONE,
                 'license_plate' => 'B 9282 HLM',
                 'vehicle_type' => 'Van',
                 'status' => 'ONLINE',
@@ -71,7 +74,7 @@ class CourierSeeder extends Seeder
             [
                 'courier_code' => 'HLM-005',
                 'name' => 'Ahmad Fauzi',
-                'phone_number' => '081234567804',
+                'phone_number' => self::CONTACT_PHONE,
                 'license_plate' => 'B 9112 HLM',
                 'vehicle_type' => 'Truk Box',
                 'status' => 'IDLE',
@@ -86,7 +89,7 @@ class CourierSeeder extends Seeder
             [
                 'courier_code' => 'HLM-008',
                 'name' => 'Rizky Pratama',
-                'phone_number' => '081234567805',
+                'phone_number' => self::CONTACT_PHONE,
                 'license_plate' => 'B 6214 HLM',
                 'vehicle_type' => 'Motorcycle thermal box',
                 'status' => 'ONLINE',
@@ -101,7 +104,7 @@ class CourierSeeder extends Seeder
             [
                 'courier_code' => 'HLM-009',
                 'name' => 'Rama Pratama',
-                'phone_number' => '081234567806',
+                'phone_number' => self::CONTACT_PHONE,
                 'license_plate' => 'B 4118 HLM',
                 'vehicle_type' => 'Motorcycle',
                 'status' => 'IDLE',
@@ -116,7 +119,7 @@ class CourierSeeder extends Seeder
             [
                 'courier_code' => 'HLM-002',
                 'name' => 'Indra Gunawan',
-                'phone_number' => '081234567807',
+                'phone_number' => self::CONTACT_PHONE,
                 'license_plate' => 'B 5512 HLM',
                 'vehicle_type' => 'Blind Van',
                 'status' => 'IDLE',
@@ -131,7 +134,7 @@ class CourierSeeder extends Seeder
             [
                 'courier_code' => 'HLM-003',
                 'name' => 'Eko Prasetyo',
-                'phone_number' => '081234567808',
+                'phone_number' => self::CONTACT_PHONE,
                 'license_plate' => 'B 6719 HLM',
                 'vehicle_type' => 'Pick Up Box',
                 'status' => 'IDLE',
@@ -146,7 +149,7 @@ class CourierSeeder extends Seeder
             [
                 'courier_code' => 'HLM-011',
                 'name' => 'Andi Wijaya',
-                'phone_number' => '081234567809',
+                'phone_number' => self::CONTACT_PHONE,
                 'license_plate' => 'B 1234 HLM',
                 'vehicle_type' => 'Motorcycle',
                 'status' => 'IDLE',
@@ -161,7 +164,7 @@ class CourierSeeder extends Seeder
             [
                 'courier_code' => 'HLM-006',
                 'name' => 'Dedi Kurniawan',
-                'phone_number' => '081234567810',
+                'phone_number' => self::CONTACT_PHONE,
                 'license_plate' => 'B 7788 HLM',
                 'vehicle_type' => 'Motorcycle',
                 'status' => 'OFFLINE',
@@ -176,7 +179,7 @@ class CourierSeeder extends Seeder
             [
                 'courier_code' => 'HLM-007',
                 'name' => 'Bayu Nugroho',
-                'phone_number' => '081234567811',
+                'phone_number' => self::CONTACT_PHONE,
                 'license_plate' => 'B 9900 HLM',
                 'vehicle_type' => 'Motor Listrik',
                 'status' => 'IDLE',

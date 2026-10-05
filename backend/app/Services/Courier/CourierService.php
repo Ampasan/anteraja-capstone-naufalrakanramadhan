@@ -16,7 +16,7 @@ class CourierService
     {
         $cacheKey = "couriers_{$hubId}";
 
-        return Cache::remember($cacheKey, 5, function () use ($hubId) {
+        return Cache::remember($cacheKey, 2, function () use ($hubId) {
             $couriers = Courier::query()
                 ->select(self::selectWithLatestTelemetry())
                 ->with(['orders' => fn ($query) => $query->whereNotIn('delivery_status', ['DELIVERED', 'RETURNED'])])

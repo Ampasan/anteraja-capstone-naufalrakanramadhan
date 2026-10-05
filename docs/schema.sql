@@ -51,7 +51,8 @@ CREATE TABLE IF NOT EXISTS couriers (
     courier_code VARCHAR(32) NOT NULL UNIQUE,
     hub_id UUID NOT NULL REFERENCES hubs(id) ON DELETE RESTRICT,
     name VARCHAR(100) NOT NULL,
-    phone_number VARCHAR(20) NOT NULL UNIQUE,
+    -- Semua kurir dihubungi lewat satu nomor kontak, jadi tidak UNIQUE.
+    phone_number VARCHAR(20) NOT NULL,
     license_plate VARCHAR(20) NOT NULL UNIQUE,
     vehicle_type VARCHAR(50) NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'OFFLINE',
@@ -285,3 +286,32 @@ CREATE INDEX IF NOT EXISTS idx_reassignment_confirmations_time ON reassignment_c
 
 -- 7. Optimasi Personal Access Tokens
 CREATE INDEX IF NOT EXISTS idx_personal_access_tokens_expires_at ON personal_access_tokens(expires_at);
+
+-- ============================================================================
+-- ROW LEVEL SECURITY (RLS)
+-- ============================================================================
+-- Supabase membuka PostgREST di URL yang sama dengan kunci `anon`/`authenticated`.
+-- Tanpa RLS, ke-12 tabel di atas terbaca dan terubah dari /rest/v1/ hanya dengan
+-- kunci anon. RLS bersifat deny-by-default: tanpa policy, kedua role itu tidak
+-- melihat baris apa pun.
+--
+-- Koneksi aplikasi (role `postgres`) adalah pemilik tabel dan pemegang
+-- BYPASSRLS, jadi tidak pernah terpengaruh — jalankan baris ini setelah semua
+-- CREATE TABLE dan INSERT seed.
+DO $$
+DECLARE
+    t TEXT;
+BEGIN
+    FOR t IN
+        SELECT c.relname
+        FROM pg_class c
+        JOIN pg_namespace n ON n.oid = c.relnamespace
+        WHERE n.nspname = 'public'
+          AND c.relkind IN ('r', 'p')
+          AND NOT c.relrowsecurity
+        ORDER BY c.relname
+    LOOP
+        EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', t);
+    END LOOP;
+END
+$$;

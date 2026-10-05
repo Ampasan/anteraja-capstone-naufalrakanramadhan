@@ -9,6 +9,7 @@ import {
   MapPin,
   Waves,
   ArrowRight,
+  ArrowRightLeft,
   AlertTriangle,
   CheckCircle2,
   ChevronLeft,
@@ -107,6 +108,10 @@ function fmtTime(iso: string) {
  * Status laporan tiap baris riwayat.
  */
 const STATUS_CFG: Record<ReportStatus, { cls: string; icon: ReactNode }> = {
+  Dialihkan: {
+    cls: 'bg-[#EFF6FF] text-[#1D4ED8] border-[#93C5FD]',
+    icon: <ArrowRightLeft size={13} strokeWidth={2.5} />,
+  },
   Eskalasi: {
     cls: 'bg-[#FFF7ED] text-[#C2410C] border-[#FDBA74]',
     icon: <AlertTriangle size={13} strokeWidth={2.5} />,

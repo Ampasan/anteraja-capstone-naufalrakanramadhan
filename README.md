@@ -36,7 +36,7 @@ php artisan optimize
 # Jalankan 4 terminal terpisah:
 php artisan serve --port=8000   # API
 php artisan queue:listen        # Job antrean
-php artisan schedule:work       # Laporan harian + eskalasi
+php artisan schedule:work       # Simulasi posisi kurir + laporan harian + eskalasi
 php artisan reverb:start        # WebSocket port 8080
 ```
 

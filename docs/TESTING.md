@@ -8,10 +8,13 @@ Ringkasan hasil terakhir:
 
 | Lapisan | Jumlah test | Assertion | Status | Durasi |
 | --- | ---: | ---: | --- | ---: |
-| Backend (PHPUnit 11.5.56) | 174 | 979 | 0 gagal | 25,01 s |
-| Frontend (Vitest 5.0.3 + Testing Library) | 176 | - | 0 gagal | 8,04 s |
-| `npm run build` | - | - | exit 0 | 4,96 s |
-| `npm run lint` | - | - | exit 0 | 6,0 s |
+| Backend (PHPUnit 11.5.56) | 178 | 998 | 0 gagal | 15,18 s |
+| Frontend (Vitest 5.0.3 + Testing Library) | 209 | - | 0 gagal | 8,61 s |
+| `npm run build` | - | - | exit 0 | 3,70 s |
+| `npm run lint` | - | - | exit 0 (1 warning lama) | 5,89 s |
+
+Dijalankan dengan `bootstrap/cache/config.php` (hasil `php artisan optimize`)
+masih aktif — lihat [Lingkungan uji](#lingkungan-uji).
 
 ## Menjalankan pengujian
 
@@ -19,13 +22,13 @@ Dijalankan di PowerShell 5.1 (tidak mendukung `&&`, jadi perintah dipisah baris)
 
 ```powershell
 # backend
-php artisan test                          # semua suite: 174 test
-php artisan test --testsuite=Unit         # 55 test
-php artisan test --testsuite=Feature      # 114 test
+php artisan test                          # semua suite: 178 test
+php artisan test --testsuite=Unit         # 58 test
+php artisan test --testsuite=Feature      # 115 test
 php artisan test --testsuite=Performance  # 5 test, cetak tabel latency + query budget
 
 # frontend
-npm run test -- --run                     # 176 test
+npm run test -- --run                     # 209 test
 npm run build
 npm run lint
 ```
@@ -41,6 +44,14 @@ npm run test -- --run src\lib\__tests__\mappers.test.ts
 ## Lingkungan uji
 
 Konfigurasi ada di `backend/phpunit.xml` dan `frontend/vitest.config.ts`.
+
+`php artisan optimize` (config/route/event/view cache) boleh ditinggalkan aktif
+sebelum menjalankan suite: `backend/tests/TestCase.php::refreshApplication()`
+memaksa ulang seluruh nilai uji yang biasanya datang dari `phpunit.xml` — sqlite
+`:memory:`, cache `array`, queue `sync`, session `array`, broadcast `null`,
+mail `array`, bcrypt 4 putaran, `APP_ENV=testing` — setelah cache konfigurasi
+membekukan nilai `.env`. Tanpa paksaan itu, suite akan nyambung ke database
+Supabase live dan memakai Redis/antrean produksi.
 
 | Aspek | Nilai saat test | Alasan |
 | --- | --- | --- |
@@ -63,27 +74,27 @@ yang menjalankan `cache:warm` secara sinkron, jadi pengukur memasang balik penan
 
 | Jenis | Lokasi | Jumlah | Yang dibuktikan |
 | --- | --- | ---: | --- |
-| Unit | `backend/tests/Unit` | 55 | logika murni: kalkulasi SLA, ranking risiko, kandidat kurir, format CSV, jam operasional, cache key |
-| Feature / API | `backend/tests/Feature` | 114 | perilaku HTTP penuh lewat kernel Laravel: status code, envelope, isi respons, sisi efek (audit log, cache, relasi) |
+| Unit | `backend/tests/Unit` | 58 | logika murni: kalkulasi SLA, ranking risiko, kandidat kurir, format CSV, jam operasional, cache key |
+| Feature / API | `backend/tests/Feature` | 115 | perilaku HTTP penuh lewat kernel Laravel: status code, envelope, isi respons, sisi efek (audit log, cache, relasi) |
 | Auth & keamanan | `AuthTest` (7), `HealthAndSecurityTest` (41), `EnvelopeContractTest` (5), `CacheAndPerformanceGuardsTest` (3) | 56 | login benar/salah/nonaktif, 401 tanpa token dan token salah di 18 endpoint, 405, envelope error, header timing, larangan simpan respons di proxy |
 | Performa | `backend/tests/Performance` | 5 | latensi dingin/hangat di bawah 1000 ms, pagu jumlah query per endpoint |
-| Unit frontend | `frontend/src/**/__tests__/*.{ts,tsx}` | 108 | mapper API, klien HTTP, session, util, jam operasional, dan hook (`useAuth`, `useAuditLogs`, `useIncidentToast`) |
-| Komponen frontend | `frontend/src/**/__tests__/*.test.tsx` | 68 | render, interaksi keyboard, validasi form, state kosong/error dengan Testing Library |
+| Unit frontend | `frontend/src/**/__tests__/*.{ts,tsx}` | 133 | mapper API, klien HTTP, session, util, jam operasional, snap rute ke jaringan jalan, perjalanan kurir di klien, dan hook (`useAuth`, `useAuditLogs`, `useIncidentToast`) |
+| Komponen frontend | `frontend/src/**/__tests__/*.test.tsx` | 76 | render, interaksi keyboard, validasi form, state kosong/error dengan Testing Library |
 
-176 test berada di 19 berkas: 5 berkas test logika murni di `src/lib`,
-3 berkas test hook, 10 berkas test komponen, dan 1 berkas uji keyboard lintas
+209 test berada di 22 berkas: 7 berkas test logika murni di `src/lib`,
+3 berkas test hook, 11 berkas test komponen, dan 1 berkas uji keyboard lintas
 komponen. Nilai per berkas ada di tabel inventaris.
 
-## Inventaris backend (174 test)
+## Inventaris backend (178 test)
 
-### Unit (55 test, 11 berkas)
+### Unit (58 test, 11 berkas)
 
 | Berkas | Test | Fokus |
 | --- | ---: | --- |
 | `SlaRiskServiceTest.php` | 7 | skor risiko, pita SLA, penalti cuaca, label warna, cache key |
 | `TabelQueryTest.php` | 7 | filter terdaftar, paginasi, metadata halaman, total sebelum paginasi |
 | `CourierReplacementServiceTest.php` | 6 | kompatibilitas armada, eksklusi, kapasitas, cuaca buruk, lencana kandidat |
-| `CourierRouteTest.php` | 6 | loop rute, jari-jari, wrap sudut, titik awal |
+| `CourierRouteTest.php` | 9 | loop rute, jari-jari, wrap sudut, titik awal, snap ke jaringan jalan, fallback saat routing mati |
 | `DailyIncidentReportServiceTest.php` | 6 | kolom laporan, flatten, ringkasan, ekspor CSV |
 | `OperationalClockTest.php` | 6 | jam beku, override konfigurasi, literal SQL UTC, konversi WIB |
 | `CourierServiceTest.php` | 4 | jarak geografis (haversine-like) simetris dan berskala benar |
@@ -92,14 +103,14 @@ komponen. Nilai per berkas ada di tabel inventaris.
 | `IncidentSeverityTest.php` | 3 | severity kritis/warning, label status |
 | `RiskRankingServiceTest.php` | 3 | skor per hub, urutan terbalik, parsing balasan Redis |
 
-### Feature (114 test, 12 berkas)
+### Feature (115 test, 12 berkas)
 
 | Berkas | Test | Fokus |
 | --- | ---: | --- |
 | `HealthAndSecurityTest.php` | 41 | ping, health, 18 endpoint tanpa token ditolak dan dengan token tidak gagal (data provider), 405, route publik |
 | `IncidentTest.php` | 18 | daftar, create, validasi, reassign (7 penolakan: terlalu sering, kurir pengirim, melebihi kapasitas paket, paket selesai, armada tak cocok, kapasitas muatan kurang, id tak dikenal), export CSV/XLSX, upload bukti |
 | `OrderTest.php` | 9 | sla-risk ringkas, scope panel satu baris per kurir idle, risiko teratas, tabel tugas: paginasi, pencarian, filter, version bump cache |
-| `CourierTest.php` | 8 | daftar kurir aktif, kandidat (exclude, order tidak dikenal), detail/404, telemetri: validasi koordinat, simpan posisi, 404 |
+| `CourierTest.php` | 9 | daftar kurir aktif, kandidat (exclude, order tidak dikenal), detail/404, telemetri: validasi koordinat, simpan posisi, 404, simulasi posisi maju |
 | `AuthTest.php` | 7 | login benar/salah/password salah/email tidak ada/field kurang/akun nonaktif, `/auth/me`, logout mencabut token |
 | `AuditLogTest.php` | 7 | index + KPI, urutan terbaru, bukti foto per status, export CSV/PDF, format tak dikenal, cakupan per hub |
 | `TaskTest.php` | 6 | status task 202/200, id bukan UUID dan tidak ada |
@@ -120,63 +131,92 @@ Detail suite performa memakai sqlite `:memory:` dengan fixture skala, anggaran
 1000 ms per endpoint, dan pagu jumlah query (misal `GET /incidents` maksimal 7
 query, `GET /audit-logs` maksimal 4).
 
-## Inventaris frontend (176 test, 19 berkas)
+## Inventaris frontend (209 test, 22 berkas)
 
 | Berkas | Test | Fokus |
 | --- | ---: | --- |
-| `src/lib/__tests__/mappers.test.ts` | 40 | pemetaan DTO API ke tipe UI: kurir, order, insiden, audit |
-| `src/lib/__tests__/api.test.ts` | 20 | envelope sukses/error, token Bearer, 401 + hapus sesi, cache TTL dan dedupe, `waitForTask` |
+| `src/lib/__tests__/mappers.test.ts` | 41 | pemetaan DTO API ke tipe UI: kurir, order, insiden, audit |
+| `src/lib/__tests__/api.test.ts` | 25 | envelope sukses/error, token Bearer, 401 + hapus sesi, cache TTL dan dedupe, cache hangat lewat refresh, dorong hasil revalidasi latar, throttle tulis tahan-simpan, `waitForTask` |
 | `src/features/auth/hooks/__tests__/useAuth.test.ts` | 14 | login, sesi, hydrasi token, logout |
 | `src/features/audit-logs/hooks/__tests__/useAuditLogs.test.ts` | 13 | query, paginasi, filter, refresh |
 | `src/features/auth/components/__tests__/LoginForm.test.tsx` | 11 | render, input, submit, pesan error |
+| `src/lib/__tests__/courierJourney.test.ts` | 11 | titik awal per tab, haversine, jarak tempuh dan titik berhenti di drop |
 | `src/components/ui/__tests__/Button.test.tsx` | 9 | varian, disabled, aksi klik |
 | `src/components/ui/__tests__/Badge.test.tsx` | 8 | varian status dan warna |
+| `src/lib/__tests__/roadRoute.test.ts` | 8 | bentuk URL OSRM, cache per sel, 429/NoRoute/jaringan putus jatuh ke garis lurus |
 | `src/lib/__tests__/session.test.ts` | 8 | simpan/baca/hapus token, prioritas localStorage, profil rusak |
-| `src/features/monitoring/components/__tests__/CourierList.test.tsx` | 7 | daftar kurir, filter, state kosong |
+| `src/features/incidents/components/__tests__/IncidentList.test.tsx` | 8 | daftar insiden, aksi reassign, tautan telepon |
 | `src/hooks/__tests__/useIncidentToast.test.ts` | 7 | toast insiden, antrean, auto dismiss |
-| `src/__tests__/keyboard.test.tsx` | 5 | navigasi keyboard, fokus |
-| `src/components/ui/__tests__/Modal.test.tsx` | 5 | buka/tutup, focus trap, ESC |
-| `src/features/incidents/components/__tests__/IncidentList.test.tsx` | 5 | daftar insiden, aksi reassign |
-| `src/features/audit-logs/components/__tests__/AuditTable.test.tsx` | 5 | baris, format tanggal, kosong |
+| `src/features/monitoring/components/__tests__/CourierList.test.tsx` | 7 | daftar kurir, filter, state kosong |
+| `src/features/audit-logs/components/__tests__/AuditTable.test.tsx` | 6 | baris, format tanggal, kosong |
 | `src/features/sla-risk/components/__tests__/SlaTable.test.tsx` | 5 | urutan risiko, warna, aksi |
-| `src/components/ui/__tests__/Input.test.tsx` | 4 | label, error, tipe input |
-| `src/features/auth/components/__tests__/HubSelect.test.tsx` | 4 | pilihan hub, default |
+| `src/components/ui/__tests__/Modal.test.tsx` | 5 | buka/tutup, focus trap, ESC |
+| `src/__tests__/keyboard.test.tsx` | 5 | navigasi keyboard, fokus |
 | `src/lib/__tests__/utils.test.ts` | 4 | util `cn` dan kelas kondisional |
+| `src/features/auth/components/__tests__/HubSelect.test.tsx` | 4 | pilihan hub, default |
+| `src/components/ui/__tests__/Input.test.tsx` | 4 | label, error, tipe input |
+| `src/features/incidents/components/__tests__/ReassignPanel.test.tsx` | 4 | panel kosong, tautan telepon, kunci konfirmasi |
 | `src/lib/__tests__/operationalClock.test.ts` | 2 | jam beku, `Date` baru tiap panggilan |
 
 ## Hasil performa
 
 ### Suite performa (run terakhir)
 
-`php artisan test --testsuite=Performance` (5 test, 210 assertion, 5,88 s).
+`php artisan test --testsuite=Performance` (5 test, 210 assertion, 5,27 s).
 
 Latensi endpoint, median dalam ms (dingin berarti cache kosong):
 
 | Endpoint | Dingin | Hangat | Query dingin | Query hangat |
 | --- | ---: | ---: | ---: | ---: |
-| `GET /api/ping` | 0,7 | 0,7 | 0 | 0 |
-| `GET /api/hubs` | 1,3 | 0,8 | 1 | 0 |
-| `GET /api/auth/me` | 1,6 | 2,1 | 3 | 2 |
-| `GET /api/dashboard/summary` | 1,8 | 2,1 | 3 | 2 |
-| `GET /api/couriers` | 70,8 | 3,3 | 5 | 2 |
-| `GET /api/orders/sla-risk` | 86,5 | 3,9 | 4 | 2 |
-| `GET /api/tugas/tabel` | 12,1 | 1,9 | 4 | 2 |
-| `GET /api/incidents` | 126,5 | 2,1 | 7 | 2 |
-| `GET /api/audit-logs` | 91,5 | 2,1 | 4 | 2 |
-| `GET /api/risiko/teratas` | 1,9 | 1,9 | 2 | 2 |
+| `GET /api/ping` | 0,9 | 1,0 | 0 | 0 |
+| `GET /api/hubs` | 1,4 | 1,3 | 1 | 0 |
+| `GET /api/auth/me` | 1,8 | 2,2 | 3 | 2 |
+| `GET /api/dashboard/summary` | 2,3 | 1,8 | 3 | 2 |
+| `GET /api/couriers` | 65,3 | 2,6 | 5 | 2 |
+| `GET /api/orders/sla-risk` | 103,4 | 3,3 | 4 | 2 |
+| `GET /api/tugas/tabel` | 11,7 | 1,8 | 4 | 2 |
+| `GET /api/incidents` | 122,3 | 2,2 | 7 | 2 |
+| `GET /api/audit-logs` | 80,5 | 2,8 | 4 | 2 |
+| `GET /api/risiko/teratas` | 1,9 | 3,0 | 2 | 2 |
 | `POST /api/auth/login` | 4,4 | - | 4 | - |
-| `GET /api/audit-logs/export?format=csv` | 6,7 | - | 3 | - |
-| `GET /api/incidents/export?format=csv` | 2,9 | - | 3 | - |
+| `GET /api/audit-logs/export?format=csv` | 7,4 | - | 3 | - |
+| `GET /api/incidents/export?format=csv` | 2,2 | - | 3 | - |
 
 Pagu query dari `QueryBudgetTest` (semua PASS): `ping` 0, `hubs` 1,
 `auth/me` 3, `dashboard` 3, `couriers` 5, `candidates` 6, `sla-risk` 4,
 `tugas` 4, `incidents` 7, `audit-logs` 4, `risiko` 2.
 
 Latensi dingin turun dari baseline sebelum optimasi (median ms):
-`incidents` 269,4 menjadi 126,5; `sla-risk` 107,3 menjadi 86,5;
-`audit-logs` 97,0 menjadi 91,5; `couriers` 75,1 menjadi 70,8.
-Selisih dua endpoint terakhir berada di rentang noise pengukuran (±30 ms),
-jadi angka yang paling meyakinkan adalah A/B pada komponen yang dioptimasi.
+`incidents` 269,4 menjadi 122,3; `sla-risk` 107,3 menjadi 103,4;
+`audit-logs` 97,0 menjadi 80,5; `couriers` 75,1 menjadi 65,3.
+Angka dingin berfluktuasi antar run (±30 ms), jadi angka yang paling
+meyakinkan adalah A/B pada komponen yang dioptimasi; hangat semuanya di
+bawah 10 ms.
+
+### Bukti optimasi: cache konfigurasi (HTTP asli)
+
+Diukur pada server nyata `php artisan serve --port=8123` terhadap `GET /api/ping`
+40 request berurutan setelah 10 pemanasan, dibaca ulang dengan
+`Invoke-WebRequest`, memakai cache Redis yang sama:
+
+| Kondisi `backend/bootstrap/cache/` | Median | Rata-rata |
+| --- | ---: | ---: |
+| tanpa `config.php` | 31,5 ms | - |
+| `routes-v7.php` + `events.php` saja | 32,3 ms | - |
+| `config.php` (hasil `php artisan optimize`) | 18,7 ms | 20,7 ms |
+
+Seluruh kemenangan datang dari `config:cache`: tanpa itu tiap request membangun
+`config/*.php` dari `.env` lewat dotenv. `route:cache` dan `event:cache` tidak
+memberi tambahan di ukuran ini. Yang diukur di sini boot aplikasi saja —
+pekerjaan query database (±170 ms per round trip ke Supabase) tidak berubah.
+
+Satu optimasi lain di jalur tiap request: `Authenticate::markActiveHub`
+sebelumnya menjalankan dua round-trip Redis (`Cache::add` lalu
+`Cache::get('active_hubs')`) untuk tiap request terautentikasi. Sekarang
+`Cache::add` menjadi gerbang: satu round-trip, dan pembacaan/penulisan daftar
+`active_hubs` plus penjadwalan `cache:warm` hanya terjadi tiap 120 detik per
+hub. Di Redis lokal satu round-trip terukur `add` 0,45 ms / `get` 0,19 ms;
+pada Redis jaringan (RTT 1-3 ms) penghematannya sebesar itu per request.
 
 ### Bukti optimasi (input sama, proses sama)
 

@@ -43,7 +43,7 @@ class IncidentSeverityTest extends TestCase
         $this->assertSame('Sedang Ditinjau', $label->invoke($this->service, 'ACKNOWLEDGED'));
         $this->assertSame('Sedang Dialihkan', $label->invoke($this->service, 'REASSIGNING'));
         $this->assertSame('Telah Dialihkan', $label->invoke($this->service, 'RESOLVED'));
-        $this->assertSame('Eskalasi', $label->invoke($this->service, 'ESCALATED'));
+        $this->assertSame('Klik untuk Evaluasi', $label->invoke($this->service, 'ESCALATED'));
         $this->assertSame('BARU', $label->invoke($this->service, 'BARU'));
     }
 

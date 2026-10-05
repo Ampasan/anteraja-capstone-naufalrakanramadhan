@@ -19,7 +19,6 @@ interface CourierDetailPanelProps {
   isFocusingRoute: boolean;
   onClose: () => void;
   onFocusRoute: () => void;
-  onContact: () => void;
 }
 
 /**
@@ -77,7 +76,6 @@ export function CourierDetailPanel({
   isFocusingRoute,
   onClose,
   onFocusRoute,
-  onContact,
 }: CourierDetailPanelProps) {
   const isIdle = courier.status === 'IDLE';
   const hasRoute = !!courier.route && courier.route.polyline.length > 1;
@@ -156,6 +154,18 @@ export function CourierDetailPanel({
           <span className="text-[12px] font-bold text-[#0F172A]">
             {courier.distanceFromHubM === undefined ? '—' : formatDistance(courier.distanceFromHubM)}
           </span>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <span className="text-[12px] text-[#475569]">Nomor telepon</span>
+          <a
+            href={`tel:${courier.phone.replace(/\s+/g, '')}`}
+            className="text-[12px] font-bold text-[#C91076] flex items-center gap-1 hover:underline"
+            title={`Telepon ${courier.name}`}
+          >
+            <Phone size={12} aria-hidden="true" />
+            {courier.phone}
+          </a>
         </div>
 
         <div className="flex items-center justify-between">
@@ -282,14 +292,18 @@ export function CourierDetailPanel({
             hasRoute ? 'text-[#64748B]' : 'text-[#94A3B8]',
           )}>
             <Route size={10} aria-hidden="true" />
-            {hasRoute ? 'Hub → kurir → titik drop' : 'Tidak ada rute aktif'}
+            {hasRoute ? 'Kurir → titik drop' : 'Tidak ada rute aktif'}
           </span>
         </div>
 
-        <Button variant="secondary" size="md" fullWidth onClick={onContact} className="font-semibold text-[13px] self-start">
-          <Phone size={14} />
+        <a
+          href={`tel:${courier.phone.replace(/\s+/g, '')}`}
+          className="inline-flex items-center justify-center gap-2 h-9 px-4 text-sm font-semibold rounded-lg transition-colors duration-150 cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C91076] focus-visible:ring-offset-1 bg-white text-[#0F172A] border border-[#E2E8F0] hover:bg-[#F8FAFC] active:bg-[#F1F5F9] shadow-sm font-semibold text-[13px] self-start"
+          title={`Telepon ${courier.name} di ${courier.phone}`}
+        >
+          <Phone size={14} aria-hidden="true" />
           Hubungi
-        </Button>
+        </a>
       </div>
     </div>
   );

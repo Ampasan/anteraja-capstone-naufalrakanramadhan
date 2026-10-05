@@ -184,14 +184,16 @@ export interface RawIncident {
 export interface RawAuditLog {
   id: string;
   log_code?: string;
-  resi: string;
+  // Nama kurir bisa kosong bila relasinya belum terisi — jangan sampai
+  // menjatuhkan seluruh tabel riwayat saat dipetakan.
+  resi: string | null;
   service_type: string;
   completed_at: string;
-  from_courier: string;
+  from_courier: string | null;
   from_courier_code?: string | null;
-  to_courier: string;
+  to_courier: string | null;
   to_courier_code?: string | null;
-  incident_category: string;
+  incident_category: string | null;
   incident_detail?: string | null;
   report_status?: string | null;
   handling_seconds: number;
@@ -338,7 +340,6 @@ export function nearestDropPoint(packages: ActivePackage[], from: LatLng): LatLn
  * @return minimal 2 titik, atau undefined bila tidak cukup untuk satu garis.
  */
 function polylineFrom(
-  hub: LatLon,
   position: LatLon,
   packages: ActivePackage[],
 ): LatLon[] | undefined {
@@ -351,7 +352,6 @@ function polylineFrom(
     points.push({ lat: point.lat, lng: point.lng });
   };
 
-  push(hub);
   push(position);
 
   const drop = nearestDropPoint(packages, position);
@@ -368,7 +368,7 @@ function buildRoute(
   if (courier.status !== 'IDLE') return undefined;
 
   const hubPosition = toLatLon(courier.hub_position);
-  const polyline = polylineFrom(hubPosition, toLatLon(courier.position, hubPosition), packages);
+  const polyline = polylineFrom(toLatLon(courier.position, hubPosition), packages);
   if (!polyline) return undefined;
 
   const nearest = packages.reduce((min, p) => Math.min(min, p.slaRemainingMinutes), Infinity);
@@ -408,6 +408,7 @@ export function mapCouriers(raw: RawCourier[], orders: RawOrder[]): Courier[] {
       parcelCount: c.current_parcel_count,
       capacityTotal: c.max_parcel_count,
       idleDuration: c.idle_duration ?? undefined,
+      speedKmh: c.telemetry?.speed_kmh ?? undefined,
       distanceFromHubM: c.distance_from_hub_m ?? undefined,
       insideRadius: c.inside_radius ?? undefined,
       hubRadiusKm: c.radius_km ?? undefined,
@@ -442,6 +443,7 @@ export function mapCourierDetail(
     parcelCount: raw.current_parcel_count,
     capacityTotal: raw.max_parcel_count,
     idleDuration: raw.idle_duration ?? undefined,
+    speedKmh: raw.telemetry?.speed_kmh ?? base?.speedKmh,
     distanceFromHubM: raw.distance_from_hub_m ?? base?.distanceFromHubM,
     insideRadius: raw.inside_radius ?? base?.insideRadius,
     hubRadiusKm: raw.radius_km ?? base?.hubRadiusKm,
@@ -894,7 +896,7 @@ export function mapIncidentAlert(incident: IncidentReport): IncidentAlert {
 
 // ─── Audit log ───────────────────────────────────────────────────────────────
 
-const REPORT_STATUSES: ReportStatus[] = ['Eskalasi', 'Selesai'];
+const REPORT_STATUSES: ReportStatus[] = ['Dialihkan', 'Eskalasi', 'Selesai'];
 
 function mapReportStatus(status: string | null | undefined): ReportStatus {
   const found = REPORT_STATUSES.find(
@@ -907,14 +909,14 @@ export function mapAuditLog(raw: RawAuditLog): AuditLogEntry {
   return {
     id: raw.id,
     logCode: raw.log_code,
-    resi: raw.resi,
+    resi: raw.resi ?? '',
     serviceType: raw.service_type,
     completedAt: raw.completed_at,
-    fromCourier: raw.from_courier,
+    fromCourier: raw.from_courier ?? '',
     fromCourierCode: raw.from_courier_code ?? '',
-    toCourier: raw.to_courier,
+    toCourier: raw.to_courier ?? '',
     toCourierCode: raw.to_courier_code ?? '',
-    incidentCategory: raw.incident_category,
+    incidentCategory: raw.incident_category ?? '',
     incidentDetail: raw.incident_detail ?? '',
     reportStatus: mapReportStatus(raw.report_status),
     handlingSeconds: raw.handling_seconds,

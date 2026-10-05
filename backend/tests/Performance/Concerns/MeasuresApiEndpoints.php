@@ -74,7 +74,8 @@ trait MeasuresApiEndpoints
     }
 
     /**
-     * Pasang penanda hub aktif persis seperti Authenticate::markActiveHub.
+     * Pasang penanda hub aktif: kunci yang sama dengan
+     * Authenticate::markActiveHub, supaya `cache:warm` punya kandidat hub.
      */
     private function markHubActive(?string $hubId): void
     {

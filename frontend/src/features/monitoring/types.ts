@@ -37,6 +37,11 @@ export interface ColdChainAnomaly {
 export interface ActiveRoute {
   polyline: LatLng[];
   eta: string;
+  /**
+   * `true` bila `polyline` sudah berupa geometri jaringan jalan, bukan garis
+   * lurus tujuan. RoadPolyline lalu menggambar apa adanya tanpa memanggil OSRM.
+   */
+  snapped?: boolean;
 }
 
 /** Full courier entity used across the monitoring feature */
@@ -54,7 +59,9 @@ export interface Courier {
   capacityTotal: number;
   idleDuration?: string;
   lastKnownAddress?: string;
-  /** Jarak lurus ke hub dalam meter (null bila belum ada telemetri). */
+  /** Kecepatan telemetri terakhir dalam km/j. Basis laju penanda bergerak di peta. */
+  speedKmh?: number;
+  /** Jarak lurus ke hub dalam meter, dihitung dari posisi yang sedang ditampilkan. */
   distanceFromHubM?: number;
   /** Masih di dalam radius layan hub? null bila jaraknya belum diketahui. */
   insideRadius?: boolean;

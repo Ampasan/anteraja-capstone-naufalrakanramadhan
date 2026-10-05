@@ -25,7 +25,7 @@ php artisan optimize
 # Setiap sesi kerja (4 terminal)
 php artisan serve --port=8000   # API
 php artisan queue:listen        # job NotifikasiPengalihan + broadcast
-php artisan schedule:work       # laporan harian + eskalasi insiden
+php artisan schedule:work       # simulasi posisi kurir (2 detik) + laporan harian + eskalasi insiden
 php artisan reverb:start        # WebSocket port 8080
 ```
 
@@ -63,7 +63,7 @@ Envelope response: `{ ok, data, message }`. Dokumentasi lengkap: [API_DOCUMENTAT
 ## Perintah Artisan
 
 ```bash
-php artisan test                              # PHPUnit: 174 test
+php artisan test                              # PHPUnit: 178 test
 php artisan db:seed --class=IncidentSeeder    # Segarkan data demo
 php artisan incident:escalate --minutes=10   # REPORTED -> ESCALATED
 php artisan risk:rebuild                      # Ulangi peringkat risiko (Redis)
@@ -75,6 +75,7 @@ php artisan report:daily-incidents            # Laporan insiden harian
 - **Pengalihan 1-klik:** (`MAX_ACTIVE_PARCELS`), validasi armada (Cargo → Van/Truk, Frozen → tas termal, PHARMA → BPOM), kapasitas muatan, resi tidak DELIVERED, tidak ada pengalihan ganda
 - **Eskalasi:** insiden `REPORTED` > 10 menit otomatis `ESCALATED`
 - **Audit log:** *immutable* (trigger database menolak UPDATE/DELETE)
+- **Lintasan kurir:** `courier:simulate` menempelkan putaran tiap kurir ke jaringan jalan via OSRM (sekali panggil per kurir, di-cache 30 hari) supaya penanda bergerak di atas aspal; bila OSRM tidak terjangkau, putaran lurus dipakai sementara dan dicoba ulang 5 menit kemudian
 
 ## Realtime (Laravel Reverb)
 
@@ -116,7 +117,7 @@ routes/api.php          19 endpoint (public + auth:sanctum)
 ## Pengujian
 
 ```bash
-php artisan test    # 174 test (Unit, Feature, Performance)
+php artisan test    # 178 test (Unit, Feature, Performance)
 ```
 
 Detail: [`docs/TESTING.md`](../docs/TESTING.md)

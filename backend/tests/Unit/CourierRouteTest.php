@@ -4,11 +4,14 @@ namespace Tests\Unit;
 
 use App\Services\Courier\CourierService;
 use App\Support\CourierRoute;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 /**
- * Lintasan kurir harus deterministik (posisi = f(kode, waktu)) dan selalu
- * berada di dalam radius layan hub supaya penanda peta tidak melompat.
+ * Lintasan kurir harus deterministik (posisi = f(kode, waktu)). `loop()` dipakai
+ * sebagai kerangka yang selalu berada di dalam radius layan hub, `roadLoop()`
+ * menempelkannya ke jaringan jalan supaya penanda bergerak di atas aspal.
  */
 class CourierRouteTest extends TestCase
 {
@@ -35,6 +38,47 @@ class CourierRouteTest extends TestCase
             $this->assertGreaterThan(800.0, $distance);
             $this->assertLessThan(3700.0, $distance);
         }
+    }
+
+    public function test_road_loop_uses_geometry_returned_by_routing_service(): void
+    {
+        Http::fake([
+            'router.project-osrm.org/*' => Http::response([
+                'code' => 'Ok',
+                'routes' => [
+                    ['geometry' => ['coordinates' => [[106.87, -6.26], [106.875, -6.262]]]],
+                ],
+            ]),
+        ]);
+
+        $road = CourierRoute::roadLoop('HLM-001', self::HUB_LAT, self::HUB_LNG);
+
+        $this->assertSame([[-6.26, 106.87], [-6.262, 106.875]], $road);
+        Http::assertSentCount(1);
+    }
+
+    public function test_road_loop_falls_back_and_stops_retrying_on_error_response(): void
+    {
+        Http::fake(['*' => Http::response('', 503)]);
+
+        $road = CourierRoute::roadLoop('HLM-001', self::HUB_LAT, self::HUB_LNG);
+
+        $this->assertSame(CourierRoute::loop('HLM-001', self::HUB_LAT, self::HUB_LNG), $road);
+        Http::assertSentCount(1);
+
+        // Satu kegagalan sudah cukup; kurir berikutnya tidak memancing request baru.
+        CourierRoute::roadLoop('HLM-002', self::HUB_LAT, self::HUB_LNG);
+
+        Http::assertSentCount(1);
+    }
+
+    public function test_road_loop_survives_a_dropped_connection(): void
+    {
+        Http::fake(fn () => throw new ConnectionException('layanan routing tidak terjangkau'));
+
+        $road = CourierRoute::roadLoop('HLM-003', self::HUB_LAT, self::HUB_LNG);
+
+        $this->assertSame(CourierRoute::loop('HLM-003', self::HUB_LAT, self::HUB_LNG), $road);
     }
 
     public function test_length_is_positive_for_closed_loop(): void

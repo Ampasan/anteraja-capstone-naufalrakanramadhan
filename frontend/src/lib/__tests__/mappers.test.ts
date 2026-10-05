@@ -261,11 +261,10 @@ describe('mapCouriers', () => {
     expect(couriers[0].activePackages[1].slaElapsedPct).toBeGreaterThanOrEqual(0);
   });
 
-  it('kurir IDLE mendapat rute hub -> posisi -> titik drop terdekat', () => {
+  it('kurir IDLE mendapat rute posisi -> titik drop terdekat', () => {
     const route = couriers[0].route;
 
     expect(route?.polyline).toEqual([
-      HUB_POSITION,
       { lat: -6.266, lng: 106.877 },
       { lat: -6.27, lng: 106.88 },
     ]);
@@ -439,6 +438,11 @@ describe('mapAuditLog', () => {
   it('status laporan dinormalisasi tanpa peduli huruf besar/kecil', () => {
     expect(mapAuditLog({ ...RAW_LOG, report_status: ' selesai ' }).reportStatus).toBe('Selesai');
     expect(mapAuditLog({ ...RAW_LOG, report_status: 'Eskalasi' }).reportStatus).toBe('Eskalasi');
+  });
+
+  it('pengalihan pada hari operasional berjalan tetap berstatus Dialihkan', () => {
+    expect(mapAuditLog({ ...RAW_LOG, report_status: 'Dialihkan' }).reportStatus).toBe('Dialihkan');
+    expect(mapAuditLog({ ...RAW_LOG, report_status: ' dialihkan ' }).reportStatus).toBe('Dialihkan');
   });
 
   it('status di luar daftar jatuh ke Selesai', () => {

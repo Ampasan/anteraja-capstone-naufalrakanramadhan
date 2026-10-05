@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { MapPin, ChevronsRight } from 'lucide-react';
+import { MapPin, ChevronsRight, RefreshCw } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useMonitoring } from './hooks/useMonitoring';
 import { CourierList } from './components/CourierList';
@@ -75,6 +75,10 @@ export function MonitoringPage() {
     navigate(incidentId ? `/incidents?incident=${incidentId}` : '/incidents');
   }, [navigate, state.currentIncident]);
 
+  const updatedAt = state.lastLoadedAt
+    ? new Date(state.lastLoadedAt).toLocaleTimeString('id-ID', { hour12: false })
+    : '—';
+
   return (
 
     <section
@@ -103,8 +107,18 @@ export function MonitoringPage() {
           <span className="sm:hidden">Live Monitoring</span>
         </h2>
 
-        {/* Kontrol peta: Pusatkan Hub + Peta Penuh */}
+        {/* Kontrol peta: usia data + Pusatkan Hub + Peta Penuh */}
         <div className="flex items-center gap-1.5 sm:gap-2">
+          <button
+            type="button"
+            onClick={state.refreshData}
+            aria-label={`Muat ulang data monitoring, terakhir ${updatedAt}`}
+            className="flex h-11 items-center gap-2 rounded-lg border border-[#E2E8F0] bg-white px-2 sm:px-3 text-[11px] sm:text-[13px] font-semibold text-[#475569] hover:bg-[#F8FAFC] transition-colors"
+          >
+            <span className="hidden sm:inline">Diperbarui {updatedAt}</span>
+            <RefreshCw size={13} className="text-[#C91076]" aria-hidden="true" />
+          </button>
+
           <button
             type="button"
             onClick={() => {
@@ -115,7 +129,7 @@ export function MonitoringPage() {
                 { duration: 0.8 },
               );
             }}
-            className="flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-[13px] font-semibold text-[#475569] bg-white border border-[#E2E8F0] hover:bg-[#F8FAFC] rounded-lg px-2 sm:px-3 h-8 sm:h-9 transition-colors"
+            className="flex h-11 items-center gap-1 sm:gap-1.5 text-[11px] sm:text-[13px] font-semibold text-[#475569] bg-white border border-[#E2E8F0] hover:bg-[#F8FAFC] rounded-lg px-2 sm:px-3 transition-colors"
           >
             <MapPin size={12} className="text-[#C91076]" aria-hidden="true" />
             <span className="hidden sm:inline">Pusatkan Hub</span>
@@ -127,7 +141,7 @@ export function MonitoringPage() {
             onClick={handleToggleFullscreen}
             aria-pressed={state.isFullscreen}
             aria-label={state.isFullscreen ? 'Keluar dari mode peta penuh' : 'Aktifkan mode peta penuh'}
-            className={`flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-[13px] font-semibold rounded-lg px-2 sm:px-3 h-8 sm:h-9 border transition-colors ${
+            className={`flex h-11 items-center gap-1 sm:gap-1.5 text-[11px] sm:text-[13px] font-semibold rounded-lg px-2 sm:px-3 border transition-colors ${
               state.isFullscreen
                 ? 'bg-[#C91076] text-white border-[#C91076] hover:bg-[#E51A8A]'
                 : 'bg-white text-[#475569] border-[#E2E8F0] hover:bg-[#F8FAFC]'
@@ -220,9 +234,6 @@ export function MonitoringPage() {
                 isFocusingRoute={state.isFocusingRoute}
                 onClose={() => state.selectCourier(null)}
                 onFocusRoute={state.toggleFocusRoute}
-                onContact={() => {
-                  alert(`Hubungi ${state.selectedCourier!.name}: ${state.selectedCourier!.phone}`);
-                }}
               />
             </div>
           )}

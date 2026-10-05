@@ -134,6 +134,8 @@ export function SlaDetailModal({ order, onClose, onOpenMap }: SlaDetailModalProp
   if (!order) return null;
 
   const detail  = order.detail;
+  // Timeline ditampilkan menurun: status terbaru di atas, terlama di bawah.
+  const timeline = [...detail.timeline].reverse();
   const svc     = SVC[order.serviceType] ?? SVC.Regular;
   // Kapasitas dijaga tetap menurut jenis kendaraan; nol berarti baris armada
   // belum dimuat sehingga persentase tidak boleh ikut ditampilkan.
@@ -268,11 +270,11 @@ export function SlaDetailModal({ order, onClose, onOpenMap }: SlaDetailModalProp
                   </div>
                 </Section>
 
-                {/* 3 — Timeline */}
+                {/* 3 — Timeline — terbaru di atas (descending), terlama di bawah */}
                 <Section icon={TrendingUp} title="Timeline Audit Kepatuhan SLA">
                   <div className="px-5 py-5 flex flex-col bg-white">
-                    {detail.timeline.map((step, idx) => (
-                      <TimelineItem key={idx} step={step} isLast={idx === detail.timeline.length - 1} />
+                    {timeline.map((step, idx) => (
+                      <TimelineItem key={idx} step={step} isLast={idx === timeline.length - 1} />
                     ))}
                   </div>
                 </Section>

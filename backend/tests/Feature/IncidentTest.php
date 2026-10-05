@@ -50,6 +50,17 @@ class IncidentTest extends TestCase
         $this->assertNotNull($banjir);
         $this->assertSame('ESCALATED', $banjir['status']);
         $this->assertNull($banjir['replacement_courier']);
+
+        // Insiden yang belum dievaluasi memakai label ajakan yang sama,
+        // apa pun statusnya, supaya kartunya bisa diklik seragam.
+        $this->assertSame('Klik untuk Evaluasi', $banjir['status_label']);
+        $this->assertSame(
+            collect($response->json('data.incidents'))->firstWhere('incident_code', 'INC-HLM-082')['status_label'],
+            $banjir['status_label'],
+        );
+
+        // Nomor kurir ikut dikirim agar tombol telepon bisa menelpon nomor asli.
+        $this->assertSame('087723305893', $banjir['courier']['phone']);
     }
 
     public function test_store_creates_incident_and_refreshes_the_list(): void
@@ -120,6 +131,13 @@ class IncidentTest extends TestCase
 
         $audit = AuditLog::where('incident_id', $incident->id)->firstOrFail();
         $this->assertSame($this->halimAdmin()->id, $audit->executor_user_id);
+
+        // Pengalihan yang baru dijalankan wajib muncul di halaman Audit Log
+        // dengan status "Dialihkan", bukan status lain.
+        $listed = collect($this->getJson(self::BASE . '/audit-logs')->json('data.logs'))
+            ->firstWhere('log_code', $audit->log_code);
+        $this->assertNotNull($listed, 'pengalihan baru tidak tercatat di halaman audit log');
+        $this->assertSame('Dialihkan', $listed['report_status']);
 
         // Notifikasi berjalan di antrean sync, jadi tugasnya sudah tuntas
         // segera setelah transaksi pengalihan selesai.

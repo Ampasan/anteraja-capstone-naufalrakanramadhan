@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Courier;
+use App\Models\CourierTelemetry;
 use App\Support\CourierRoute;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -35,7 +36,7 @@ class SimulateCourierPositions extends Command
             $telemetry = $courier->latestTelemetry;
             $hub = $courier->hub;
 
-            $loop = CourierRoute::loop(
+            $loop = CourierRoute::roadLoop(
                 $courier->courier_code,
                 (float) $hub->latitude,
                 (float) $hub->longitude,
@@ -51,7 +52,6 @@ class SimulateCourierPositions extends Command
                 'id' => $telemetry->id,
                 'latitude' => round($latitude, 7),
                 'longitude' => round($longitude, 7),
-                'speed_kmh' => $speedKmh,
             ];
 
             $moved++;
@@ -67,35 +67,23 @@ class SimulateCourierPositions extends Command
     }
 
     /**
-     * @param  array<int, array{id: string, latitude: float, longitude: float, speed_kmh: float}>  $updates
+     * @param  array<int, array{id: string, latitude: float, longitude: float}>  $updates
      * @param  \DateTimeInterface  $stamp  Waktu catat yang sama untuk semua baris.
      */
     private function writePositions(array $updates, $stamp): void
     {
-        $sets = [];
-        $bindings = [];
-
-        foreach (['latitude', 'longitude', 'speed_kmh'] as $column) {
-            $whens = '';
-
+        // Satu UPDATE per baris lewat query builder: tipenya diturunkan dari
+        // kolom tujuan. SQL mentah berbentuk `CASE id WHEN ? THEN ?` jatuh ke teks
+        // di PostgreSQL lalu ditolak kolom numeric, dan SQLite pada test tidak
+        // merasakannya — kesalahannya hanya muncul di database asli.
+        DB::transaction(function () use ($updates, $stamp): void {
             foreach ($updates as $update) {
-                $whens .= ' WHEN ? THEN ?';
-                $bindings[] = $update['id'];
-                $bindings[] = $update[$column];
+                CourierTelemetry::query()->whereKey($update['id'])->update([
+                    'latitude' => $update['latitude'],
+                    'longitude' => $update['longitude'],
+                    'recorded_at' => $stamp,
+                ]);
             }
-
-            $sets[] = "{$column} = CASE id{$whens} END";
-        }
-
-        $sets[] = 'recorded_at = ?';
-        $bindings[] = $stamp;
-
-        $ids = array_column($updates, 'id');
-        $inList = implode(', ', array_fill(0, count($ids), '?'));
-
-        DB::update(
-            'UPDATE courier_telemetry SET ' . implode(', ', $sets) . " WHERE id IN ({$inList})",
-            array_merge($bindings, $ids),
-        );
+        });
     }
 }

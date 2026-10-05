@@ -3,15 +3,14 @@ import {
   MapContainer,
   TileLayer,
   Marker,
-  Polyline,
   Circle,
   useMap,
 } from 'react-leaflet';
 import L from 'leaflet';
 import type { LeafletEventHandlerFnMap } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import type { Courier, Hub, LatLng } from '../types';
-import { nearestDropPoint } from '../../../lib/mappers';
+import type { Courier, Hub } from '../types';
+import { RoadPolyline } from './RoadPolyline';
 import iconUrl from 'leaflet/dist/images/marker-icon.png';
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
 import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
@@ -173,21 +172,6 @@ function pathOptionsFor(isSelected: boolean, isCold: boolean): L.PathOptions {
   return options;
 }
 
-/**
- * Pasangan `[lat, lng]` untuk Leaflet, disimpan per daftar titik rute.
- */
-const polylineCache = new WeakMap<LatLng[], [number, number][]>();
-
-function polylinePositions(route: { polyline: LatLng[] }): [number, number][] {
-  const cached = polylineCache.get(route.polyline);
-  if (cached) return cached;
-
-  const positions = route.polyline.map((p) => [p.lat, p.lng] as [number, number]);
-  polylineCache.set(route.polyline, positions);
-
-  return positions;
-}
-
 export function MapView({
   couriers,
   hub,
@@ -233,24 +217,23 @@ export function MapView({
       {couriers.map((courier) => {
         const isSelected = selectedCourier?.id === courier.id;
         const isCold = isColdChain(courier);
+        const drop = courier.route?.polyline[courier.route.polyline.length - 1];
 
         return (
           <div key={courier.id}>
-            {/* Route polyline: hub -> kurir -> titik drop, lalu berhenti */}
+            {/* Route polyline: kurir -> titik drop, lalu berhenti */}
             {showRoutes && courier.route && courier.route.polyline.length > 1 && (
-              <Polyline
-                positions={polylinePositions(courier.route)}
+              <RoadPolyline
+                polyline={courier.route.polyline}
                 pathOptions={pathOptionsFor(isSelected, isCold)}
+                snapped={courier.route.snapped}
               />
             )}
 
-            {/* Drop-point pin, tanpa popup; klik membuka panel via penanda kurir */}
-            {(() => {
-              if (!isSelected || !courier.route) return null;
-              const drop = nearestDropPoint(courier.activePackages, courier.position);
-              if (!drop) return null;
-              return <Marker position={[drop.lat, drop.lng]} icon={makeDropIcon()} />;
-            })()}
+            {/* Titik drop diambil dari ujung rute, bukan dihitung ulang dari
+                posisi penanda: keduanya harus menunjuk paket yang sama walau
+                penanda sudah jalan setengah perjalanan. */}
+            {isSelected && drop && <Marker position={[drop.lat, drop.lng]} icon={makeDropIcon()} />}
 
             {/* Courier marker: klik membuka panel detail */}
             <Marker

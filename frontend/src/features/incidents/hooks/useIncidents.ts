@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { apiWithStatus, apiCached, invalidateApiCache, waitForTask, type AsyncTask } from '../../../lib/api';
+import { apiWithStatus, apiCached, invalidateApiCache, waitForTask, STALE_WHILE_REVALIDATE_MS, type AsyncTask } from '../../../lib/api';
 import { mapIncidents, type RawIncident } from '../../../lib/mappers';
 import type {
   IncidentReport,
@@ -92,22 +92,28 @@ export function useIncidents(): UseIncidentsReturn {
   const submitLock = useRef(false);
 
   // Rantai .then agar setState hanya berjalan di dalam callback.
+  const apply = useCallback(
+    (payload: { incidents: RawIncident[]; summary?: { one_click_rate?: number } }) => {
+      setIncidents(mapIncidents(payload.incidents ?? []));
+      setOneClickRate(payload.summary?.one_click_rate ?? null);
+      setErrorMessage(null);
+    },
+    [],
+  );
+
   const load = useCallback(
     () =>
       apiCached<{ incidents: RawIncident[]; summary?: { one_click_rate?: number } }>(
         '/incidents',
         CACHE_TTL_MS,
+        { staleMs: STALE_WHILE_REVALIDATE_MS, onRevalidated: apply },
       )
-        .then((payload) => {
-          setIncidents(mapIncidents(payload.incidents ?? []));
-          setOneClickRate(payload.summary?.one_click_rate ?? null);
-          setErrorMessage(null);
-        })
+        .then(apply)
         .catch((error: unknown) => {
           setErrorMessage(error instanceof Error ? error.message : 'Gagal memuat data insiden.');
         })
         .finally(() => setIsLoading(false)),
-    [],
+    [apply],
   );
 
   useEffect(() => {
@@ -118,14 +124,15 @@ export function useIncidents(): UseIncidentsReturn {
 
   /**
    * Versi tampilan: tampilkan SEMUA insiden (termasuk RESOLVED).
-   * Insiden terpilih diberi label "Sedang Ditinjau".
+   * Insiden berstatus REPORTED/ESCALATED diberi label "Sedang Ditinjau"
+   * begitu dipilih — keduanya sama-sama menunggu evaluasi admin.
    */
   const displayIncidents = useMemo(
     () =>
       incidents.map((inc) =>
         inc.id === selectedIncidentId &&
         inc.statusLabel === REVIEWABLE_LABEL &&
-        inc.status === 'REPORTED'
+        (inc.status === 'REPORTED' || inc.status === 'ESCALATED')
           ? { ...inc, statusLabel: REVIEWING_LABEL }
           : inc,
       ),

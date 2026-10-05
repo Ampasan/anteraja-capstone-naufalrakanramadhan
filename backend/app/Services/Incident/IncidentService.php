@@ -228,7 +228,7 @@ class IncidentService
             'ACKNOWLEDGED' => 'Sedang Ditinjau',
             'REASSIGNING' => 'Sedang Dialihkan',
             'RESOLVED' => 'Telah Dialihkan',
-            'ESCALATED' => 'Eskalasi',
+            'ESCALATED' => 'Klik untuk Evaluasi',
             default => $status,
         };
     }
@@ -241,10 +241,19 @@ class IncidentService
 
         $broadcast = null;
 
+        /**
+         * Id hub yang cache-nya harus dibuang SETELAH transaksi commit.
+         * Invalidasi di dalam transaksi membuka celah: pembaca lain (poll
+         * /incidents memanggil getAuditSummary) bisa mengisi ulang cache
+         * dengan data lama sebelum commit, sehingga pengalihan baru tak
+         * pernah muncul di halaman Audit Log sampai TTL kedaluwarsa.
+         */
+        $cacheHubId = null;
+
         try {
             $lock->block(5);
 
-            $result = DB::transaction(function () use ($incidentId, $replacementCourierId, $user, &$broadcast) {
+            $result = DB::transaction(function () use ($incidentId, $replacementCourierId, $user, &$broadcast, &$cacheHubId) {
                 $incident = IncidentReport::with(['order', 'courier'])->lockForUpdate()->findOrFail($incidentId);
 
                 $recentReassignment = $incident->reassignmentConfirmations()
@@ -352,7 +361,7 @@ class IncidentService
                     'created_at' => OperationalClock::now(),
                 ]);
 
-                $this->clearPanelCache($order->hub_origin_id);
+                $cacheHubId = $order->hub_origin_id;
 
                 $task = TaskTracker::accepted('notifikasi_pengalihan', [
                     'confirmation_code' => $confirmation->confirmation_code,
@@ -414,6 +423,12 @@ class IncidentService
             ];
         } finally {
             $lock->release();
+        }
+
+        // Transaksi sudah commit: pembuangan cache dilakukan di sini agar
+        // pembaca berikutnya tidak pernah mengisi ulang cache dari data lama.
+        if ($cacheHubId !== null) {
+            self::clearPanelCache($cacheHubId);
         }
 
         if ($broadcast !== null) {

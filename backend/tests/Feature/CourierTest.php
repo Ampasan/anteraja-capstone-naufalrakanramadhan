@@ -6,6 +6,7 @@ use App\Models\Courier;
 use App\Models\CourierTelemetry;
 use App\Models\Order;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Tests\Support\SeedsHalim;
 use Tests\TestCase;
@@ -129,5 +130,31 @@ class CourierTest extends TestCase
             'latitude' => -6.26,
             'longitude' => 106.87,
         ])->assertStatus(404)->assertJson(['ok' => false, 'data' => null]);
+    }
+
+    public function test_simulate_command_advances_idle_courier_positions(): void
+    {
+        $this->seedPanel();
+        $courier = Courier::where('courier_code', 'HLM-009')->firstOrFail();
+        $before = CourierTelemetry::where('courier_id', $courier->id)->firstOrFail();
+
+        // Jarak tempuh dihitung dari jeda sejak catatan terakhir, jadi barisnya
+        // dimundurkan 5 menit supaya perintah ini benar-benar menggeser koordinat.
+        CourierTelemetry::whereKey($before->id)->update([
+            'created_at' => now()->subMinutes(5),
+            'speed_kmh' => 40,
+        ]);
+
+        // Lintasan menempel lewat OSRM; test tidak boleh menyentuh jaringan.
+        Http::fake(['*' => Http::response([])]);
+
+        $this->artisan('courier:simulate')->assertSuccessful();
+
+        $after = CourierTelemetry::where('courier_id', $courier->id)->firstOrFail();
+
+        $this->assertNotSame(
+            [$before->latitude, $before->longitude],
+            [$after->latitude, $after->longitude],
+        );
     }
 }

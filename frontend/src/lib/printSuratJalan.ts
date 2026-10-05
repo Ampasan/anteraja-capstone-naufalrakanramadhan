@@ -228,17 +228,6 @@ function buildHtml(order: SlaOrder): string {
     </div>
   </div>
 
-  <!-- Footer tanda tangan -->
-  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:24px;padding-top:16px;border-top:1px solid #e2e8f0;">
-    ${['Diperiksa Oleh', 'Kurir / Pengantar', 'Penerima'].map(label => `
-      <div style="text-align:center;">
-        <p style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:48px;">${label}</p>
-        <div style="border-top:1px solid #cbd5e1;padding-top:6px;">
-          <p style="font-size:10px;color:#94a3b8;">Nama &amp; Tanda Tangan</p>
-        </div>
-      </div>`).join('')}
-  </div>
-
 </body>
 </html>`;
 }

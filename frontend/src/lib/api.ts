@@ -3,6 +3,7 @@
  */
 
 import { clearSession, getToken } from './session';
+import { readStored, writeStored } from './storage';
 
 const API_BASE_URL = (
   import.meta.env.VITE_API_URL ?? 'http://localhost:8000/api'
@@ -194,16 +195,72 @@ function storeCached(key: string, data: unknown): void {
   responseCache.set(key, { at: Date.now(), data });
 }
 
-export async function apiCached<T>(path: string, ttlMs: number): Promise<T> {
-  const cached = responseCache.get(path);
-  if (cached && Date.now() - cached.at < ttlMs) return cached.data as T;
+/**
+ * Umur cadangan tahan-simpan untuk endpoint yang menentukan tampilan pertama
+ * halaman. Setelah reload, isi lama tampil lebih dulu dan diganti oleh
+ * permintaan yang berjalan di latar belakang.
+ */
+export const STALE_WHILE_REVALIDATE_MS = 5 * 60_000;
 
-  const running = inFlight.get(path);
-  if (running) return running as Promise<T>;
+const PERSIST_KEY = 'anteraja.api.cache';
+/** sessionStorage cuma 5 MB; pagu entri dan panjang per entri menjaganya aman. */
+const PERSIST_LIMIT = 8;
+const PERSIST_MAX_CHARS = 150_000;
+/**
+ * Jeda minimum antar tulis per kunci. Polling ber-`staleMs` (mis. monitoring
+ * tiap 2 detik) sebelumnya menjalankan stringify + parse + stringify +
+ * setItem tiap respons sukses; isi cadangan ini hanya penolong gambar pertama
+ * saat reload, jadi menyegarnya tiap 10 detik sudah lebih dari cukup.
+ */
+const PERSIST_THROTTLE_MS = 10_000;
+const lastPersistedAt = new Map<string, number>();
 
+type PersistedCache = Record<string, CacheEntry>;
+
+function loadPersisted(): PersistedCache {
+  const stored = readStored<unknown>(PERSIST_KEY);
+  return stored && typeof stored === 'object' ? (stored as PersistedCache) : {};
+}
+
+function persistCached(key: string, data: unknown): void {
+  const now = Date.now();
+  if (now - (lastPersistedAt.get(key) ?? 0) < PERSIST_THROTTLE_MS) return;
+  lastPersistedAt.set(key, now);
+
+  // Ukuran dicek dulu: payload yang kebesaran tidak ditulis, tapi tetap
+  // kena jeda throttle supaya tidak diserialisasi ulang tiap kali.
+  if (JSON.stringify(data).length > PERSIST_MAX_CHARS) return;
+
+  const cache = loadPersisted();
+  cache[key] = { at: Date.now(), data };
+
+  const keys = Object.keys(cache);
+  if (keys.length > PERSIST_LIMIT) {
+    keys
+      .sort((a, b) => cache[a].at - cache[b].at)
+      .slice(0, keys.length - PERSIST_LIMIT)
+      .forEach((expired) => delete cache[expired]);
+  }
+
+  writeStored(PERSIST_KEY, cache);
+}
+
+function dropPersisted(prefixes: string[]): void {
+  const cache = loadPersisted();
+  let changed = false;
+  for (const key of Object.keys(cache)) {
+    if (!prefixes.some((prefix) => key.startsWith(prefix))) continue;
+    delete cache[key];
+    changed = true;
+  }
+  if (changed) writeStored(PERSIST_KEY, cache);
+}
+
+function startRequest<T>(path: string, staleMs?: number): Promise<T> {
   const request = api<T>(path)
     .then((data) => {
       storeCached(path, data);
+      if (staleMs) persistCached(path, data);
       return data;
     })
     .finally(() => {
@@ -214,9 +271,48 @@ export async function apiCached<T>(path: string, ttlMs: number): Promise<T> {
   return request;
 }
 
+/**
+ * Ambil GET lewat micro-cache `ttlMs`.
+ *
+ * `staleMs` mengaktifkan stale-while-revalidate: setelah reload, cadangan
+ * tahan-simpan tampil lebih dulu sambil permintaan segar jalan di belakang.
+ * `onRevalidated` menerima hasil segar itu — tanpanya hasil revalidasi cuma
+ * masuk ke memori, sehingga state pemanggil tetap basi sampai ttl habis
+ * (atau selamanya bila pemanggil tidak polling).
+ */
+export async function apiCached<T>(
+  path: string,
+  ttlMs: number,
+  options?: { staleMs?: number; onRevalidated?: (data: T) => void },
+): Promise<T> {
+  const cached = responseCache.get(path);
+  if (cached && Date.now() - cached.at < ttlMs) return cached.data as T;
+
+  const staleMs = options?.staleMs;
+  const onRevalidated = options?.onRevalidated;
+  const pending = inFlight.get(path) as Promise<T> | undefined;
+  const request = pending ?? startRequest<T>(path, staleMs);
+
+  // Reload halaman: memori masih kosong, jadi isi terakhir dipakai untuk memberi
+  // gambar pertama tanpa menunggu Supabase. Poll berikutnya sudah punya memori
+  // dan kembali menunggu data segar seperti biasa.
+  if (!cached && staleMs) {
+    const stale = loadPersisted()[path];
+    if (stale && Date.now() - stale.at < staleMs) {
+      if (onRevalidated) void request.then(onRevalidated).catch(() => undefined);
+      else void request.catch(() => undefined);
+      return stale.data as T;
+    }
+  }
+
+  return request;
+}
+
 export function invalidateApiCache(prefix?: string | string[]): void {
   if (!prefix) {
     responseCache.clear();
+    lastPersistedAt.clear();
+    dropPersisted(['']);
     return;
   }
   const prefixes = Array.isArray(prefix) ? prefix : [prefix];
@@ -224,6 +320,10 @@ export function invalidateApiCache(prefix?: string | string[]): void {
   for (const key of [...responseCache.keys()]) {
     if (prefixes.some((p) => key.startsWith(p))) responseCache.delete(key);
   }
+  for (const key of [...lastPersistedAt.keys()]) {
+    if (prefixes.some((p) => key.startsWith(p))) lastPersistedAt.delete(key);
+  }
+  dropPersisted(prefixes);
 }
 
 // ─── Unduhan (ekspor CSV / XLSX / PDF) ──────────────────────────────────────

@@ -40,7 +40,7 @@ npm run dev       # dev server (port 5173)
 npm run build     # build produksi ke dist/
 npm run preview   # preview build produksi
 npm run lint      # ESLint
-npm run test      # Vitest + Testing Library (176 test, 19 berkas)
+npm run test      # Vitest + Testing Library (198 test, 21 berkas)
 ```
 
 ## Stack
@@ -61,15 +61,16 @@ npm run test      # Vitest + Testing Library (176 test, 19 berkas)
 src/
   features/
     auth/           LoginPage, HubSelect, LoginForm, useAuth
-    monitoring/     MonitoringPage, MapView, CourierList, CourierCard, MapControls, CourierDetailPanel, IncidentAlertToast
-    sla/            SlaRiskPage, SlaTable, SlaSummaryCards, useSlaRisk
-    incidents/      IncidentsPage, IncidentList, ReassignPanel, ReassignSuccessModal, useIncidents
+    monitoring/     MonitoringPage, MapView, RoadPolyline, CourierList, CourierCard, MapControls, CourierDetailPanel, IncidentAlertToast, useMonitoring, useCourierMotion
+    sla-risk/       SlaRiskPage, SlaTable, SlaSummaryCards, SlaFilterBar, SlaDetailModal, useSlaRisk
+    incidents/      IncidentsPage, IncidentList, IncidentFilterBar, IncidentSummaryCards, ReassignPanel, ReassignSuccessModal, IncidentExportDropdown, useIncidents
     audit-logs/     AuditLogsPage, AuditTable, AuditFilterBar, AuditSummaryCards, ExportDropdown, useAuditLogs
   components/
     layout/         Header, Sidebar, MainLayout
     ui/             Button, Card, Badge, Modal, Input
     evidence/       EvidencePhotoModal
-  lib/              api.ts, mappers.ts, realtime.ts, session.ts
+  hooks/            useDashboardSummary, useHubs, useIncidentToast, useRealtime
+  lib/              api.ts, mappers.ts, roadRoute.ts, courierJourney.ts, storage.ts, realtime.ts, session.ts, prefetch.ts
   context/          AppContext, useAppContext
 ```
 
@@ -78,7 +79,9 @@ src/
 - **Satu arah data:** parent → child via props, tidak ada mutasi props di child
 - **Derived state:** `filteredCouriers`, `counts` pakai `useMemo`, bukan state terpisah
 - **Real-time:** `useRealtime()` berlangganan 4 event Reverb setelah login; marker peta dipindahkan via `updateMarker()` (tanpa full re-render)
-- **Cache GET:** `apiCached(path, ttlMs)` — micro-cache dengan `inFlight` dedup, maks 100 entri
+- **Cache GET:** `apiCached(path, ttlMs)` — cache memori + `inFlight` dedup (maks 100 entri). Bila memori kosong, hasil terakhir ikut disimpan ke `sessionStorage` (`anteraja.api.cache`, 8 entri) supaya refresh menampilkan data lama dulu lalu diamkan di latar (`stale-while-revalidate`), dan polling berhenti selama tab tersembunyi
+- **Perjalanan kurir:** `courierJourney.ts` merekam titik awal sekali per tab (`anteraja.monitoring.origins`). Penanda merambat di atas geometri jalan menuju titik drop dan berhenti di sana; refresh atau pindah halaman mengulang perjalanan dari titik yang sama
+- **Rute di peta:** `roadRoute.ts` membentuk ulang garis kurir → drop mengikuti jaringan jalan (OSRM), hasilnya di-cache per sel ±55 m; kalau layanan routing tidak terjangkau, garis lurus yang dipakai. `RoadPolyline` menolak geometri yang sudah tertinggal lebih dari 150 m dari penanda
 - **202 Accepted:** `apiWithStatus()` membedakan `accepted` (job async) dari `success` — dipakai untuk pengalihan 1-klik
 
 ## Build & Deploy

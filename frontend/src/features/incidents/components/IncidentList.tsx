@@ -1,4 +1,4 @@
-import { MapPin, Truck, Bike, Car, Package, Thermometer, ClipboardList, MousePointerClick, Camera, Snowflake } from 'lucide-react';
+import { MapPin, Truck, Bike, Car, Package, Thermometer, ClipboardList, MousePointerClick, Camera, Snowflake, Phone } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 import type { IncidentReport, SeverityLevel } from '../types';
 
@@ -166,6 +166,17 @@ function IncidentCard({ incident, isSelected, onClick, onViewEvidence }: Inciden
                 <span className="text-[12px] text-[#64748B] font-medium">
                   {incident.courier.vehicleType}
                 </span>
+                {incident.courier.phone && (
+                  <a
+                    href={`tel:${incident.courier.phone.replace(/\s+/g, '')}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="inline-flex items-center gap-1 text-[12px] font-bold text-[#C91076] hover:underline w-fit"
+                    title={`Telepon ${incident.courier.name}`}
+                  >
+                    <Phone size={11} aria-hidden="true" />
+                    {incident.courier.phone}
+                  </a>
+                )}
               </div>
 
               {/* Kendala + lokasi */}

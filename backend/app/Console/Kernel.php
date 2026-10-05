@@ -27,7 +27,7 @@ class Kernel extends ConsoleKernel
             ->timezone('Asia/Jakarta');
 
         $schedule->command('courier:simulate')
-            ->everyFiveSeconds()
+            ->everyTwoSeconds()
             ->timezone('Asia/Jakarta');
 
         $schedule->command('cache:warm')

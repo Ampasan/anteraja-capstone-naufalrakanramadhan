@@ -211,6 +211,7 @@ describe('apiCached', () => {
   beforeEach(() => {
     fetchMock.mockReset();
     invalidateApiCache();
+    sessionStorage.clear();
     vi.stubGlobal('fetch', fetchMock);
   });
 
@@ -299,6 +300,88 @@ describe('apiCached', () => {
     // Entri pertama tersingkir, jadi walau TTL-nya masih jauh ia ikut diambil ulang.
     await apiCached('/q/0', 1_000_000_000);
     expect(fetchMock).toHaveBeenCalledTimes(102);
+  });
+
+  it('memori yang kedaluwarsa tetap menunggu data segar, bukan isi lama', async () => {
+    fetchMock.mockImplementation(async () => envelope({ total: 1 }));
+    await apiCached('/couriers', 0, { staleMs: 60_000 });
+
+    fetchMock.mockImplementation(async () => envelope({ total: 2 }));
+
+    await expect(apiCached<{ total: number }>('/couriers', 0, { staleMs: 60_000 })).resolves.toEqual({
+      total: 2,
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('memori kosong saat reload: isi tahan-simpan tampil lebih dulu lalu ditimpa di latar belakang', async () => {
+    fetchMock.mockImplementation(async () => envelope({ total: 1 }));
+    await apiCached('/couriers', 60_000, { staleMs: 60_000 });
+
+    // Simulasikan reload: modul baru sehingga memori kosong, sessionStorage tetap.
+    vi.resetModules();
+    fetchMock.mockImplementation(async () => envelope({ total: 2 }));
+    const reloaded = await import('../api');
+
+    await expect(
+      reloaded.apiCached<{ total: number }>('/couriers', 60_000, { staleMs: 60_000 }),
+    ).resolves.toEqual({ total: 1 });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+
+    await vi.waitFor(() => {
+      const persisted = JSON.parse(sessionStorage.getItem('anteraja.api.cache') ?? '{}');
+      expect(persisted['/couriers']?.data).toEqual({ total: 2 });
+    });
+
+    await expect(
+      reloaded.apiCached<{ total: number }>('/couriers', 60_000, { staleMs: 60_000 }),
+    ).resolves.toEqual({ total: 2 });
+  });
+
+  it('invalidateApiCache ikut membuang cadangan tahan-simpan', async () => {
+    fetchMock.mockImplementation(async () => envelope({ total: 1 }));
+    await apiCached('/couriers', 60_000, { staleMs: 60_000 });
+
+    invalidateApiCache('/couriers');
+
+    expect(sessionStorage.getItem('anteraja.api.cache')).toBe('{}');
+  });
+
+  it('mendorong hasil revalidasi latar ke onRevalidated', async () => {
+    fetchMock.mockImplementation(async () => envelope({ total: 1 }));
+    await apiCached('/couriers', 60_000, { staleMs: 60_000 });
+
+    // Simulasikan reload: memori kosong, sessionStorage tetap.
+    vi.resetModules();
+    let settle!: (response: Response) => void;
+    fetchMock.mockImplementation(
+      () => new Promise<Response>((resolve) => { settle = resolve; }),
+    );
+    const reloaded = await import('../api');
+
+    const onRevalidated = vi.fn();
+    await expect(
+      reloaded.apiCached<{ total: number }>('/couriers', 0, {
+        staleMs: 60_000,
+        onRevalidated,
+      }),
+    ).resolves.toEqual({ total: 1 });
+    expect(onRevalidated).not.toHaveBeenCalled();
+
+    settle(envelope({ total: 2 }));
+    await vi.waitFor(() => expect(onRevalidated).toHaveBeenCalledWith({ total: 2 }));
+  });
+
+  it('menulis cadangan tahan-simpan paling sekali per jeda throttle', async () => {
+    fetchMock.mockImplementation(async () => envelope({ total: 1 }));
+    await apiCached('/couriers', 0, { staleMs: 60_000 });
+
+    const setItem = vi.spyOn(Storage.prototype, 'setItem');
+    await apiCached('/couriers', 0, { staleMs: 60_000 });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(setItem).not.toHaveBeenCalled();
+    setItem.mockRestore();
   });
 });
 

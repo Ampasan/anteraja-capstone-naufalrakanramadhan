@@ -56,7 +56,7 @@ class EscalateIncidents extends Command
                     'incident_code' => $incident->incident_code,
                     'severity' => 'CRITICAL',
                     'status' => 'ESCALATED',
-                    'status_label' => 'Eskalasi',
+                    'status_label' => 'Klik untuk Evaluasi',
                     'incident_category' => $incident->incident_category,
                     'title' => $incident->title,
                     'waybill_number' => $incident->order?->order_number,

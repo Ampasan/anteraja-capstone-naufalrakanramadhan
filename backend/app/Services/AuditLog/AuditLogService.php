@@ -97,7 +97,11 @@ class AuditLogService
             ->leftJoin('couriers AS original_couriers', 'original_couriers.id', '=', 'audit_logs.original_courier_id')
             ->leftJoin('couriers AS replacement_couriers', 'replacement_couriers.id', '=', 'audit_logs.replacement_courier_id')
             ->where('orders.hub_origin_id', $hubId)
+            // Waktu operasional dibekukan, jadi banyak baris baru punya
+            // created_at identik. `id` UUIDv7 menurun menjamin baris paling
+            // baru selalu di atas tanpa tergantung urutan balik database.
             ->orderByDesc('audit_logs.created_at')
+            ->orderByDesc('audit_logs.id')
             ->get();
 
         return $rows->map(fn (object $row) => (new AuditLog)->newFromBuilder((array) $row));

@@ -66,6 +66,12 @@ describe('AuditTable', () => {
     expect(screen.getByText('Rina Wijaya')).toBeInTheDocument();
   });
 
+  it('badge Dialihkan tampil untuk pengalihan pada hari operasional berjalan', () => {
+    renderTable({ data: [{ ...ENTRY, reportStatus: 'Dialihkan' }] });
+
+    expect(screen.getByText('Dialihkan')).toBeInTheDocument();
+  });
+
   it('tombol salin resi tersedia per baris', () => {
     renderTable();
 

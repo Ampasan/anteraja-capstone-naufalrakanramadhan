@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { apiCached, invalidateApiCache } from '../../../lib/api';
+import { apiCached, invalidateApiCache, STALE_WHILE_REVALIDATE_MS } from '../../../lib/api';
 import {
   mapAuditKpi,
   mapAuditLogs,
@@ -22,11 +22,16 @@ const PAGE_SIZE = 5;
 const POLL_MS = 20_000;
 const CACHE_TTL_MS = 19_000;
 
-/** Urutkan terbaru di atas — jaminan pengurutan tidak bergantung pada urutan server. */
+/**
+ * Urutkan terbaru di atas — jaminan pengurutan tidak bergantung pada urutan server.
+ * Waktu operasional dibekukan, jadi beberapa baris bisa berbagi `completedAt`
+ * identik; `id` UUIDv7 menurun dipakai sebagai pembuat keputusan terakhir.
+ */
 function newestFirst(entries: AuditLogEntry[]): AuditLogEntry[] {
-  return [...entries].sort(
-    (a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime(),
-  );
+  return [...entries].sort((a, b) => {
+    const byTime = new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime();
+    return byTime !== 0 ? byTime : b.id.localeCompare(a.id);
+  });
 }
 
 function startOfDay(d: Date): Date {
@@ -71,22 +76,30 @@ export function useAuditLogs() {
 
   const [page, setPage] = useState(1);
   
+  const apply = useCallback(
+    (payload: { logs: RawAuditLog[]; summary?: RawAuditSummary }) => {
+      const mapped = mapAuditLogs(payload.logs ?? []);
+      // Tabel riwayat wajib terbaru di atas; urutan ini dijaga di sini
+      // sehingga filter dan pagination tetap mewarisi urutan yang sama.
+      setLogs(newestFirst(mapped));
+      setKpi(mapAuditKpi(payload.summary, mapped));
+      setErrorMessage(null);
+    },
+    [],
+  );
+
   const load = useCallback(
     () =>
-      apiCached<{ logs: RawAuditLog[]; summary?: RawAuditSummary }>('/audit-logs', CACHE_TTL_MS)
-        .then((payload) => {
-          const mapped = mapAuditLogs(payload.logs ?? []);
-          // Tabel riwayat wajib terbaru di atas; urutan ini dijaga di sini
-          // sehingga filter dan pagination tetap mewarisi urutan yang sama.
-          setLogs(newestFirst(mapped));
-          setKpi(mapAuditKpi(payload.summary, mapped));
-          setErrorMessage(null);
-        })
+      apiCached<{ logs: RawAuditLog[]; summary?: RawAuditSummary }>('/audit-logs', CACHE_TTL_MS, {
+        staleMs: STALE_WHILE_REVALIDATE_MS,
+        onRevalidated: apply,
+      })
+        .then(apply)
         .catch((error: unknown) => {
           setErrorMessage(error instanceof Error ? error.message : 'Gagal memuat audit log.');
         })
         .finally(() => setIsLoading(false)),
-    [],
+    [apply],
   );
 
   useEffect(() => {

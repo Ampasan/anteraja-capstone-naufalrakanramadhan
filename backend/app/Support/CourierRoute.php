@@ -2,6 +2,9 @@
 
 namespace App\Support;
 
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
+
 class CourierRoute
 {
     /** Jumlah titik putaran tiap kurir. */
@@ -11,6 +14,19 @@ class CourierRoute
     private const MIN_RADIUS_M = 900.0;
 
     private const MAX_RADIUS_M = 3600.0;
+
+    /** Routing jalan OSRM di atas data OpenStreetMap — satu sumber dengan tile peta. */
+    private const ROAD_URL = 'https://router.project-osrm.org/route/v1/driving';
+
+    private const ROAD_TIMEOUT_S = 4;
+
+    /** Putaran yang sudah menempel aspal jarang berubah, jadi hasilnya dipakai lama. */
+    private const ROAD_CACHE_DAYS = 30;
+
+    /** Satu kegagalan cukup: tanda ini menahan percobaan berikutnya sebentar. */
+    private const ROAD_DOWN_TTL_MINUTES = 5;
+
+    private const ROAD_DOWN_KEY = 'courier_road_loop:down';
 
     /**
      * @return array<int, array{0: float, 1: float}>
@@ -32,6 +48,94 @@ class CourierRoute
         }
 
         return $points;
+    }
+
+    /**
+     * Putaran yang menempel ke jaringan jalan, dipakai sebagai lintasan penanda kurir.
+     *
+     * `loop()` hanya kumpulan titik acak di sekitar hub; tanpa langkah ini penanda
+     * meluncur lurus melintasi blok. Hasilnya di-cache lama karena bentuk putarannya
+     * tidak berubah selama hub tidak bergeser.
+     *
+     * @return array<int, array{0: float, 1: float}>
+     */
+    public static function roadLoop(string $courierCode, float $hubLat, float $hubLng): array
+    {
+        $cacheKey = "courier_road_loop:{$courierCode}";
+        $cached = Cache::get($cacheKey);
+
+        if (is_array($cached)) {
+            return $cached;
+        }
+
+        $anchors = self::loop($courierCode, $hubLat, $hubLng);
+        $road = self::snapToRoads($anchors);
+
+        if ($road === null) {
+            return $anchors;
+        }
+
+        Cache::put($cacheKey, $road, now()->addDays(self::ROAD_CACHE_DAYS));
+
+        return $road;
+    }
+
+    /**
+     * @param  array<int, array{0: float, 1: float}>  $anchors
+     * @return array<int, array{0: float, 1: float}>|null
+     */
+    private static function snapToRoads(array $anchors): ?array
+    {
+        if (Cache::get(self::ROAD_DOWN_KEY) !== null) {
+            return null;
+        }
+
+        $road = self::requestRoadLoop($anchors);
+
+        if ($road === null) {
+            Cache::put(self::ROAD_DOWN_KEY, true, now()->addMinutes(self::ROAD_DOWN_TTL_MINUTES));
+        }
+
+        return $road;
+    }
+
+    /**
+     * @param  array<int, array{0: float, 1: float}>  $anchors
+     * @return array<int, array{0: float, 1: float}>|null
+     */
+    private static function requestRoadLoop(array $anchors): ?array
+    {
+        // Titik pertama diulang di akhir supaya putaran tertutup dan segmen
+        // penutup ikut melewati jalan, bukan garis lurus lintas blok.
+        $path = implode(';', array_map(
+            fn (array $point): string => $point[1].','.$point[0],
+            array_merge($anchors, [$anchors[0]]),
+        ));
+
+        try {
+            $response = Http::timeout(self::ROAD_TIMEOUT_S)->get(
+                self::ROAD_URL.'/'.$path.'?alternatives=false&steps=false&overview=full&geometries=geojson',
+            );
+        } catch (\Throwable) {
+            return null;
+        }
+
+        $coordinates = $response->successful() ? $response->json('routes.0.geometry.coordinates') : null;
+
+        if (! is_array($coordinates)) {
+            return null;
+        }
+
+        $road = [];
+
+        foreach ($coordinates as $pair) {
+            if (is_array($pair) && count($pair) >= 2) {
+                // Geometri OSRM berformat [lng, lat], lintasan kita [lat, lng].
+                $road[] = [(float) $pair[1], (float) $pair[0]];
+            }
+        }
+
+        return count($road) >= 2 ? $road : null;
     }
 
     /**

@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { apiCached } from '../../../lib/api';
+import { apiCached, STALE_WHILE_REVALIDATE_MS } from '../../../lib/api';
 import { mapSlaOrders, type RawCourier, type RawOrder } from '../../../lib/mappers';
 import type { SlaOrder } from '../types';
 import type {
@@ -58,40 +58,46 @@ export function useSlaRisk() {
 
   const orders = useMemo(() => mapSlaOrders(rawOrders, couriers), [rawOrders, couriers]);
 
+  /** Terapkan ringkasan + pill — juga dipakai hasil revalidasi latar. */
   const loadSummary = useCallback(() => {
-    apiCached<{ orders: RawOrder[]; summary: SlaSummary }>('/orders/sla-risk?scope=panel', CACHE_TTL_MS)
-      .then((res) => {
-        // Filter risiko di frontend
-        const filteredOrders = riskFilter === 'Semua'
-          ? res.orders
-          : res.orders.filter((order) => order.risk_level === riskFilter);
+    const apply = (res: { orders: RawOrder[]; summary: SlaSummary }) => {
+      // Filter risiko di frontend
+      const filteredOrders = riskFilter === 'Semua'
+        ? res.orders
+        : res.orders.filter((order) => order.risk_level === riskFilter);
 
-        setSummary({
-          kritis: riskFilter === 'Semua' ? res.summary.kritis : (riskFilter === 'Kritis' ? filteredOrders.length : 0),
-          waspada: riskFilter === 'Semua' ? res.summary.waspada : (riskFilter === 'Waspada' ? filteredOrders.length : 0),
-          aman: riskFilter === 'Semua' ? res.summary.aman : (riskFilter === 'Aman' ? filteredOrders.length : 0),
-          total: filteredOrders.length,
-        });
+      setSummary({
+        kritis: riskFilter === 'Semua' ? res.summary.kritis : (riskFilter === 'Kritis' ? filteredOrders.length : 0),
+        waspada: riskFilter === 'Semua' ? res.summary.waspada : (riskFilter === 'Waspada' ? filteredOrders.length : 0),
+        aman: riskFilter === 'Semua' ? res.summary.aman : (riskFilter === 'Aman' ? filteredOrders.length : 0),
+        total: filteredOrders.length,
+      });
 
-        const keys: ServiceFilter[] = [
-          'Semua', 'Instant', 'Same Day', 'Next Day', 'Regular',
-          'Dokumen', 'Cargo', 'Mini Cargo', 'PHARMA', 'Frozen',
-        ];
+      const keys: ServiceFilter[] = [
+        'Semua', 'Instant', 'Same Day', 'Next Day', 'Regular',
+        'Dokumen', 'Cargo', 'Mini Cargo', 'PHARMA', 'Frozen',
+      ];
 
-        // Satu pemetaan baris untuk semua pill dari data yang sudah difilter
-        const byService = new Map<string, number>();
-        for (const order of filteredOrders) {
-          byService.set(order.service_type, (byService.get(order.service_type) ?? 0) + 1);
-        }
+      // Satu pemetaan baris untuk semua pill dari data yang sudah difilter
+      const byService = new Map<string, number>();
+      for (const order of filteredOrders) {
+        byService.set(order.service_type, (byService.get(order.service_type) ?? 0) + 1);
+      }
 
-        setServicePills(
-          keys.map((key) => ({
-            key,
-            label: key,
-            count: key === 'Semua' ? filteredOrders.length : (byService.get(key) ?? 0),
-          })),
-        );
-      })
+      setServicePills(
+        keys.map((key) => ({
+          key,
+          label: key,
+          count: key === 'Semua' ? filteredOrders.length : (byService.get(key) ?? 0),
+        })),
+      );
+    };
+
+    apiCached<{ orders: RawOrder[]; summary: SlaSummary }>('/orders/sla-risk?scope=panel', CACHE_TTL_MS, {
+      staleMs: STALE_WHILE_REVALIDATE_MS,
+      onRevalidated: apply,
+    })
+      .then(apply)
       .catch(() => {
         // Ringkasan gagal — tabel tetap jalan dengan data kosong.
       });
@@ -124,8 +130,13 @@ export function useSlaRisk() {
 
   // Kurir: dibutuhkan agar rincian kiriman menampilkan armada & muatan asli.
   const loadCouriers = useCallback(() => {
-    apiCached<{ couriers: RawCourier[] }>('/couriers', COURIERS_TTL_MS)
-      .then((res) => setCouriers(res.couriers ?? []))
+    const apply = (res: { couriers: RawCourier[] }) => setCouriers(res.couriers ?? []);
+
+    apiCached<{ couriers: RawCourier[] }>('/couriers', COURIERS_TTL_MS, {
+      staleMs: STALE_WHILE_REVALIDATE_MS,
+      onRevalidated: apply,
+    })
+      .then(apply)
       .catch(() => {
         // Gagal memuat kurir — tabel tetap jalan, hanya detailnya yang polos.
       });

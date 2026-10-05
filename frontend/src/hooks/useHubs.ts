@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { apiCached } from '../lib/api';
+import { apiCached, STALE_WHILE_REVALIDATE_MS } from '../lib/api';
 import { mapHub, type RawHub } from '../lib/mappers';
 import { getUser } from '../lib/session';
 import type { Hub } from '../features/monitoring/types';
@@ -56,15 +56,25 @@ export function useHubs(): {
   useEffect(() => {
     let cancelled = false;
 
-    apiCached<{ hubs: RawHub[] }>('/hubs', HUBS_TTL_MS)
-      .then((payload) => {
-        if (cancelled) return;
-        const mapped = (payload.hubs ?? []).map(mapHub);
-        setHubs(mapped.length > 0 ? mapped : [FALLBACK_HUB]);
-      })
-      .catch(() => {
-        if (!cancelled) setHubs([FALLBACK_HUB]);
-      })
+    // Berlaku untuk hasil langsung maupun hasil revalidasi latar belakang:
+    // tanpa onRevalidated, cadangan tahan-simpan yang tampil pertama tidak
+    // pernah diganti sampai komponen dipasang ulang.
+    const apply = (payload: { hubs: RawHub[] }) => {
+      if (cancelled) return;
+      const mapped = (payload.hubs ?? []).map(mapHub);
+      setHubs(mapped.length > 0 ? mapped : [FALLBACK_HUB]);
+    };
+
+    const fail = () => {
+      if (!cancelled) setHubs([FALLBACK_HUB]);
+    };
+
+    apiCached<{ hubs: RawHub[] }>('/hubs', HUBS_TTL_MS, {
+      staleMs: STALE_WHILE_REVALIDATE_MS,
+      onRevalidated: apply,
+    })
+      .then(apply)
+      .catch(fail)
       .finally(() => {
         if (!cancelled) setLoading(false);
       });

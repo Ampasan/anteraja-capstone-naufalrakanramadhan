@@ -32,16 +32,23 @@ class Authenticate extends Middleware
         }
 
         try {
-            $justBecameActive = Cache::add("active_hub:{$hubId}", 1, 120);
+            // Satu round-trip Redis per request: add sekaligus berperan sebagai
+            // gerbang 120 detik. Sebelumnya `Cache::get('active_hubs')` ikut
+            // jalan di tiap request, sehingga dua round-trip untuk pekerjaan
+            // yang cuma perlu sekali per gerbang. Daftar `active_hubs` (TTL
+            // 600 detik) tetap terisi selama hub aktif, karena gerbang terbuka
+            // tiap 120 detik selama request masih masuk.
+            if (! Cache::add("active_hub:{$hubId}", 1, 120)) {
+                return;
+            }
 
             $active = Cache::get('active_hubs', []);
             if (! in_array($hubId, $active, true)) {
                 $active[] = $hubId;
                 Cache::put('active_hubs', $active, 600);
             }
-            if ($justBecameActive) {
-                Artisan::queue('cache:warm');
-            }
+
+            Artisan::queue('cache:warm');
         } catch (\Throwable) {
         }
     }

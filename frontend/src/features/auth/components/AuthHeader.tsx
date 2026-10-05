@@ -1,4 +1,5 @@
-import anterajaLogo from '../../../assets/anteraja_logo.png';
+/** Berkas yang sama dengan favicon di index.html — sekali unduh, bukan dua. */
+const anterajaLogo = '/anteraja_logo.png';
 
 export function AuthHeader() {
   return (

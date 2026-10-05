@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { apiCached, invalidateApiCache } from '../lib/api';
+import { apiCached, invalidateApiCache, STALE_WHILE_REVALIDATE_MS } from '../lib/api';
 
 export interface DashboardSummary {
   hub: {
@@ -28,15 +28,21 @@ export function useDashboardSummary(): {
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  /** Terapkan payload — dipakai hasil langsung maupun hasil revalidasi latar. */
+  const apply = useCallback((payload: DashboardSummary) => setSummary(payload), []);
+
   const load = useCallback(
     () =>
-      apiCached<DashboardSummary>('/dashboard/summary', TTL_MS)
-        .then((payload) => setSummary(payload))
+      apiCached<DashboardSummary>('/dashboard/summary', TTL_MS, {
+        staleMs: STALE_WHILE_REVALIDATE_MS,
+        onRevalidated: apply,
+      })
+        .then(apply)
         .catch(() => {
           // Biarkan nilai terakhir yang tampil; panel lain tetap bekerja.
         })
         .finally(() => setIsLoading(false)),
-    [],
+    [apply],
   );
 
   useEffect(() => {

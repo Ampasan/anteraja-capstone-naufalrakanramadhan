@@ -32,10 +32,11 @@ export interface AuditKpi {
 /**
  * Posisi laporan pada satu baris riwayat.
  *
+ * - `Dialihkan` — pengalihan baru saja dijalankan (hari operasional berjalan)
  * - `Eskalasi` — lapornya masih menuntut tindakan Admin Hub
  * - `Selesai` — kiriman sudah sampai ke penerima
  */
-export type ReportStatus = 'Eskalasi' | 'Selesai';
+export type ReportStatus = 'Dialihkan' | 'Eskalasi' | 'Selesai';
 
 export type AuditLogEntry = AuditLogBase & {
   reportStatus: ReportStatus;
