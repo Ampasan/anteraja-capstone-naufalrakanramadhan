@@ -1,0 +1,291 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --brand:      #e8271a;
+  --surface:    #ffffff;
+  --surface-2:  #f5f6f8;
+  --border:     #e2e5ea;
+  --text:       #111827;
+  --text-muted: #6b7280;
+  --radius:     8px;
+  --shadow:     0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+  --shadow-md:  0 4px 12px rgba(0,0,0,.10);
+
+  /* Status colors */
+  --c-delivered: #16a34a; --bg-delivered: #dcfce7;
+  --c-transit:   #2563eb; --bg-transit:   #dbeafe;
+  --c-pickup:    #d97706; --bg-pickup:    #fef3c7;
+  --c-attempted: #dc2626; --bg-attempted: #fee2e2;
+  --c-hub:       #7c3aed; --bg-hub:       #ede9fe;
+}
+
+html, body {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  background: var(--surface-2);
+  color: var(--text);
+  overflow: hidden;
+}
+
+/* ── Layout ── */
+.app {
+  display: grid;
+  grid-template-rows: 52px 1fr;
+  grid-template-columns: 300px 1fr;
+  height: 100vh;
+}
+
+/* ── Topbar ── */
+.topbar {
+  grid-column: 1 / -1;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  gap: 10px;
+  box-shadow: var(--shadow);
+  z-index: 20;
+}
+
+.logo {
+  width: 30px;
+  height: 30px;
+  background: var(--brand);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.topbar-name {
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.topbar-sub {
+  font-size: .75rem;
+  color: var(--text-muted);
+}
+
+.divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+  margin: 0 4px;
+}
+
+.topbar-title {
+  font-size: .82rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .75rem;
+  color: var(--text-muted);
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sidebar-header {
+  padding: 12px 14px 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-title {
+  font-size: .72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.sidebar-count {
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Stats summary row */
+.stats-row {
+  display: flex;
+  padding: 10px 14px;
+  gap: 6px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.stat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: .72rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 20px;
+}
+
+/* Shipment list */
+.shipment-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.shipment-list::-webkit-scrollbar { width: 4px; }
+.shipment-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+.shipment-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background .12s;
+}
+
+.shipment-item:hover  { background: var(--surface-2); }
+.shipment-item.active { background: #fef2f2; }
+
+.item-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.item-body { flex: 1; min-width: 0; }
+
+.item-tracking {
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.item-courier {
+  font-size: .74rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-badge {
+  font-size: .66rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  flex-shrink: 0;
+}
+
+/* ── Map ── */
+.map-wrap { position: relative; overflow: hidden; }
+#map { width: 100%; height: 100%; }
+
+/* Hide noisy Google UI */
+.gm-style-cc { display: none !important; }
+a[href^="https://maps.google.com/maps"] { display: none !important; }
+
+/* Geocode notice */
+#geocode-toast {
+  position: absolute;
+  bottom: 16px;
+  right: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--c-transit);
+  border-radius: var(--radius);
+  padding: 9px 13px;
+  font-size: .76rem;
+  box-shadow: var(--shadow-md);
+  z-index: 10;
+  max-width: 270px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity .2s, transform .2s;
+  pointer-events: none;
+}
+
+#geocode-toast.show            { opacity: 1; transform: translateY(0); }
+#geocode-toast.success         { border-left-color: var(--c-delivered); }
+#geocode-toast.error           { border-left-color: var(--c-attempted); }
+
+.toast-type {
+  font-size: .68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--text-muted);
+  margin-bottom: 1px;
+}
+
+/* Info window */
+.gm-style .gm-style-iw-c {
+  border-radius: var(--radius) !important;
+  box-shadow: var(--shadow-md) !important;
+  padding: 0 !important;
+}
+.gm-style .gm-style-iw-d { overflow: hidden !important; }
+
+.iw {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  width: 220px;
+  padding: 12px 14px;
+}
+
+.iw-no {
+  font-size: .68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: #9ca3af;
+  margin-bottom: 2px;
+}
+
+.iw-courier {
+  font-size: .92rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 8px;
+}
+
+.iw-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: .76rem;
+  margin-bottom: 5px;
+}
+
+.iw-key { color: #9ca3af; }
+.iw-val { font-weight: 600; color: #374151; text-align: right; }
+
+.iw-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: .66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+}
