@@ -1,0 +1,38 @@
+[
+  {
+    "hub_id": "HUB_MKS",
+    "name": "Anteraja Hub Makassar",
+    "lat": -5.1477,
+    "lng": 119.4327
+  },
+  {
+    "hub_id": "HUB_MES",
+    "name": "Anteraja Hub Medan",
+    "lat": 3.5952,
+    "lng": 98.6722
+  },
+  {
+    "hub_id": "HUB_BDG",
+    "name": "Anteraja Hub Bandung",
+    "lat": -6.9175,
+    "lng": 107.6191
+  },
+  {
+    "hub_id": "HUB_JKT",
+    "name": "Anteraja Hub Jakarta",
+    "lat": -6.2088,
+    "lng": 106.8456
+  },
+  {
+    "hub_id": "HUB_SRG",
+    "name": "Anteraja Hub Semarang",
+    "lat": -6.9667,
+    "lng": 110.4167
+  },
+  {
+    "hub_id": "HUB_SUB",
+    "name": "Anteraja Hub Surabaya",
+    "lat": -7.2504,
+    "lng": 112.7688
+  }
+]

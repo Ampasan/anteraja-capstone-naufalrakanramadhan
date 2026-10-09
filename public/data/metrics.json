@@ -1,0 +1,50 @@
+[
+  {
+    "hub_id": "HUB_MKS",
+    "mean_dwell": 17.89,
+    "min_dwell": 3.6,
+    "max_dwell": 39.4,
+    "completed_visits": 1492,
+    "priority": true
+  },
+  {
+    "hub_id": "HUB_MES",
+    "mean_dwell": 11.48,
+    "min_dwell": 2.3,
+    "max_dwell": 25.3,
+    "completed_visits": 1569,
+    "priority": true
+  },
+  {
+    "hub_id": "HUB_BDG",
+    "mean_dwell": 8.45,
+    "min_dwell": 1.2,
+    "max_dwell": 18.6,
+    "completed_visits": 1482,
+    "priority": true
+  },
+  {
+    "hub_id": "HUB_JKT",
+    "mean_dwell": 3.96,
+    "min_dwell": 0.8,
+    "max_dwell": 8.7,
+    "completed_visits": 1440,
+    "priority": false
+  },
+  {
+    "hub_id": "HUB_SRG",
+    "mean_dwell": 3.91,
+    "min_dwell": 0.8,
+    "max_dwell": 8.6,
+    "completed_visits": 1476,
+    "priority": false
+  },
+  {
+    "hub_id": "HUB_SUB",
+    "mean_dwell": 3.83,
+    "min_dwell": 0.8,
+    "max_dwell": 8.4,
+    "completed_visits": 1426,
+    "priority": false
+  }
+]

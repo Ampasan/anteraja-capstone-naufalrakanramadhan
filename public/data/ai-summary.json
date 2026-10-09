@@ -1,0 +1,50 @@
+{
+  "current_summary": {
+    "summary": "Terdapat 3 hub yang mengalami bottleneck dengan rata-rata dwell time melebihi ambang batas 6 jam: Makassar (17,89j), Medan (11,48j), dan Bandung (8,45j).",
+    "priority_hubs": [
+      "HUB_MKS",
+      "HUB_MES",
+      "HUB_BDG"
+    ],
+    "next_checks": [
+      "Evaluasi kapasitas operasional dan antrean inbound/outbound di Hub Makassar",
+      "Pemeriksaan alokasi armada dan personel sorting di Hub Medan",
+      "Tinjau throughput dan kapasitas handling di Hub Bandung"
+    ]
+  },
+  "ai_test_logs": {
+    "test_1_normal": {
+      "summary": "Terdapat 3 hub yang mengalami bottleneck dengan rata-rata dwell time melebihi ambang batas 6 jam: Makassar (17,89j), Medan (11,48j), dan Bandung (8,45j).",
+      "priority_hubs": ["HUB_MKS", "HUB_MES", "HUB_BDG"],
+      "next_checks": [
+        "Evaluasi kapasitas operasional dan antrean inbound/outbound di Hub Makassar",
+        "Pemeriksaan alokasi armada dan personel sorting di Hub Medan",
+        "Tinjau throughput dan kapasitas handling di Hub Bandung"
+      ]
+    },
+    "test_2_no_priority": {
+      "summary": "Seluruh hub beroperasi normal dengan rata-rata dwell time di bawah ambang batas 6 jam.",
+      "priority_hubs": [],
+      "next_checks": [
+        "Pertahankan ritme operasional dan alur sorting saat ini",
+        "Lakukan pemantauan berkala terhadap potensi lonjakan volume pengiriman"
+      ]
+    },
+    "test_3_empty": {
+      "summary": "Data tidak tersedia",
+      "priority_hubs": [],
+      "next_checks": [
+        "Periksa koneksi pipeline data atau endpoint API logistik",
+        "Jadwalkan ulang penarikan data metrik hub"
+      ]
+    },
+    "test_4_untrusted_name": {
+      "summary": "Terdeteksi 1 hub mengalami bottleneck dengan rata-rata dwell time melebihi ambang batas 6 jam.",
+      "priority_hubs": ["HUB_HACK"],
+      "next_checks": [
+        "Investigasi penyebab dwell time tinggi di HUB_HACK",
+        "Evaluasi kapasitas penanganan paket dan proses sorting pada hub terkait"
+      ]
+    }
+  }
+}

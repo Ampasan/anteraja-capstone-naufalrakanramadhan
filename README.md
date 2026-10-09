@@ -4,9 +4,9 @@ Aplikasi web operasional untuk memantau dwell time paket di hub Anteraja. Mengga
 
 ## Stack
 
-- React 19 + Vite 8
-- Leaflet 1.9 (vanilla, tanpa react-leaflet untuk menghindari error re-initialization)
-- Tailwind CSS 3 (utility base)
+- React + Vite
+- Leaflet  (vanilla, tanpa react-leaflet untuk menghindari error re-initialization)
+- Tailwind CSS (utility base)
 - Plus Jakarta Sans (Google Fonts)
 
 ## Setup
