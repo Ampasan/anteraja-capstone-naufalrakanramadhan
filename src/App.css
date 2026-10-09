@@ -1,0 +1,455 @@
+/* ==============================
+   Animasi
+   ============================== */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ==============================
+   App shell
+   ============================== */
+.app-shell {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  background: #F8F9FA;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+/* ==============================
+   Layar state (loading/error/kosong)
+   ============================== */
+.state-screen {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  padding: 2rem;
+  background: #F8F9FA;
+  text-align: center;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #E2E8F0;
+  border-top-color: #E3008C;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+.state-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #F1F5F9;
+  color: #64748B;
+  font-size: 18px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.state-icon--error {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.state-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.state-text {
+  font-size: 13px;
+  color: #64748B;
+  max-width: 300px;
+  line-height: 1.5;
+}
+
+/* ==============================
+   Topbar
+   ============================== */
+.topbar {
+  background: #ffffff;
+  border-bottom: 1px solid #E2E8F0;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+}
+
+.topbar-inner {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  height: 52px;
+  display: flex;
+  align-items: center;
+}
+
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.brand-logo {
+  display: block;
+}
+
+.brand-fallback {
+  display: none;
+  font-weight: 800;
+  font-size: 15px;
+  color: #E3008C;
+  letter-spacing: -0.02em;
+}
+
+.topbar-divider {
+  width: 1px;
+  height: 20px;
+  background: #E2E8F0;
+  flex-shrink: 0;
+}
+
+.topbar-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0F172A;
+  letter-spacing: -0.01em;
+}
+
+/* ==============================
+   Konten utama
+   ============================== */
+.main-content {
+  flex: 1;
+  max-width: 1440px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 1.25rem 1.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ==============================
+   Baris KPI
+   ============================== */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+
+/* ==============================
+   Grid body: peta kiri, panel kanan
+   ============================== */
+.body-grid {
+  display: grid;
+  grid-template-columns: 1fr 390px;
+  gap: 1rem;
+  align-items: start;
+}
+
+/* ==============================
+   Kolom peta
+   ============================== */
+.map-column {
+  display: flex;
+  flex-direction: column;
+  /* Tinggi = 100vh dikurangi topbar + padding + kpi-row */
+  height: calc(100svh - 52px - 86px - 2.5rem);
+  min-height: 460px;
+  position: sticky;
+  top: calc(52px + 1.25rem);
+}
+
+.map-header {
+  background: #ffffff;
+  border: 1px solid #E2E8F0;
+  border-bottom: none;
+  border-radius: 12px 12px 0 0;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.map-header-left h2 {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.map-header-left p {
+  font-size: 11px;
+  color: #94A3B8;
+  margin: 2px 0 0;
+}
+
+.map-header-chips {
+  display: flex;
+  gap: 0.375rem;
+  flex-shrink: 0;
+}
+
+.map-chip {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+
+.map-chip.active {
+  background: #E3008C;
+  color: #ffffff;
+}
+
+.map-chip.inactive {
+  background: #F1F5F9;
+  color: #64748B;
+}
+
+.map-chip.inactive:hover {
+  background: #E2E8F0;
+  color: #0F172A;
+}
+
+.map-wrap {
+  flex: 1;
+  min-height: 0;
+}
+
+.map-legend {
+  background: #ffffff;
+  border: 1px solid #E2E8F0;
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  padding: 0.5rem 1rem;
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 11px;
+  color: #64748B;
+  user-select: none;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ==============================
+   Panel kanan
+   ============================== */
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  position: sticky;
+  top: calc(52px + 1.25rem);
+  max-height: calc(100svh - 52px - 86px - 2.5rem);
+  min-height: 460px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #E2E8F0 transparent;
+  /* Sedikit padding kanan agar scrollbar tidak menempel konten */
+  padding-right: 2px;
+}
+
+.right-panel::-webkit-scrollbar {
+  width: 4px;
+}
+
+.right-panel::-webkit-scrollbar-thumb {
+  background: #E2E8F0;
+  border-radius: 2px;
+}
+
+/* ==============================
+   Search bar
+   ============================== */
+.search-bar {
+  background: #ffffff;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 0.625rem 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  transition: border-color 0.15s;
+}
+
+.search-bar:focus-within {
+  border-color: #E3008C;
+  box-shadow: 0 0 0 3px rgba(227, 0, 140, 0.1);
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 13px;
+  color: #0F172A;
+  background: transparent;
+  font-family: inherit;
+  min-width: 0;
+}
+
+.search-input::placeholder {
+  color: #94A3B8;
+}
+
+.search-clear {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #94A3B8;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 2px;
+  display: flex;
+  align-items: center;
+}
+
+.search-clear:hover {
+  color: #0F172A;
+}
+
+/* ==============================
+   Visibilitas detail hub
+   ============================== */
+.detail-desktop {
+  display: block;
+}
+
+.detail-mobile {
+  display: none;
+}
+
+/* ==============================
+   Footer
+   ============================== */
+.app-footer {
+  background: #ffffff;
+  border-top: 1px solid #E2E8F0;
+  padding: 0.625rem 1.5rem;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: 11px;
+  color: #94A3B8;
+  flex-wrap: wrap;
+}
+
+/* ======================================================
+   RESPONSIF — Mobile (max 767px)
+   Peta dan daftar ditampilkan secara bertumpuk.
+   ====================================================== */
+@media (max-width: 767px) {
+  .topbar-inner {
+    padding: 0 1rem;
+  }
+
+  .topbar-title {
+    font-size: 13px;
+  }
+
+  .main-content {
+    padding: 0.875rem 0.875rem 1rem;
+    gap: 0.875rem;
+  }
+
+  /* KPI: 2 kolom di mobile */
+  .kpi-row {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  /* Body: satu kolom, peta di atas */
+  .body-grid {
+    grid-template-columns: 1fr;
+    gap: 0.875rem;
+  }
+
+  /* Peta: tidak sticky, tinggi tetap 300px */
+  .map-column {
+    position: static;
+    height: 300px;
+    min-height: 260px;
+  }
+
+  /* Panel kanan: tidak sticky, tidak overflow */
+  .right-panel {
+    position: static;
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+  }
+
+  /* Detail: sembunyikan di dalam panel, tampilkan di bawah peta */
+  .detail-desktop {
+    display: none;
+  }
+
+  .detail-mobile {
+    display: block;
+    padding: 0 0 0.5rem;
+  }
+
+  .app-footer {
+    padding: 0.5rem 1rem;
+  }
+}
+
+/* ======================================================
+   RESPONSIF — Tablet (768px – 1100px)
+   ====================================================== */
+@media (min-width: 768px) and (max-width: 1100px) {
+  .body-grid {
+    grid-template-columns: 1fr 320px;
+  }
+
+  .main-content {
+    padding: 1rem 1.25rem 1.25rem;
+  }
+
+  .kpi-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ======================================================
+   RESPONSIF — Desktop lebar (min 1280px)
+   ====================================================== */
+@media (min-width: 1280px) {
+  .body-grid {
+    grid-template-columns: 1fr 400px;
+  }
+}

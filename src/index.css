@@ -1,0 +1,75 @@
+/* === Global Reset & Base === */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  background: #F8F9FA;
+  color: #0F172A;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* === Leaflet overrides — keep attribution visible === */
+.leaflet-container {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  border-radius: 0;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.08);
+  padding: 0;
+  overflow: hidden;
+}
+
+.leaflet-popup-content {
+  margin: 0;
+  width: 240px !important;
+}
+
+.leaflet-popup-tip {
+  box-shadow: none;
+}
+
+.leaflet-control-attribution {
+  font-size: 10px;
+}
+
+/* === Custom Leaflet Marker === */
+.marker-normal {
+  background: #10B981;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(16,185,129,0.4);
+}
+
+.marker-priority {
+  background: #E3008C;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(227,0,140,0.4);
+}
+
+/* === Utility — screen reader only === */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
