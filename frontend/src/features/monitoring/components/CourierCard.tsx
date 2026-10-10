@@ -65,12 +65,12 @@ export function CourierCard({ courier, isSelected, onClick }: CourierCardProps) 
             {isIdle ? (
               <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-amber-700 flex-shrink-0 whitespace-nowrap">
                 <span className="w-2 h-2 rounded-full bg-amber-400" aria-hidden="true" />
-                Idle
+                Mengantar
               </span>
             ) : (
               <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-emerald-700 flex-shrink-0 whitespace-nowrap">
                 <span className="w-2 h-2 rounded-full bg-emerald-500" aria-hidden="true" />
-                Online
+                Standby
               </span>
             )}
           </div>

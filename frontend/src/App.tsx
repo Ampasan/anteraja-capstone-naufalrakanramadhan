@@ -2,6 +2,7 @@ import { Suspense, lazy, useCallback, useEffect, useState, type ReactNode } from
 import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import { MainLayout } from './components/layout/MainLayout';
 import { LoginPage } from './features/auth/LoginPage';
+import { FieldReportPage } from './features/field-report/FieldReportPage';
 import { NotFoundPage } from './features/NotFoundPage';
 import { apiVoid, invalidateApiCache, UNAUTHORIZED_EVENT } from './lib/api';
 import { clearSession, hasSession } from './lib/session';
@@ -85,6 +86,7 @@ function App() {
         <Route path="/sla" element={<Navigate to="/login" replace />} />
         <Route path="/incidents" element={<Navigate to="/login" replace />} />
         <Route path="/audit" element={<Navigate to="/login" replace />} />
+        <Route path="/lapor-insiden" element={<FieldReportPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     );
@@ -103,6 +105,7 @@ function App() {
         <Route path="/incidents" element={lazyRoute(<IncidentsPage />)} />
         <Route path="/audit" element={lazyRoute(<AuditLogsPage />)} />
       </Route>
+      <Route path="/lapor-insiden" element={<FieldReportPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );

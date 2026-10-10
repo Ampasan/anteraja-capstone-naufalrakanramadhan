@@ -7,7 +7,6 @@ use App\Http\Requests\ReassignIncidentRequest;
 use App\Http\Requests\StoreIncidentRequest;
 use App\Models\Hub;
 use App\Services\AuditLog\AuditLogService;
-use App\Services\Cloudinary\CloudinaryService;
 use App\Services\Incident\DailyIncidentReportService;
 use App\Services\Incident\IncidentService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -21,7 +20,6 @@ class IncidentController extends Controller
     public function __construct(
         private IncidentService $incidentService,
         private AuditLogService $auditLogService,
-        private CloudinaryService $cloudinaryService,
         private DailyIncidentReportService $dailyReportService
     ) {}
 
@@ -144,28 +142,17 @@ class IncidentController extends Controller
         ]);
 
         try {
-            $file = $request->file('photo');
-
-            $uploadResult = $this->cloudinaryService->uploadEvidence($file);
-
-            // Simpan ke database
-            $incident = \App\Models\IncidentReport::findOrFail($id);
-            $incident->evidences()->create([
-                'cloudinary_public_id' => $uploadResult['public_id'],
-                'secure_url' => $uploadResult['secure_url'],
-                'caption' => $request->input('caption'),
-                'uploaded_at' => now(),
-            ]);
-
-            // Update incident dengan evidence utama
-            $incident->update([
-                'evidence_image_url' => $uploadResult['secure_url'],
-                'evidence_public_id' => $uploadResult['public_id'],
-            ]);
+            $uploadResult = $this->incidentService->attachEvidence(
+                $id,
+                $request->file('photo'),
+                $request->input('caption')
+            );
 
             return $this->success([
                 'evidence' => $uploadResult,
             ], 'Foto bukti berhasil diupload', 201);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return $this->error('Insiden tidak ditemukan.', 404);
         } catch (\Exception $e) {
             return $this->error('Gagal upload foto: ' . $e->getMessage(), 500);
         }

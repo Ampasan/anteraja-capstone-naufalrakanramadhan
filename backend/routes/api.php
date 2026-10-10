@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CourierController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FieldIncidentController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\IncidentController;
 use App\Http\Controllers\OrderController;
@@ -28,14 +29,28 @@ Route::get('/health', [HealthController::class, 'check']);
 Route::get('/ping', fn () => response()->json(['ok' => true, 'data' => 'pong', 'message' => 'OK']));
 
 // Login & Hub list
-Route::post('/auth/login', [AuthController::class, 'login']);
+// Login harus publik (kredensial itulah autentikasinya), jadi dilindungi
+// rate-limit ketat: 5 percobaan/menit per IP (limiter `login` di AppServiceProvider)
+// untuk menutup brute-force password.
+Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:login');
 Route::get('/hubs', [DashboardController::class, 'hubs']);
+
+// === LAPORAN INSIDEN LAPANGAN (publik, tanpa login) ===
+// Website /lapor-insiden dipakai kurir di jalan yang tidak punya akun panel.
+// Endpoint tulis dibatasi rate-limit per IP agar tidak bisa dipakai membanjiri
+// data insiden; seluruh endpoint panel lain tetap berada di balik Sanctum.
+Route::get('/lapor/couriers', [FieldIncidentController::class, 'couriers'])->middleware('throttle:lapor-read');
+Route::get('/lapor/couriers/{courierId}/orders', [FieldIncidentController::class, 'orders'])->middleware('throttle:lapor-read');
+Route::post('/lapor/incidents', [FieldIncidentController::class, 'store'])->middleware('throttle:lapor-report');
+Route::post('/lapor/incidents/{id}/evidence', [FieldIncidentController::class, 'evidence'])->middleware('throttle:lapor-report');
 
 // === PROTECTED ROUTES (harus login) ===
 Route::middleware('auth:sanctum')->group(function () {
 
     // Auth
-    Route::post('/auth/logout', [AuthController::class, 'logout']);
+    // Logout dibatasi 10/menit per user supaya token bisa dipakai membanjiri
+    // endpoint revoke (limiter `logout` di AppServiceProvider).
+    Route::post('/auth/logout', [AuthController::class, 'logout'])->middleware('throttle:logout');
     Route::get('/auth/me', [AuthController::class, 'me']);
 
     // Dashboard

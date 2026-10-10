@@ -21,6 +21,14 @@ Endpoint yang memerlukan autentikasi menggunakan Bearer Token:
 Authorization: Bearer {token}
 ```
 
+### Rate Limiting
+| Endpoint | Batas |
+|----------|-------|
+| `POST /api/auth/login` | 5 percobaan / menit / IP |
+| `POST /api/auth/logout` | 10 panggilan / menit / user |
+
+Melebihi batas mengembalikan `429` dengan envelope error yang sama.
+
 ---
 
 ## Public Endpoints
@@ -397,6 +405,7 @@ GET /api/incidents/export?date=2026-10-01
 | 404 | Not Found |
 | 409 | Conflict (reassignment dalam 1 menit terakhir) |
 | 422 | Unprocessable (validasi gagal / kurir penuh) |
+| 429 | Too Many Requests (rate limit login/logout terlampaui) |
 | 500 | Internal Server Error |
 
 ---

@@ -9,18 +9,21 @@ use App\Models\IncidentReport;
 use App\Models\Order;
 use App\Models\Courier;
 use App\Models\User;
+use App\Services\Cloudinary\CloudinaryService;
 use App\Services\Courier\CourierReplacementService;
 use App\Services\Order\SlaRiskService;
 use App\Services\Async\TaskTracker;
 use App\Support\Iso8601;
 use App\Support\OperationalClock;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 
 class IncidentService
 {
     public function __construct(
-        private CourierReplacementService $replacementService
+        private CourierReplacementService $replacementService,
+        private CloudinaryService $cloudinaryService
     ) {}
 
     public function getIncidents(string $hubId): array
@@ -462,7 +465,7 @@ class IncidentService
         SlaRiskService::bumpTugasTabelVersion($hubId);
     }
 
-    public function createIncident(array $data, User $user): array
+    public function createIncident(array $data, ?User $user = null): array
     {
         $order = Order::where('order_number', $data['order_number'])->firstOrFail();
         $courier = Courier::where('id', $data['courier_id'])->firstOrFail();
@@ -472,7 +475,7 @@ class IncidentService
             'order_id' => $order->id,
             'courier_id' => $courier->id,
             'replacement_courier_id' => null,
-            'handled_by_user_id' => $user->id,
+            'handled_by_user_id' => $user?->id,
             'incident_category' => $data['incident_category'],
             'title' => $data['title'],
             'description' => $data['description'] ?? null,
@@ -497,5 +500,34 @@ class IncidentService
         event(new IncidentReported($order->hub_origin_id, $formatted));
 
         return $formatted;
+    }
+
+    /**
+     * Unggah foto bukti lalu tautkan ke baris insidennya.
+     *
+     * Insiden dicari lebih dulu sebelum berkas dikirim ke Cloudinary:
+     * insiden yang tidak ada jangan sampai memicu unggahan sia-sia.
+     *
+     * @return array{public_id: string, secure_url: string}
+     */
+    public function attachEvidence(string $incidentId, UploadedFile $file, ?string $caption = null): array
+    {
+        $incident = IncidentReport::findOrFail($incidentId);
+
+        $uploadResult = $this->cloudinaryService->uploadEvidence($file);
+
+        $incident->evidences()->create([
+            'cloudinary_public_id' => $uploadResult['public_id'],
+            'secure_url' => $uploadResult['secure_url'],
+            'caption' => $caption,
+            'uploaded_at' => now(),
+        ]);
+
+        $incident->update([
+            'evidence_image_url' => $uploadResult['secure_url'],
+            'evidence_public_id' => $uploadResult['public_id'],
+        ]);
+
+        return $uploadResult;
     }
 }

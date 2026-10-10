@@ -93,7 +93,7 @@ describe('CourierList', () => {
     const user = userEvent.setup();
     const props = renderList();
 
-    await user.click(screen.getByRole('button', { name: 'Online (0)' }));
+    await user.click(screen.getByRole('button', { name: 'Standby (0)' }));
 
     expect(props.onFilterChange).toHaveBeenCalledWith('online');
   });

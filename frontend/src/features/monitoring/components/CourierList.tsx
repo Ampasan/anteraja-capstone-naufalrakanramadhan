@@ -55,8 +55,8 @@ export function CourierList({
 
   const tabs: Tab[] = [
     { id: 'all',    label: `Semua (${counts.all})`,     count: counts.all    },
-    { id: 'online', label: `Online (${counts.online})`, count: counts.online },
-    { id: 'idle',   label: `Idle (${counts.idle})`,     count: counts.idle   },
+    { id: 'online', label: `Standby (${counts.online})`, count: counts.online },
+    { id: 'idle',   label: `Mengantar (${counts.idle})`, count: counts.idle   },
   ];
 
   return (

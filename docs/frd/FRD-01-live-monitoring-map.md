@@ -82,8 +82,8 @@ graph TD
 [OFFLINE / ABU-ABU] <---> [ONLINE / HIJAU] ---> [IDLE / KUNING] ---> [OFF-DUTY]
 
 ```
-*   **ONLINE (Hijau):** Sinyal GPS aktif, kurir bergerak mengirimkan paket.
-*   **IDLE (Kuning):** Sinyal GPS aktif, kurir terhenti > 10 menit di luar titik penyerahan.
+*   **ONLINE (Hijau):** Kurir bebas, tidak sedang mengantar, menunggu pesanan masuk.
+*   **IDLE (Kuning):** Kurir sedang mengantar paket (membawa aktif).
 *   **OFFLINE (Abu-abu):** Sinyal GPS terputus > 15 detik saat *shift* berlangsung.
 
 --------------------------------------------------------------------------------

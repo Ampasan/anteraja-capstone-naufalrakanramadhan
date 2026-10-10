@@ -26,9 +26,25 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('login', function (Request $request) {
             return Limit::perMinute(5)->by($request->ip());
         });
+
+        RateLimiter::for('logout', function (Request $request) {
+            return Limit::perMinute(10)->by($request->user()?->id ?: $request->ip());
+        });
         
         RateLimiter::for('reassign', function (Request $request) {
             return Limit::perMinute(10)->by($request->user()?->id ?: $request->ip());
+        });
+
+        // Website laporan lapangan (/lapor-insiden) tanpa login: membaca daftar
+        // kurir & paket cukup longgar karena hanya menyiapkan pilihan dropdown.
+        RateLimiter::for('lapor-read', function (Request $request) {
+            return Limit::perMinute(30)->by($request->ip());
+        });
+
+        // Endpoint tulis publik: 6 laporan/menit per IP masih wajar untuk kurir
+        // sungguhan, dan cukup ketat untuk menutup pengulangan otomatis.
+        RateLimiter::for('lapor-report', function (Request $request) {
+            return Limit::perMinute(6)->by($request->ip());
         });
     }
 }

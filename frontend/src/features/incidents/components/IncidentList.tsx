@@ -186,7 +186,7 @@ function IncidentCard({ incident, isSelected, onClick, onViewEvidence }: Inciden
                   {incident.incidentCategory ?? incident.kendala}
                 </span>
                 <span className="text-[11px] text-[#94A3B8]">
-                  📍 {incident.stoppedLocation}
+                  <MapPin size={10} className="inline -mt-px" aria-hidden="true" /> {incident.stoppedLocation}
                 </span>
               </div>
             </div>
@@ -208,6 +208,21 @@ function IncidentCard({ incident, isSelected, onClick, onViewEvidence }: Inciden
           {incident.incidentCategory && (
             <span className={cn('inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border', catBadge)}>
               {incident.incidentCategory}
+            </span>
+          )}
+
+          {/* Kondisi lapangan yang diisi kurir pelapor */}
+          {(incident.weatherCondition || incident.trafficCondition || incident.temperatureC != null) && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border bg-slate-50 text-slate-600 border-slate-200">
+              {incident.weatherCondition && <span>{incident.weatherCondition}</span>}
+              {incident.weatherCondition && incident.trafficCondition && <span aria-hidden="true">·</span>}
+              {incident.trafficCondition && <span>{incident.trafficCondition}</span>}
+              {incident.temperatureC != null && (
+                <span className="inline-flex items-center gap-0.5">
+                  <Thermometer size={10} aria-hidden="true" />
+                  {incident.temperatureC}°C
+                </span>
+              )}
             </span>
           )}
         </div>

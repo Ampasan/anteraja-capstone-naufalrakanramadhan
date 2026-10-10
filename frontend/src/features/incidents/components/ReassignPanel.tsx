@@ -279,6 +279,24 @@ export function ReassignPanel({
               </span>
             </div>
 
+            {/* Kondisi lapangan: cuaca, lalu lintas, suhu (bila diisi kurir) */}
+            {(incident.weatherCondition || incident.trafficCondition || incident.temperatureC != null) && (
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[12px] text-[#64748B] font-medium">Kondisi Lapangan</span>
+                <span className="inline-flex items-center gap-1.5 text-[12px] font-extrabold text-[#0F172A]">
+                  {incident.weatherCondition && <span>{incident.weatherCondition}</span>}
+                  {incident.weatherCondition && incident.trafficCondition && <span aria-hidden="true" className="text-[#94A3B8]">·</span>}
+                  {incident.trafficCondition && <span>{incident.trafficCondition}</span>}
+                  {incident.temperatureC != null && (
+                    <span className="inline-flex items-center gap-0.5 text-[#C91076]">
+                      <Thermometer size={11} aria-hidden="true" />
+                      {incident.temperatureC}°C
+                    </span>
+                  )}
+                </span>
+              </div>
+            )}
+
             {/* Cloudinary Evidence Photo */}
             {incident.evidenceImageUrl && !isColdChain && (
               <div className="pt-2.5 border-t border-[#F1F5F9] flex flex-col gap-2">

@@ -118,7 +118,7 @@ export function Header({ onLogout, onToggleMobileNav }: HeaderProps) {
           <span aria-hidden="true" className="w-px h-4.5 bg-[#E2E8F0]" />
 
           <div
-            title="Kurir sedang aktif bertugas di lapangan"
+            title="Kurir bebas, menunggu pesanan"
             className="flex items-center gap-1.5 cursor-default"
           >
             <span className="relative flex-shrink-0" aria-hidden="true">
@@ -128,7 +128,7 @@ export function Header({ onLogout, onToggleMobileNav }: HeaderProps) {
               />
             </span>
             <dt className="text-[10.5px] lg:text-[11px] font-bold uppercase tracking-wider text-[#9CA3AF]">
-              Online:
+              Standby:
             </dt>
             <dd className="text-[14px] lg:text-[16px] font-extrabold text-emerald-600 font-mono leading-none m-0">
               {stats.online}
@@ -138,7 +138,7 @@ export function Header({ onLogout, onToggleMobileNav }: HeaderProps) {
           <span aria-hidden="true" className="w-px h-4.5 bg-[#E2E8F0]" />
 
           <div
-            title="Kurir tidak bergerak lebih dari 5 menit — perlu perhatian"
+            title="Kurir sedang mengantar paket"
             className="flex items-center gap-1.5 cursor-default"
           >
             <span
@@ -146,7 +146,7 @@ export function Header({ onLogout, onToggleMobileNav }: HeaderProps) {
               aria-hidden="true"
             />
             <dt className="text-[10.5px] lg:text-[11px] font-bold uppercase tracking-wider text-[#9CA3AF]">
-              Idle:
+              Mengantar:
             </dt>
             <dd className="text-[14px] lg:text-[16px] font-extrabold text-amber-500 font-mono leading-none m-0">
               {stats.idle}

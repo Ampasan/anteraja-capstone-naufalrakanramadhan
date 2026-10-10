@@ -109,9 +109,9 @@ export function MapControls({
       {/* ─ Bottom legend ─ */}
       <div className="absolute bottom-3 left-3 z-[400] pointer-events-none">
         <div className="flex items-center gap-3 bg-white/90 backdrop-blur-sm border border-[#E2E8F0] rounded-lg px-3 py-1.5 shadow-sm">
-          <Dot color="#10B981" label="Online" />
+          <Dot color="#10B981" label="Standby" />
           <Sep />
-          <Dot color="#F59E0B" label="Idle" />
+          <Dot color="#F59E0B" label="Mengantar" />
           <Sep />
           <Dot color="#EF4444" label="Cold-Chain Kritis" />
         </div>
