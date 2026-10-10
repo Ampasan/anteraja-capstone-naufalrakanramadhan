@@ -51,6 +51,13 @@ export function useCourierMotion(couriers: Courier[]): Map<string, MotionOverrid
   const inFlight = useRef(new Set<string>());
   const failedAt = useRef(new Map<string, number>());
   const mounted = useRef(true);
+  /**
+   * Salinan `targets` untuk dipakai di dalam timer. Ref hanya boleh dibaca di
+   * luar render, jadi daftar terbarunya ditanam lewat efek.
+   */
+  const targetsRef = useRef<JourneyTarget[]>([]);
+  /** Elapsed yang benar-benar tersimpan di state; dipakai mendeteksi gerakan. */
+  const appliedElapsedS = useRef(0);
 
   const targets = useMemo(() => {
     const list: JourneyTarget[] = [];
@@ -81,6 +88,10 @@ export function useCourierMotion(couriers: Courier[]): Map<string, MotionOverrid
       mounted.current = false;
     };
   }, []);
+
+  useEffect(() => {
+    targetsRef.current = targets;
+  }, [targets]);
 
   useEffect(() => {
     for (const target of targets) {
@@ -118,7 +129,19 @@ export function useCourierMotion(couriers: Courier[]): Map<string, MotionOverrid
     let segmentStart = 0;
     let accumulatedS = 0;
 
-    const advance = () => setElapsedS(accumulatedS + (Date.now() - segmentStart) / 1000);
+    const advance = () => {
+      const next = accumulatedS + (Date.now() - segmentStart) / 1000;
+
+      // Bila tidak ada satu pun penanda yang bisa bergeser, state dibiarkan
+      // apa adanya. React membatalkan render-nya, sehingga daftar, panel, dan
+      // peta tidak ikut dikerjakan tiap 200 ms hanya karena timer berjalan.
+      if (!movesAnything(appliedElapsedS.current, next, targetsRef.current, journeysRef.current)) {
+        return;
+      }
+
+      appliedElapsedS.current = next;
+      setElapsedS(next);
+    };
 
     const start = () => {
       if (timer) return;
@@ -143,6 +166,9 @@ export function useCourierMotion(couriers: Courier[]): Map<string, MotionOverrid
     };
   }, []);
 
+  // Saat tidak ada penanda yang bisa bergerak, `elapsedS` sengaja tidak pernah
+  // disentuh (lihat `advance`): komponen tidak ikut render sama sekali dan
+  // useMemo ini tidak dihitung ulang, sehingga identitas hasilnya bertahan.
   return useMemo(() => {
     const overrides = new Map<string, MotionOverride>();
 
@@ -160,4 +186,20 @@ export function useCourierMotion(couriers: Courier[]): Map<string, MotionOverrid
 
     return overrides;
   }, [targets, journeys, elapsedS]);
+}
+
+/**
+ * Apakah ada penanda yang posisinya berubah bila elapsed bergerak dari
+ * `fromS` ke `toS`. Jarak tempuh sudah dijepit ke total rute, jadi penanda yang
+ * sudah tiba di titik drop tidak lagi menghasilkan nilai berbeda.
+ */
+function movesAnything(fromS: number, toS: number, targets: JourneyTarget[], journeys: ReadonlyMap<string, Journey>): boolean {
+  for (const target of targets) {
+    const journey = journeys.get(target.key) ?? target.straight;
+    const speed = target.speedKmh / 3.6;
+    if (Math.min(fromS * speed, journey.total) !== Math.min(toS * speed, journey.total)) {
+      return true;
+    }
+  }
+  return false;
 }

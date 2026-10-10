@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Polyline } from 'react-leaflet';
 import type { PathOptions } from 'leaflet';
-import { fetchRoadRoute, toLeafletPositions } from '../../../lib/roadRoute';
+import { fetchRoadRoute, roadRouteKey, toLeafletPositions } from '../../../lib/roadRoute';
 import { metresBetween } from '../../../lib/courierJourney';
 import type { LatLng } from '../types';
 
@@ -35,6 +35,14 @@ interface RoadPolylineProps {
 export function RoadPolyline({ polyline, pathOptions, snapped }: RoadPolylineProps) {
   const [roadGeometry, setRoadGeometry] = useState<LatLng[] | null>(null);
 
+  /**
+   * Kunci terkuantisasi (±55 m) dipakai sebagai dependensi efek. Larik
+   * `polyline` dibuat baru tiap 200 ms oleh animasi penanda, padahal titiknya
+   * sering tidak bergeser sama sekali; dengan kunci ini permintaan tidak
+   * dijalankan ulang untuk rute yang sudah diminta sebelumnya.
+   */
+  const routeKey = useMemo(() => roadRouteKey(polyline), [polyline]);
+
   useEffect(() => {
     if (snapped) return;
 
@@ -49,7 +57,8 @@ export function RoadPolyline({ polyline, pathOptions, snapped }: RoadPolylinePro
     return () => {
       alive = false;
     };
-  }, [polyline, snapped]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `polyline` sengaja digantikan `routeKey`: selama titik-titik tidak bergeser, isi lariknya identik.
+  }, [routeKey, snapped]);
 
   // Geometri jalan diambil dari permintaan sebelumnya; kalau permintaan
   // pengbaruannya gagal, titik awalnya bisa tertinggal jauh dari penanda dan

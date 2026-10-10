@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
+import { usePolling } from './usePolling';
 import { apiCached, invalidateApiCache, STALE_WHILE_REVALIDATE_MS } from '../lib/api';
 
 export interface DashboardSummary {
@@ -45,11 +46,7 @@ export function useDashboardSummary(): {
     [apply],
   );
 
-  useEffect(() => {
-    void load();
-    const timer = window.setInterval(() => void load(), POLL_MS);
-    return () => window.clearInterval(timer);
-  }, [load]);
+  usePolling(load, POLL_MS);
 
   /** Paksa ambil terbaru — dipanggil setelah aksi mengubah data. */
   const refresh = useCallback(() => {

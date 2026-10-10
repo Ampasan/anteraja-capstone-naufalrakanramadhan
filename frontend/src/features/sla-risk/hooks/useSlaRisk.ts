@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
+import { usePolling } from '../../../hooks/usePolling';
 import { apiCached, STALE_WHILE_REVALIDATE_MS } from '../../../lib/api';
 import { mapSlaOrders, type RawCourier, type RawOrder } from '../../../lib/mappers';
 import type { SlaOrder } from '../types';
@@ -153,24 +154,20 @@ export function useSlaRisk() {
     loadSummary();
   }, [loadCouriers, loadSummary]);
 
-  // Polling tetap berjalan
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      loadCouriers();
-      loadSummary();
-    }, POLL_MS);
-    return () => window.clearInterval(timer);
+  // Polling tetap berjalan, tetapi berhenti selama tab tersembunyi dan
+  // langsung menyegarkan data begitu tab kembali terlihat. Pemuatan saat
+  // filter berubah sudah ditangani efek di atasnya, jadi tidak diulang.
+  const pollSummary = useCallback(() => {
+    loadCouriers();
+    loadSummary();
   }, [loadCouriers, loadSummary]);
+  usePolling(pollSummary, POLL_MS, false);
 
-  useEffect(() => {
-    loadPage(pagination.page, debouncedSearch, riskFilter, serviceFilter);
-
-    const timer = window.setInterval(() => {
-      loadPage(pagination.page, debouncedSearch, riskFilter, serviceFilter);
-    }, POLL_MS);
-
-    return () => window.clearInterval(timer);
-  }, [loadPage, pagination.page, debouncedSearch, riskFilter, serviceFilter]);
+  const pollPage = useCallback(
+    () => loadPage(pagination.page, debouncedSearch, riskFilter, serviceFilter),
+    [loadPage, pagination.page, debouncedSearch, riskFilter, serviceFilter],
+  );
+  usePolling(pollPage, POLL_MS);
 
   const ordersByWaybill = useMemo(
     () => new Map(orders.map((order) => [order.waybillNumber, order])),

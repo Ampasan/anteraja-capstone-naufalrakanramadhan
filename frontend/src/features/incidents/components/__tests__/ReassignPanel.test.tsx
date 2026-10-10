@@ -63,24 +63,6 @@ describe('ReassignPanel', () => {
     expect(screen.getByText(/Pilih insiden/i)).toBeInTheDocument();
   });
 
-  it('baris Telepon Kurir menautkan nomor asli lewat skema tel', () => {
-    renderPanel();
-
-    const call = screen.getByRole('link', { name: /087723305893/ });
-
-    expect(call).toHaveAttribute('href', 'tel:087723305893');
-    expect(call).toHaveAttribute('title', expect.stringContaining('Indra Gunawan'));
-    expect(screen.getByText('Telepon Kurir')).toBeInTheDocument();
-  });
-
-  it('menyembunyikan baris telepon ketika nomor kurir kosong', () => {
-    renderPanel({
-      incident: { ...INCIDENT, courier: { ...INCIDENT.courier, phone: '' } },
-    });
-
-    expect(screen.queryByText('Telepon Kurir')).not.toBeInTheDocument();
-  });
-
   it('konfirmasi pengalihan tetap terkunci sampai kandidat dipilih', async () => {
     const user = userEvent.setup();
     const { rerender, props } = renderPanel();

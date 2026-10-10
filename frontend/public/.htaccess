@@ -1,0 +1,39 @@
+# Berkas ini ikut tersalin ke folder hasil build (dist/) oleh Vite, sehingga
+# aturan di bawah berlaku untuk situs produksi yang disajikan lewat Apache.
+
+# ── Kompresi ─────────────────────────────────────────────────────────────────
+# Chunk JS/CSS bisa ratusan kilobyte; gzip memangkas unduhan pertama ~70-80%.
+#
+# AddOutputFilter per-ekstensi, bukan AddOutputFilterByType: sejak Apache 2.3.7
+# baris itu pindah ke mod_filter dan tidak lagi boleh dipakai di .htaccess.
+# Dibungkus IfModule agar tetap aman bila mod_deflate tidak tersedia.
+<IfModule mod_deflate.c>
+    AddOutputFilter DEFLATE html htm css js mjs json xml svg txt csv
+</IfModule>
+
+# ── Kedaluwarsa aset ─────────────────────────────────────────────────────────
+# Berkas hasil build memakai nama ber-hash (index-a1b2c3.js), jadi aman
+# di-cache lama sekali: pindah halaman / buka lagi tidak mengunduh ulang.
+# index.html harus selalu divalidasi ulang karena ia yang menunjuk berkas
+# ber-hash tersebut — kalau ikut di-cache, pengguna bisa terjebak versi lama.
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/html "access plus 0 seconds"
+
+    ExpiresByType text/css "access plus 1 year"
+    # Apache 2.4 + mod_mime menandai .js sebagai text/javascript (RFC 9239),
+    # bukan application/javascript — keduanya dicakup supaya chunk JS tetap
+    # ter-cache satu tahun.
+    ExpiresByType text/javascript "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 year"
+    ExpiresByType font/woff2 "access plus 1 year"
+
+    # Berkas di folder public/ (mis. anteraja_logo.png) tidak ber-hash,
+    # jadi masa simpannya dibatasi supaya logo yang diganti ikut tampil.
+    ExpiresByType image/png "access plus 30 days"
+    ExpiresByType image/jpeg "access plus 30 days"
+    ExpiresByType image/gif "access plus 30 days"
+    ExpiresByType image/webp "access plus 30 days"
+    ExpiresByType image/svg+xml "access plus 30 days"
+    ExpiresByType image/x-icon "access plus 30 days"
+</IfModule>

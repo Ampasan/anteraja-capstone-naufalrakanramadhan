@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use App\Models\IncidentReport;
 use App\Models\Order;
+use App\Services\Cloudinary\CloudinaryService;
 use App\Services\Courier\CourierReplacementService;
 use App\Services\Incident\IncidentService;
 use Tests\TestCase;
@@ -19,7 +20,7 @@ class IncidentSeverityTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new IncidentService(new CourierReplacementService());
+        $this->service = new IncidentService(new CourierReplacementService(), new CloudinaryService());
     }
 
     public function test_critical_severity_for_pharma_mogok_and_hot_frozen(): void

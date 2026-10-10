@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { memo, useEffect, useMemo } from 'react';
 import {
   MapContainer,
   TileLayer,
@@ -19,6 +19,35 @@ delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIcon
 L.Icon.Default.mergeOptions({ iconUrl, iconRetinaUrl, shadowUrl });
 
 const iconCache = new Map<string, L.DivIcon>();
+
+/**
+ * Pasangan `[lat, lng]` dikunci per nilai. react-leaflet membandingkan properti
+ * Leaflet dengan identitas, jadi larik baru tiap render akan memaksa
+ * `marker.setLatLng()` / `polyline.setLatLngs()` walau angkanya sama persis —
+ * pekerjaan DOM/SVG yang terbuang percuma 5 kali per detik.
+ */
+const positionCache = new Map<string, [number, number]>();
+
+function cachedPosition(lat: number, lng: number): [number, number] {
+  const key = `${lat},${lng}`;
+  const hit = positionCache.get(key);
+  if (hit) {
+    // Tarik ke akhir agar tidak terbuang lebih dulu oleh LRU di bawah.
+    positionCache.delete(key);
+    positionCache.set(key, hit);
+    return hit;
+  }
+
+  const position: [number, number] = [lat, lng];
+  positionCache.set(key, position);
+
+  if (positionCache.size > 256) {
+    const oldest = positionCache.keys().next();
+    if (!oldest.done) positionCache.delete(oldest.value);
+  }
+
+  return position;
+}
 
 function cachedIcon(key: string, build: () => L.DivIcon): L.DivIcon {
   const existing = iconCache.get(key);
@@ -124,7 +153,7 @@ interface MapViewProps {
   hub: Hub;
   selectedCourier: Courier | null;
   showRoutes: boolean;
-  onCourierClick: (courier: Courier) => void;
+  onCourierClick: (courierId: string) => void;
   onMapReady: (map: L.Map) => void;
 }
 
@@ -172,7 +201,46 @@ function pathOptionsFor(isSelected: boolean, isCold: boolean): L.PathOptions {
   return options;
 }
 
-export function MapView({
+/**
+ * Penanda kurir.
+ *
+ * Handler klik hanya dibuat saat id atau callback berubah, jadi objek
+ * `eventHandlers` tetap identik selama penanda beranimasi lima kali per detik —
+ * Leaflet tidak perlu melepas dan memasang ulang listener tiap kali posisi
+ * berubah. Yang dikirim ke atas hanya id; data kurir terbarunya diambil oleh
+ * parent saat klik benar-benar terjadi, bukan salinan yang tersimpan di sini.
+ */
+function CourierMarker({
+  courierId,
+  position,
+  icon,
+  isSelected,
+  isCold,
+  onCourierClick,
+}: {
+  courierId: string;
+  position: [number, number];
+  icon: L.DivIcon;
+  isSelected: boolean;
+  isCold: boolean;
+  onCourierClick: (courierId: string) => void;
+}) {
+  const eventHandlers = useMemo<LeafletEventHandlerFnMap>(
+    () => ({ click: () => onCourierClick(courierId) }),
+    [courierId, onCourierClick],
+  );
+
+  return (
+    <Marker
+      position={position}
+      icon={icon}
+      eventHandlers={eventHandlers}
+      zIndexOffset={isSelected ? 1000 : isCold ? 500 : 0}
+    />
+  );
+}
+
+export const MapView = memo(function MapView({
   couriers,
   hub,
   selectedCourier,
@@ -180,17 +248,9 @@ export function MapView({
   onCourierClick,
   onMapReady,
 }: MapViewProps) {
-  const handlersById = useMemo(() => {
-    const map = new Map<string, LeafletEventHandlerFnMap>();
-    for (const courier of couriers) {
-      map.set(courier.id, { click: () => onCourierClick(courier) });
-    }
-    return map;
-  }, [couriers, onCourierClick]);
-
   return (
     <MapContainer
-      center={[hub.position.lat, hub.position.lng]}
+      center={cachedPosition(hub.position.lat, hub.position.lng)}
       zoom={14}
       zoomControl={false}
       className="w-full h-full"
@@ -204,11 +264,11 @@ export function MapView({
       <MapRefSetter onMapReady={onMapReady} />
 
       {/* Hub origin marker — no popup */}
-      <Marker position={[hub.position.lat, hub.position.lng]} icon={makeHubIcon()} />
+      <Marker position={cachedPosition(hub.position.lat, hub.position.lng)} icon={makeHubIcon()} />
 
       {/* Hub 5 km radius dashed circle */}
       <Circle
-        center={[hub.position.lat, hub.position.lng]}
+        center={cachedPosition(hub.position.lat, hub.position.lng)}
         radius={hub.radiusKm * 1000}
         pathOptions={HUB_RADIUS_PATH}
       />
@@ -233,18 +293,22 @@ export function MapView({
             {/* Titik drop diambil dari ujung rute, bukan dihitung ulang dari
                 posisi penanda: keduanya harus menunjuk paket yang sama walau
                 penanda sudah jalan setengah perjalanan. */}
-            {isSelected && drop && <Marker position={[drop.lat, drop.lng]} icon={makeDropIcon()} />}
+            {isSelected && drop && (
+              <Marker position={cachedPosition(drop.lat, drop.lng)} icon={makeDropIcon()} />
+            )}
 
             {/* Courier marker: klik membuka panel detail */}
-            <Marker
-              position={[courier.position.lat, courier.position.lng]}
+            <CourierMarker
+              courierId={courier.id}
+              position={cachedPosition(courier.position.lat, courier.position.lng)}
               icon={makeCourierIcon(courier.status, isSelected, isCold)}
-              eventHandlers={handlersById.get(courier.id)!}
-              zIndexOffset={isSelected ? 1000 : isCold ? 500 : 0}
+              isSelected={isSelected}
+              isCold={isCold}
+              onCourierClick={onCourierClick}
             />
           </div>
         );
       })}
     </MapContainer>
   );
-}
+});

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { X, Bike, Car, Truck, Package, MapPin, Clock, Phone, Navigation, AlertTriangle, Snowflake, Route } from 'lucide-react';
 import { Badge } from '../../../components/ui/Badge';
 import { Button } from '../../../components/ui/Button';
@@ -71,7 +72,7 @@ function SlaBar({ remainingMinutes, elapsedPct }: { remainingMinutes: number; el
  *            jarak ke hub, radius layanan, Fokus Rute, dan Hubungi. Tidak ada
  *            rute yang sedang berjalan untuk kurir yang sedang bergerak.
  */
-export function CourierDetailPanel({
+function CourierDetailPanelComponent({
   courier,
   isFocusingRoute,
   onClose,
@@ -154,18 +155,6 @@ export function CourierDetailPanel({
           <span className="text-[12px] font-bold text-[#0F172A]">
             {courier.distanceFromHubM === undefined ? '—' : formatDistance(courier.distanceFromHubM)}
           </span>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <span className="text-[12px] text-[#475569]">Nomor telepon</span>
-          <a
-            href={`tel:${courier.phone.replace(/\s+/g, '')}`}
-            className="text-[12px] font-bold text-[#C91076] flex items-center gap-1 hover:underline"
-            title={`Telepon ${courier.name}`}
-          >
-            <Phone size={12} aria-hidden="true" />
-            {courier.phone}
-          </a>
         </div>
 
         <div className="flex items-center justify-between">
@@ -308,3 +297,6 @@ export function CourierDetailPanel({
     </div>
   );
 }
+
+/** Dibungkus `memo`: panel hanya di-render ulang bila data kurirnya berubah. */
+export const CourierDetailPanel = memo(CourierDetailPanelComponent);

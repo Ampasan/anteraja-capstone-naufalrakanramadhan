@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { MapPin, ChevronsRight, RefreshCw } from 'lucide-react';
+import { MapPin, ChevronsRight } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useMonitoring } from './hooks/useMonitoring';
 import { CourierList } from './components/CourierList';
@@ -8,11 +8,17 @@ import { MapView } from './components/MapView';
 import { MapControls } from './components/MapControls';
 import { IncidentAlertToast } from './components/IncidentAlertToast';
 import { useHubs } from '../../hooks/useHubs';
-import type { Courier } from './types';
 import type { Map as LeafletMap } from 'leaflet';
 
 export function MonitoringPage() {
   const state = useMonitoring();
+  const {
+    isFullscreen,
+    toggleFullscreen,
+    selectCourier,
+    selectCourierById,
+    currentIncident,
+  } = state;
   const { activeHub } = useHubs();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -49,19 +55,14 @@ export function MonitoringPage() {
   );
 
   const handleToggleFullscreen = useCallback(() => {
-    setListOpen(state.isFullscreen);
-    state.toggleFullscreen();
-  }, [state]);
+    setListOpen(isFullscreen);
+    toggleFullscreen();
+  }, [isFullscreen, toggleFullscreen]);
 
   const handleShowCourierList = useCallback(() => {
-    if (state.isFullscreen) handleToggleFullscreen();
+    if (isFullscreen) handleToggleFullscreen();
     else setListOpen(true);
-  }, [state, handleToggleFullscreen]);
-
-  const handleCourierClick = useCallback(
-    (courier: Courier) => state.selectCourier(courier),
-    [state],
-  );
+  }, [isFullscreen, handleToggleFullscreen]);
 
   /**
    * Tombol "Alihkan Paket" pada toast insiden.
@@ -71,13 +72,13 @@ export function MonitoringPage() {
    * itu tersorot lewat parameter `?incident=`.
    */
   const handleReassignPacket = useCallback(() => {
-    const incidentId = state.currentIncident?.id;
+    const incidentId = currentIncident?.id;
     navigate(incidentId ? `/incidents?incident=${incidentId}` : '/incidents');
-  }, [navigate, state.currentIncident]);
+  }, [navigate, currentIncident]);
 
-  const updatedAt = state.lastLoadedAt
-    ? new Date(state.lastLoadedAt).toLocaleTimeString('id-ID', { hour12: false })
-    : '—';
+  const handleToggleList = useCallback(() => setListOpen((v) => !v), []);
+  const handleOpenList = useCallback(() => setListOpen(true), []);
+  const handleCloseDetail = useCallback(() => selectCourier(null), [selectCourier]);
 
   return (
 
@@ -107,18 +108,8 @@ export function MonitoringPage() {
           <span className="sm:hidden">Live Monitoring</span>
         </h2>
 
-        {/* Kontrol peta: usia data + Pusatkan Hub + Peta Penuh */}
+        {/* Kontrol peta: Pusatkan Hub + Peta Penuh */}
         <div className="flex items-center gap-1.5 sm:gap-2">
-          <button
-            type="button"
-            onClick={state.refreshData}
-            aria-label={`Muat ulang data monitoring, terakhir ${updatedAt}`}
-            className="flex h-11 items-center gap-2 rounded-lg border border-[#E2E8F0] bg-white px-2 sm:px-3 text-[11px] sm:text-[13px] font-semibold text-[#475569] hover:bg-[#F8FAFC] transition-colors"
-          >
-            <span className="hidden sm:inline">Diperbarui {updatedAt}</span>
-            <RefreshCw size={13} className="text-[#C91076]" aria-hidden="true" />
-          </button>
-
           <button
             type="button"
             onClick={() => {
@@ -178,11 +169,11 @@ export function MonitoringPage() {
             counts={state.counts}
             totalCount={state.counts.all}
             isLoading={state.isLoading}
-            onSelectCourier={handleCourierClick}
+            onSelectCourier={selectCourier}
             onFilterChange={state.setFilter}
             onSearchChange={state.setSearchQuery}
             isOpen={listOpen}
-            onToggle={() => setListOpen((v) => !v)}
+            onToggle={handleToggleList}
           />
         )}
 
@@ -197,7 +188,7 @@ export function MonitoringPage() {
               hub={activeHub}
               selectedCourier={state.selectedCourier}
               showRoutes={state.showRoutes}
-              onCourierClick={handleCourierClick}
+              onCourierClick={selectCourierById}
               onMapReady={handleMapReady}
             />
           )}
@@ -218,7 +209,7 @@ export function MonitoringPage() {
           {!listOpen && !state.isFullscreen && (
             <button
               type="button"
-              onClick={() => setListOpen(true)}
+              onClick={handleOpenList}
               className="absolute top-3 left-3 z-[400] flex items-center gap-1.5 bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-xs font-bold text-[#C91076] shadow-md hover:bg-[#FFF0F6] transition-colors pointer-events-auto"
             >
               <ChevronsRight size={13} aria-hidden="true" />
@@ -232,7 +223,7 @@ export function MonitoringPage() {
               <CourierDetailPanel
                 courier={state.selectedCourier}
                 isFocusingRoute={state.isFocusingRoute}
-                onClose={() => state.selectCourier(null)}
+                onClose={handleCloseDetail}
                 onFocusRoute={state.toggleFocusRoute}
               />
             </div>

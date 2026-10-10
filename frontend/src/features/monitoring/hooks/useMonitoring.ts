@@ -83,6 +83,8 @@ export interface MonitoringState {
 
 export interface MonitoringActions {
   selectCourier: (courier: Courier | null) => void;
+  /** Pilih kurir berdasarkan id — dipakai penanda peta yang hanya menyimpan id. */
+  selectCourierById: (courierId: string) => void;
   setFilter: (filter: CourierFilter) => void;
   setSearchQuery: (q: string) => void;
   toggleFocusRoute: () => void;
@@ -298,6 +300,25 @@ export function useMonitoring(): MonitoringState & MonitoringActions {
     [mapRef, selectCourierId],
   );
 
+  /**
+   * Penanda peta hanya menyimpan id kurir, lalu data terbarunya diambil di sini
+   * saat klik benar-benar terjadi. Daftar diperbarui lewat efek — bukan dibaca
+   * saat render — supaya posisi yang dibidik selalu posisi penanda sekarang,
+   * bukan salinan yang tersimpan ketika marker dibuat.
+   */
+  const latestCouriers = useRef<Courier[]>([]);
+  useEffect(() => {
+    latestCouriers.current = allCouriers;
+  }, [allCouriers]);
+
+  const selectCourierById = useCallback(
+    (courierId: string) => {
+      const courier = latestCouriers.current.find((item) => item.id === courierId) ?? null;
+      selectCourier(courier);
+    },
+    [selectCourier],
+  );
+
   const toggleFocusRoute = useCallback(() => {
     setIsFocusingRoute((prev) => {
       const next = !prev;
@@ -366,6 +387,7 @@ export function useMonitoring(): MonitoringState & MonitoringActions {
     errorMessage,
     lastLoadedAt,
     selectCourier,
+    selectCourierById,
     setFilter: handleSetFilter,
     setSearchQuery: handleSetSearch,
     toggleFocusRoute,

@@ -1,4 +1,5 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback } from 'react';
+import { usePolling } from '../../../hooks/usePolling';
 import { apiCached, invalidateApiCache, STALE_WHILE_REVALIDATE_MS } from '../../../lib/api';
 import {
   mapAuditKpi,
@@ -102,11 +103,7 @@ export function useAuditLogs() {
     [apply],
   );
 
-  useEffect(() => {
-    void load();
-    const timer = window.setInterval(() => void load(), POLL_MS);
-    return () => window.clearInterval(timer);
-  }, [load]);
+  usePolling(load, POLL_MS);
 
   const { filtered: filteredAll, categoryCounts } = useMemo<{
     filtered: AuditLogEntry[];

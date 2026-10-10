@@ -23,3 +23,16 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+# ── Kompresi respons ─────────────────────────────────────────────────────────
+# Envelope JSON /api bisa ratusan kilobyte (audit-logs, incidents, couriers);
+# gzip memangkasnya ~70-80% sehingga satu siklus polling jauh lebih ringan.
+#
+# Pakai AddOutputFilter (per-ekstensi, mod_mime), bukan AddOutputFilterByType:
+# sejak Apache 2.3.7 baris itu pindah ke mod_filter dan tidak lagi boleh di
+# .htaccess. Semua respons API lahir dari index.php, jadi ekstensi php sudah
+# cukup; sisanya menyangkut berkas statis di folder public.
+# Dibungkus IfModule agar aman bila mod_deflate tidak tersedia di server tujuan.
+<IfModule mod_deflate.c>
+    AddOutputFilter DEFLATE php html htm css js mjs json xml svg txt csv
+</IfModule>

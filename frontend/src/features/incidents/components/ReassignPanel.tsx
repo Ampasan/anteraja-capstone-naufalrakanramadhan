@@ -1,4 +1,4 @@
-import { Package, Zap, MapPin, Navigation, AlertCircle, CheckCircle2, Camera, Snowflake, Thermometer, Phone } from 'lucide-react';
+import { Package, Zap, MapPin, Navigation, AlertCircle, CheckCircle2, Camera, Snowflake, Thermometer } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { cn } from '../../../lib/utils';
 import type { IncidentReport, CandidateCourier } from '../types';
@@ -244,19 +244,6 @@ export function ReassignPanel({
                 {incident.courier.vehiclePlate}
               </span>
             </div>
-            {incident.courier.phone && (
-              <div className="flex items-center justify-between">
-                <span className="text-[12px] text-[#64748B] font-medium">Telepon Kurir</span>
-                <a
-                  href={`tel:${incident.courier.phone.replace(/\s+/g, '')}`}
-                  className="inline-flex items-center gap-1.5 text-[12px] font-extrabold text-[#C91076] bg-[#FFF0F6] border border-[#F9A8D4] px-2 py-0.5 rounded-md hover:bg-[#C91076] hover:text-white transition-colors"
-                  title={`Telepon ${incident.courier.name} di ${incident.courier.phone}`}
-                >
-                  <Phone size={11} aria-hidden="true" />
-                  {incident.courier.phone}
-                </a>
-              </div>
-            )}
             <div className="flex items-center justify-between">
               <span className="text-[12px] text-[#64748B] font-medium">Lokasi Terhenti</span>
               <div className="flex items-center gap-1">

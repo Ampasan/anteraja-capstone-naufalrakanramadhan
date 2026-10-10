@@ -1,4 +1,5 @@
-import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
+import { usePolling } from '../../../hooks/usePolling';
 import { apiWithStatus, apiCached, invalidateApiCache, waitForTask, STALE_WHILE_REVALIDATE_MS, type AsyncTask } from '../../../lib/api';
 import { mapIncidents, type RawIncident } from '../../../lib/mappers';
 import type {
@@ -116,11 +117,7 @@ export function useIncidents(): UseIncidentsReturn {
     [apply],
   );
 
-  useEffect(() => {
-    void load();
-    const timer = window.setInterval(() => void load(), POLL_MS);
-    return () => window.clearInterval(timer);
-  }, [load]);
+  usePolling(load, POLL_MS);
 
   /**
    * Versi tampilan: tampilkan SEMUA insiden (termasuk RESOLVED).

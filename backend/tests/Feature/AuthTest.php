@@ -19,6 +19,7 @@ class AuthTest extends TestCase
     use RefreshDatabase, SeedsHalim;
 
     private const LOGIN_URL = 'http://localhost/api/auth/login';
+    private const LOGOUT_URL = 'http://localhost/api/auth/logout';
 
     public function test_login_returns_token_and_profile(): void
     {
@@ -103,6 +104,29 @@ class AuthTest extends TestCase
             ->assertJsonPath('message', 'Akun Anda tidak aktif. Hubungi administrator.');
     }
 
+    /**
+     * Login publik wajib punya rate-limit: limiter `login` (5/menit per IP,
+     * lihat AppServiceProvider) menutup brute-force password.
+     */
+    public function test_login_is_rate_limited_after_five_attempts_per_minute(): void
+    {
+        $hub = $this->halimHub();
+
+        $payload = [
+            'email' => 'siti.admin@anteraja.id',
+            'password' => 'password-salah',
+            'hub_id' => $hub->id,
+        ];
+
+        foreach (range(1, 5) as $attempt) {
+            $this->postJson(self::LOGIN_URL, $payload)->assertStatus(401);
+        }
+
+        $this->postJson(self::LOGIN_URL, $payload)
+            ->assertStatus(429)
+            ->assertJson(['ok' => false, 'data' => null]);
+    }
+
     public function test_me_returns_profile_with_token_and_401_without(): void
     {
         $this->actingAsAdmin();
@@ -129,9 +153,30 @@ class AuthTest extends TestCase
         ])->json('data.token');
 
         $this->withToken($token)->getJson('http://localhost/api/auth/me')->assertStatus(200);
-        $this->withToken($token)->postJson('http://localhost/api/auth/logout')
+        $this->withToken($token)->postJson(self::LOGOUT_URL)
             ->assertStatus(200)
             ->assertJson(['ok' => true]);
         $this->withToken($token)->getJson('http://localhost/api/auth/me')->assertStatus(401);
+    }
+
+    /**
+     * Logout dibatasi 10/menit per user (limiter `logout` di AppServiceProvider).
+     * Tiap panggilan memakai token baru karena logout sendiri mencabut tokennya.
+     */
+    public function test_logout_is_rate_limited_after_ten_calls_per_minute(): void
+    {
+        $user = $this->halimAdmin();
+
+        foreach (range(1, 10) as $call) {
+            $token = $user->createToken('phpunit')->plainTextToken;
+
+            $this->withToken($token)->postJson(self::LOGOUT_URL)->assertStatus(200);
+        }
+
+        $token = $user->createToken('phpunit')->plainTextToken;
+
+        $this->withToken($token)->postJson(self::LOGOUT_URL)
+            ->assertStatus(429)
+            ->assertJson(['ok' => false, 'data' => null]);
     }
 }

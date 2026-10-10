@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Radio, Route, List } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 
@@ -12,7 +13,7 @@ interface MapControlsProps {
   listCollapsed?: boolean;
 }
 
-export function MapControls({
+function MapControlsComponent({
   showRoutes,
   isFullscreen,
   onToggleRoutes,
@@ -128,6 +129,9 @@ function Dot({ color, label }: { color: string; label: string }) {
     </span>
   );
 }
+/** Dibungkus `memo`: kontrol tidak ikut re-render tiap kelipatan animasi penanda. */
+export const MapControls = memo(MapControlsComponent);
+
 function Sep() {
   return <span className="text-[#CBD5E1] text-sm leading-none">·</span>;
 }

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { X, AlertTriangle, Snowflake, Wrench, CloudRain, Package, ArrowRight, MapPin } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { cn } from '../../../lib/utils';
@@ -18,7 +19,7 @@ const ICON_MAP = {
   'map-pin': MapPin,
 };
 
-export function IncidentAlertToast({
+function IncidentAlertToastComponent({
   incident,
   onReassign,
   onDismiss,
@@ -123,3 +124,6 @@ export function IncidentAlertToast({
     </div>
   );
 }
+
+/** Dibungkus `memo`: toast tidak ikut re-render tiap kelipatan animasi penanda. */
+export const IncidentAlertToast = memo(IncidentAlertToastComponent);

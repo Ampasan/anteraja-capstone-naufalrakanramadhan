@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { MapPin, Snowflake, Timer, User } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 import type { ActivePackage, Courier } from '../types';
@@ -19,7 +20,7 @@ function mostUrgent(packages: ActivePackage[]): ActivePackage | undefined {
 /**
  * Kartu kurir di panel kiri.
  */
-export function CourierCard({ courier, isSelected, onClick }: CourierCardProps) {
+function CourierListComponent({ courier, isSelected, onClick }: CourierCardProps) {
   const isIdle = courier.status === 'IDLE';
   const isFrozen = courier.activePackages.some((pkg) => pkg.serviceType === 'Frozen');
   const hasAnomaly = !!courier.coldChainAnomaly;
@@ -136,3 +137,7 @@ export function CourierCard({ courier, isSelected, onClick }: CourierCardProps) 
     </button>
   );
 }
+
+/** Dibungkus `memo`: kartu tidak ikut re-render tiap kelipatan animasi penanda. */
+export const CourierCard = memo(CourierListComponent);
+

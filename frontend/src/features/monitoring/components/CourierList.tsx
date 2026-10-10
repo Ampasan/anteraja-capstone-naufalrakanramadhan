@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { memo, useEffect, useRef } from 'react';
 import { Search, ChevronsLeft } from 'lucide-react';
 import { Input } from '../../../components/ui/Input';
 import { cn } from '../../../lib/utils';
@@ -22,7 +22,7 @@ interface CourierListProps {
 
 type Tab = { id: CourierFilter; label: string; count: number };
 
-export function CourierList({
+function CourierListComponent({
   couriers,
   selectedCourier,
   activeFilter,
@@ -146,3 +146,6 @@ export function CourierList({
     </div>
   );
 }
+
+/** Dibungkus `memo`: daftar hanya di-render ulang bila isinya benar-benar berubah. */
+export const CourierList = memo(CourierListComponent);
