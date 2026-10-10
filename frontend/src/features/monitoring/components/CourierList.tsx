@@ -96,7 +96,7 @@ export function CourierList({
             key={tab.id}
             onClick={() => onFilterChange(tab.id)}
             className={cn(
-              'flex-1 h-9 rounded-lg text-[13px] font-bold transition-colors px-1',
+              'flex-1 h-9 rounded-lg text-[12px] font-bold transition-colors px-1 whitespace-nowrap overflow-hidden text-ellipsis',
               activeFilter === tab.id
                 ? 'bg-[#C91076] text-white'
                 : 'bg-[#F8FAFC] text-[#475569] border border-[#E2E8F0] hover:bg-[#F1F5F9]',
