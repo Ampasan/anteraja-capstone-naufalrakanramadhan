@@ -1,30 +1,51 @@
-# Container backend Anteraja: nginx + php-fpm + Reverb (WS) + queue + scheduler.
-# Satu container menjalankan semua proses karena Render Free hanya memberi
-# 1 service dan tidak menyediakan worker/cron gratis.
-FROM php:8.3-fpm-alpine
+# ============================================
+# Dockerfile untuk Railway - Laravel Backend
+# ============================================
 
-# nginx sebagai entrypoint publik, supervisor untuk menjalankan proses panjang.
-RUN apk add --no-cache nginx supervisor \
- && docker-php-ext-install pdo_pgsql pcntl mbstring \
- && docker-php-ext-enable opcache
+FROM php:8.3-cli
 
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+# Install system dependencies & PHP extensions
+RUN apt-get update && apt-get install -y \
+    libzip-dev \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    libpq-dev \
+    unzip \
+    git \
+    && docker-php-ext-install \
+        pdo_pgsql \
+        pdo_mysql \
+        pgsql \
+        zip \
+        gd \
+        mbstring \
+        xml \
+        opcache
 
-WORKDIR /var/www/html
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Set working directory
+WORKDIR /var/www
+
+# Copy project files
 COPY . .
 
-# Pool php-fpm jalan sebagai www-data supaya bisa menulis storage/logs.
-COPY docker/www.conf /usr/local/etc/php-fpm.d/zz-anteraja.conf
+# Install PHP dependencies (no dev)
+RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-RUN composer install --no-dev --optimize-autoloader --no-interaction \
- && mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
- && chown -R www-data:www-data storage bootstrap/cache
+# Generate application key if not set
+RUN php artisan key:generate --force || true
 
-COPY docker/nginx.conf /etc/nginx/nginx.conf
-COPY docker/supervisord.conf /etc/supervisord.conf
-COPY docker/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+# Run migrations & seeders on build (optional, can also be done via CLI)
+# RUN php artisan migrate --force --seed
 
-# Render mengisi env $PORT; nilai lain (Koyeb/standalone) bisa PORT=8080.
-EXPOSE 8080
-CMD ["/entrypoint.sh"]
+# Set permissions
+RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+
+# Expose port
+EXPOSE 8000
+
+# Start Laravel server
+CMD php artisan serve --host=0.0.0.0 --port=8000

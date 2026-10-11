@@ -21,9 +21,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    // Origin diambil dari env CORS_ALLOWED_ORIGINS (dipisah koma) supaya bisa
-    // dibatasi ke domain frontend produksi. Kosongkan '*' hanya untuk lokal.
-    'allowed_origins' => array_values(array_filter(explode(',', (string) env('CORS_ALLOWED_ORIGINS', '*')))),
+    'allowed_origins' => explode(',', env('CORS_ALLOWED_ORIGINS', '*')),
 
     'allowed_origins_patterns' => [],
 
