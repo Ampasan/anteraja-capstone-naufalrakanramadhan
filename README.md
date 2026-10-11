@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-# Anteraja Capstone
-
-Proyek capstone ini berfokus pada pengembangan fitur Courier Admin Mini-Panel untuk sistem logistik Anteraja. Panel ini dirancang untuk membantu admin melacak status pengiriman dan memantau performa kurir secara real-time. Melalui dashboard ini, admin dapat mengelola penugasan rute dengan lebih efisien. Sistem ini juga diharapkan mampu mempercepat resolusi kendala operasional yang terjadi di lapangan.
-=======
 # Courier Admin Mini-Panel Anteraja
 
 Sistem monitoring dan eskalasi SLA *real-time* untuk operasional last-mile Anteraja di Hub Halim, Jakarta Timur. Dibangun dengan Laravel (backend) + React + React-Leaflet (frontend) + PostgreSQL (Supabase) + Redis + Laravel Reverb (WebSocket).
@@ -121,4 +116,3 @@ Lihat [API Documentation](./backend/API_DOCUMENTATION.md) untuk detail lengkap.
 | Re-delivery Rate | < 2.0% |
 | Pesan Chat Manual | < 25 pesan/hari |
 | Akselerasi Respon Kendala | 75% |
->>>>>>> 9-backend
