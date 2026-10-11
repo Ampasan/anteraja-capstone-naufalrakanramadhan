@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/anteraja_logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Anteraja Dispatch — Ops Control Tower</title>
+    <meta
+      name="description"
+      content="Layanan logistik dan pengiriman paket terintegrasi berbasis teknologi di Indonesia."
+    />
+
+    <!-- preconnect memangkas handshake TLS ke CDN font sebelum CSS-nya diminta. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Dua asal pihak ketiga yang menentukan peta: tile jalan OSRM dan tile OSM. -->
+    <link rel="preconnect" href="https://router.project-osrm.org" />
+    <link rel="preconnect" href="https://a.tile.openstreetmap.org" />
+    <!-- media="print" membuat pemuatan tidak memblokir render; teks sudah
+         tampil dengan font sistem lebih dulu (display=swap), lalu berganti. -->
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      />
+    </noscript>
+
+    <!-- JSON-LD: Organization schema (schema.org) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Anteraja",
+      "legalName": "PT Tri Adi Bersama",
+      "url": "https://anteraja.id",
+      "logo": "https://anteraja.id/assets/logo.png",
+      "description": "Layanan logistik dan pengiriman paket terintegrasi berbasis teknologi di Indonesia.",
+      "sameAs": [
+        "https://www.facebook.com/anteraja.id",
+        "https://www.instagram.com/anteraja.id",
+        "https://twitter.com/anteraja_id"
+      ]
+    }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
