@@ -1,0 +1,77 @@
+services:
+  - type: web
+    name: anteraja-backend
+    runtime: docker
+    plan: free
+    dockerContext: backend
+    dockerfilePath: backend/Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_URL
+        value: https://anteraja-backend.onrender.com
+      - key: FRONTEND_URL
+        value: https://anteraja-frontend.vercel.app
+      - key: APP_KEY
+        sync: false
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_DATABASE
+        value: postgres
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_SSLMODE
+        value: require
+      - key: DB_PERSISTENT
+        value: "false"
+      - key: APP_OPERATIONAL_NOW
+        value: 2026-10-11T09:00:00+07:00
+      - key: SESSION_DRIVER
+        value: redis
+      - key: CACHE_STORE
+        value: redis
+      - key: QUEUE_CONNECTION
+        value: redis
+      - key: REDIS_CLIENT
+        value: predis
+      - key: REDIS_HOST
+        value: 127.0.0.1
+      - key: REDIS_PORT
+        value: "6379"
+      - key: BROADCAST_CONNECTION
+        value: reverb
+      - key: REVERB_APP_ID
+        sync: false
+      - key: REVERB_APP_KEY
+        sync: false
+      - key: REVERB_APP_SECRET
+        sync: false
+      - key: REVERB_SERVER_HOST
+        value: 0.0.0.0
+      - key: REVERB_SERVER_PORT
+        value: "8081"
+      - key: REVERB_HOST
+        value: 127.0.0.1
+      - key: REVERB_PORT
+        value: "8081"
+      - key: REVERB_SCHEME
+        value: http
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://anteraja-frontend.vercel.app
+      - key: SANCTUM_STATEFUL_DOMAINS
+        value: anteraja-frontend.vercel.app
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: SEED_ON_START
+        value: "true"
+      - key: COURIER_SIMULATION
+        value: "false"

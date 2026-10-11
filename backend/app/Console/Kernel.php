@@ -26,14 +26,20 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->timezone('Asia/Jakarta');
 
-        $schedule->command('courier:simulate')
-            ->everyTwoSeconds()
-            ->timezone('Asia/Jakarta');
+        // Simulasi gerak kurir & pemanasan cache adalah beban berat untuk
+        // free tier (0.1 vCPU). Nyalakan hanya bila dibutuhkan lewat env
+        // COURIER_SIMULATION=true. Di produksi posisi kurir datang dari
+        // endpoint /api/couriers/{id}/telemetry.
+        if (filter_var(env('COURIER_SIMULATION', false), FILTER_VALIDATE_BOOLEAN)) {
+            $schedule->command('courier:simulate')
+                ->everyTwoSeconds()
+                ->timezone('Asia/Jakarta');
 
-        $schedule->command('cache:warm')
-            ->everyTenSeconds()
-            ->withoutOverlapping()
-            ->timezone('Asia/Jakarta');
+            $schedule->command('cache:warm')
+                ->everyTenSeconds()
+                ->withoutOverlapping()
+                ->timezone('Asia/Jakarta');
+        }
     }
 
     protected function commands(): void
