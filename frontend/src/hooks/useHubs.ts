@@ -18,7 +18,7 @@ function envString(name: string, fallback: string): string {
 
 /** Cadangan bila endpoint /hubs tidak terjangkau — tetap menjaga peta tetap fokus. */
 const FALLBACK_HUB: Hub = {
-  id: '',
+  id: envString('VITE_ACTIVE_HUB_CODE', 'HUB-JAKTIM-HALIM'),
   name: envString('VITE_ACTIVE_HUB_NAME', 'Hub Halim - Jakarta Timur'),
   shortName: envString('VITE_ACTIVE_HUB_CODE', 'HUB HALIM'),
   position: {

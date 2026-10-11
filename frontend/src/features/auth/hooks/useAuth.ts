@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { LoginFormState } from '../types';
 import { api, ApiError } from '../../../lib/api';
 import { setSession, type SessionUser } from '../../../lib/session';
@@ -53,9 +53,17 @@ export function useAuth(): UseAuthReturn {
   const busyRef = useRef(false);
   const { hubs, loading: hubsLoading } = useHubs();
 
+  // Auto-select hub pertama saat daftar hub berhasil dimuat dari API.
+  useEffect(() => {
+    if (!hubsLoading && hubs.length > 0 && !formState.hubId) {
+      setFormState((prev) => ({ ...prev, hubId: hubs[0]?.id || '' }));
+    }
+  }, [hubsLoading, hubs, formState.hubId]);
+
   // Pilih hub pertama secara otomatis begitu daftar hub tersedia. Dilakukan
   // saat render (bukan di effect) agar tidak memicu render berantai.
-  const selectedHubId = formState.hubId || hubs[0]?.id || '';
+  // Fallback ke VITE_ACTIVE_HUB_CODE jika API /hubs gagal dan id kosong.
+  const selectedHubId = formState.hubId || hubs[0]?.id || import.meta.env.VITE_ACTIVE_HUB_CODE || '';
 
   const handleHubChange = useCallback((hubId: string) => {
     setFormState((prev) => ({ ...prev, hubId, errorMessage: null }));

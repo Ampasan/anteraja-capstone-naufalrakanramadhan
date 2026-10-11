@@ -66,16 +66,15 @@ describe('useAuth: keadaan dasar', () => {
 });
 
 describe('useAuth: validasi', () => {
-  it('hub kosong menahan submit sebelum request dikirim', async () => {
+  it('hub kosong tetap punya fallback hub dari env', async () => {
     apiCachedMock.mockResolvedValue({ hubs: [] });
     const { result } = await renderWithHubs();
     const onSuccess = vi.fn();
 
     act(() => result.current.handleSubmit(onSuccess));
 
-    expect(result.current.formState.errorMessage).toBe(
-      'Pilih stasiun layanan terlebih dahulu.',
-    );
+    // Fallback hub dari VITE_ACTIVE_HUB_CODE dipakai, jadi error bukan soal hub
+    expect(result.current.formState.errorMessage).toBe('Email dan kata sandi wajib diisi.');
     expect(apiMock).not.toHaveBeenCalled();
   });
 
