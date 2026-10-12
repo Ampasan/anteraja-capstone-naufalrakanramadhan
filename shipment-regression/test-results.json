@@ -1,0 +1,192 @@
+[
+  {
+    "scenario": "Normal Shipment",
+    "type": "happy-path",
+    "expected": "SUCCESS",
+    "actual": "SUCCESS",
+    "status": "PASS",
+    "checks": [
+      {
+        "name": "Expected vs actual status",
+        "pass": true,
+        "detail": "expected=SUCCESS actual=SUCCESS"
+      },
+      {
+        "name": "Kode HTTP respons server",
+        "pass": true,
+        "detail": "expected=201 actual=201"
+      },
+      {
+        "name": "Tracking number masuk Request History",
+        "pass": true,
+        "detail": "history=[ANT-001] mencari=ANT-001"
+      },
+      {
+        "name": "Tanpa error JavaScript di browser",
+        "pass": true,
+        "detail": "bersih"
+      }
+    ],
+    "evidence": [
+      "C:\\maxy\\hub-dwell-monitor\\docs\\automation-run\\normal-shipment-form.png",
+      "C:\\maxy\\hub-dwell-monitor\\docs\\automation-run\\normal-shipment-result.png"
+    ],
+    "consoleErrors": [],
+    "httpStatus": 201
+  },
+  {
+    "scenario": "Missing Tracking",
+    "type": "negative",
+    "expected": "VALIDATION_ERROR",
+    "actual": "VALIDATION_ERROR",
+    "status": "PASS",
+    "checks": [
+      {
+        "name": "Expected vs actual status",
+        "pass": true,
+        "detail": "expected=VALIDATION_ERROR actual=VALIDATION_ERROR"
+      },
+      {
+        "name": "Kode HTTP respons server",
+        "pass": true,
+        "detail": "expected=400 actual=400"
+      },
+      {
+        "name": "Field error \"tracking-number\" ditampilkan",
+        "pass": true,
+        "detail": "#tracking-number-error terlihat"
+      },
+      {
+        "name": "Shipment ditolak, tidak masuk history",
+        "pass": true,
+        "detail": "history=[]"
+      },
+      {
+        "name": "Tanpa error JavaScript di browser",
+        "pass": true,
+        "detail": "bersih"
+      }
+    ],
+    "evidence": [
+      "C:\\maxy\\hub-dwell-monitor\\docs\\automation-run\\missing-tracking-form.png",
+      "C:\\maxy\\hub-dwell-monitor\\docs\\automation-run\\missing-tracking-result.png"
+    ],
+    "consoleErrors": [],
+    "httpStatus": 400
+  },
+  {
+    "scenario": "Invalid Weight",
+    "type": "edge-case",
+    "expected": "VALIDATION_ERROR",
+    "actual": "VALIDATION_ERROR",
+    "status": "PASS",
+    "checks": [
+      {
+        "name": "Expected vs actual status",
+        "pass": true,
+        "detail": "expected=VALIDATION_ERROR actual=VALIDATION_ERROR"
+      },
+      {
+        "name": "Kode HTTP respons server",
+        "pass": true,
+        "detail": "expected=400 actual=400"
+      },
+      {
+        "name": "Field error \"weight\" ditampilkan",
+        "pass": true,
+        "detail": "#weight-error terlihat"
+      },
+      {
+        "name": "Shipment ditolak, tidak masuk history",
+        "pass": true,
+        "detail": "history=[]"
+      },
+      {
+        "name": "Tanpa error JavaScript di browser",
+        "pass": true,
+        "detail": "bersih"
+      }
+    ],
+    "evidence": [
+      "C:\\maxy\\hub-dwell-monitor\\docs\\automation-run\\invalid-weight-form.png",
+      "C:\\maxy\\hub-dwell-monitor\\docs\\automation-run\\invalid-weight-result.png"
+    ],
+    "consoleErrors": [],
+    "httpStatus": 400
+  },
+  {
+    "scenario": "Long Distance Shipment",
+    "type": "happy-path",
+    "expected": "SUCCESS",
+    "actual": "SUCCESS",
+    "status": "PASS",
+    "checks": [
+      {
+        "name": "Expected vs actual status",
+        "pass": true,
+        "detail": "expected=SUCCESS actual=SUCCESS"
+      },
+      {
+        "name": "Kode HTTP respons server",
+        "pass": true,
+        "detail": "expected=201 actual=201"
+      },
+      {
+        "name": "Tracking number masuk Request History",
+        "pass": true,
+        "detail": "history=[ANT-004] mencari=ANT-004"
+      },
+      {
+        "name": "Tanpa error JavaScript di browser",
+        "pass": true,
+        "detail": "bersih"
+      }
+    ],
+    "evidence": [
+      "C:\\maxy\\hub-dwell-monitor\\docs\\automation-run\\long-distance-form.png",
+      "C:\\maxy\\hub-dwell-monitor\\docs\\automation-run\\long-distance-result.png"
+    ],
+    "consoleErrors": [],
+    "httpStatus": 201
+  },
+  {
+    "scenario": "Zero Distance",
+    "type": "edge-case",
+    "expected": "VALIDATION_ERROR",
+    "actual": "VALIDATION_ERROR",
+    "status": "PASS",
+    "checks": [
+      {
+        "name": "Expected vs actual status",
+        "pass": true,
+        "detail": "expected=VALIDATION_ERROR actual=VALIDATION_ERROR"
+      },
+      {
+        "name": "Kode HTTP respons server",
+        "pass": true,
+        "detail": "expected=400 actual=400"
+      },
+      {
+        "name": "Field error \"distance\" ditampilkan",
+        "pass": true,
+        "detail": "#distance-error terlihat"
+      },
+      {
+        "name": "Shipment ditolak, tidak masuk history",
+        "pass": true,
+        "detail": "history=[]"
+      },
+      {
+        "name": "Tanpa error JavaScript di browser",
+        "pass": true,
+        "detail": "bersih"
+      }
+    ],
+    "evidence": [
+      "C:\\maxy\\hub-dwell-monitor\\docs\\automation-run\\zero-distance-form.png",
+      "C:\\maxy\\hub-dwell-monitor\\docs\\automation-run\\zero-distance-result.png"
+    ],
+    "consoleErrors": [],
+    "httpStatus": 400
+  }
+]

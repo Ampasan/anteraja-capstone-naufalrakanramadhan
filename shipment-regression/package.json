@@ -1,0 +1,13 @@
+{
+  "name": "shipment-regression",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Regression test end-to-end untuk workflow Shipment Request memakai Puppeteer.",
+  "type": "module",
+  "scripts": {
+    "test": "node tests/shipment-regression.js"
+  },
+  "devDependencies": {
+    "puppeteer": "^25.13.0"
+  }
+}

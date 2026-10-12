@@ -1,0 +1,79 @@
+{
+  "scenarios": [
+    {
+      "id": "normal-shipment",
+      "name": "Normal Shipment",
+      "type": "happy-path",
+      "description": "Shipment valid dengan tracking number, bobot, dan jarak wajar.",
+      "input": {
+        "trackingNumber": "ANT-001",
+        "weight": "5",
+        "distance": "25"
+      },
+      "expect": {
+        "status": "SUCCESS",
+        "historyContains": "ANT-001"
+      }
+    },
+    {
+      "id": "missing-tracking",
+      "name": "Missing Tracking",
+      "type": "negative",
+      "description": "Tracking number kosong harus ditolak validasi.",
+      "input": {
+        "trackingNumber": "",
+        "weight": "5",
+        "distance": "25"
+      },
+      "expect": {
+        "status": "VALIDATION_ERROR",
+        "errorField": "tracking-number"
+      }
+    },
+    {
+      "id": "invalid-weight",
+      "name": "Invalid Weight",
+      "type": "edge-case",
+      "description": "Bobot negatif (-10) berada di luar batas wajar dan harus ditolak.",
+      "input": {
+        "trackingNumber": "ANT-003",
+        "weight": "-10",
+        "distance": "25"
+      },
+      "expect": {
+        "status": "VALIDATION_ERROR",
+        "errorField": "weight"
+      }
+    },
+    {
+      "id": "long-distance",
+      "name": "Long Distance Shipment",
+      "type": "happy-path",
+      "description": "Shipment jarak jauh dengan bobot besar tetap valid selama angka positif.",
+      "input": {
+        "trackingNumber": "ANT-004",
+        "weight": "120.5",
+        "distance": "1500"
+      },
+      "expect": {
+        "status": "SUCCESS",
+        "historyContains": "ANT-004"
+      }
+    },
+    {
+      "id": "zero-distance",
+      "name": "Zero Distance",
+      "type": "edge-case",
+      "description": "Jarak 0 km tidak menghasilkan pengiriman nyata dan harus ditolak.",
+      "input": {
+        "trackingNumber": "ANT-005",
+        "weight": "5",
+        "distance": "0"
+      },
+      "expect": {
+        "status": "VALIDATION_ERROR",
+        "errorField": "distance"
+      }
+    }
+  ]
+}
