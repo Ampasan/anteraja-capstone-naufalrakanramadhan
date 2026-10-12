@@ -14,12 +14,14 @@ shipment-regression/
 ├── tests/
 │   ├── shipment-regression.js    # Test runner (sekali tulis, jalan banyak scenario)
 │   └── shipment-test-data.json   # Dataset scenario
-├── docs/                         # Dokumentasi hasil ada di docs/ root repo
+├── docs/
+│   ├── puppeteer-regression.md   # Dokumentasi lengkap
+│   └── automation-run/           # Screenshot evidence per scenario
 ├── test-results.json             # Report otomatis, ditulis ulang tiap run
 └── package.json
 ```
 
-Screenshot evidence tersimpan di `docs/automation-run/` pada root repo.
+Screenshot evidence tersimpan di `docs/automation-run/` di dalam folder ini.
 
 ## Prasyarat
 
@@ -109,4 +111,4 @@ tanpa hasil yang berubah-ubah.
 ## Dokumentasi Lengkap
 
 Penjelasan objective, tabel scenario, hasil expected versus actual, evidence,
-dan conclusion ada di `docs/puppeteer-regression.md`.
+dan conclusion ada di `docs/puppeteer-regression.md` di dalam folder ini.

@@ -28,8 +28,8 @@
       }
     ],
     "evidence": [
-      "C:\\maxy\\hub-dwell-monitor\\docs\\automation-run\\normal-shipment-form.png",
-      "C:\\maxy\\hub-dwell-monitor\\docs\\automation-run\\normal-shipment-result.png"
+      "C:\\maxy\\hub-dwell-monitor\\shipment-regression\\docs\\automation-run\\normal-shipment-form.png",
+      "C:\\maxy\\hub-dwell-monitor\\shipment-regression\\docs\\automation-run\\normal-shipment-result.png"
     ],
     "consoleErrors": [],
     "httpStatus": 201
@@ -68,8 +68,8 @@
       }
     ],
     "evidence": [
-      "C:\\maxy\\hub-dwell-monitor\\docs\\automation-run\\missing-tracking-form.png",
-      "C:\\maxy\\hub-dwell-monitor\\docs\\automation-run\\missing-tracking-result.png"
+      "C:\\maxy\\hub-dwell-monitor\\shipment-regression\\docs\\automation-run\\missing-tracking-form.png",
+      "C:\\maxy\\hub-dwell-monitor\\shipment-regression\\docs\\automation-run\\missing-tracking-result.png"
     ],
     "consoleErrors": [],
     "httpStatus": 400
@@ -108,8 +108,8 @@
       }
     ],
     "evidence": [
-      "C:\\maxy\\hub-dwell-monitor\\docs\\automation-run\\invalid-weight-form.png",
-      "C:\\maxy\\hub-dwell-monitor\\docs\\automation-run\\invalid-weight-result.png"
+      "C:\\maxy\\hub-dwell-monitor\\shipment-regression\\docs\\automation-run\\invalid-weight-form.png",
+      "C:\\maxy\\hub-dwell-monitor\\shipment-regression\\docs\\automation-run\\invalid-weight-result.png"
     ],
     "consoleErrors": [],
     "httpStatus": 400
@@ -143,8 +143,8 @@
       }
     ],
     "evidence": [
-      "C:\\maxy\\hub-dwell-monitor\\docs\\automation-run\\long-distance-form.png",
-      "C:\\maxy\\hub-dwell-monitor\\docs\\automation-run\\long-distance-result.png"
+      "C:\\maxy\\hub-dwell-monitor\\shipment-regression\\docs\\automation-run\\long-distance-form.png",
+      "C:\\maxy\\hub-dwell-monitor\\shipment-regression\\docs\\automation-run\\long-distance-result.png"
     ],
     "consoleErrors": [],
     "httpStatus": 201
@@ -183,8 +183,8 @@
       }
     ],
     "evidence": [
-      "C:\\maxy\\hub-dwell-monitor\\docs\\automation-run\\zero-distance-form.png",
-      "C:\\maxy\\hub-dwell-monitor\\docs\\automation-run\\zero-distance-result.png"
+      "C:\\maxy\\hub-dwell-monitor\\shipment-regression\\docs\\automation-run\\zero-distance-form.png",
+      "C:\\maxy\\hub-dwell-monitor\\shipment-regression\\docs\\automation-run\\zero-distance-result.png"
     ],
     "consoleErrors": [],
     "httpStatus": 400

@@ -122,8 +122,8 @@ sehingga suite ini dapat langsung dipakai di pipeline CI.
 
 ## Evidence
 
-Tiap scenario menghasilkan dua screenshot di `docs/automation-run/`: kondisi
-form sebelum submit dan kondisi setelah hasil tampil.
+Tiap scenario menghasilkan dua screenshot di `shipment-regression/docs/automation-run/`:
+kondisi form sebelum submit dan kondisi setelah hasil tampil.
 
 ```
 docs/automation-run/
@@ -148,8 +148,9 @@ membantu diagnosis.
 
 Dari 5 scenario yang dijalankan: **5 PASS, 0 FAIL**.
 
-Report lengkap per scenario tersimpan otomatis di `shipment-regression/test-results.json`
-berisi expected, actual, status, detail tiap check, kode HTTP, dan jalur
+Report lengkap per scenario tersimpan otomatis di `test-results.json`
+(di root `shipment-regression/`) berisi expected, actual, status, detail tiap
+check, kode HTTP, dan jalur
 screenshot. File ini ditulis ulang pada setiap eksekusi, bukan disusun
 manual.
 

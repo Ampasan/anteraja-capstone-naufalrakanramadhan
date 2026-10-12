@@ -5,7 +5,6 @@ import puppeteer from 'puppeteer';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = resolve(__dirname, '..');
-const REPO_ROOT = resolve(PROJECT_ROOT, '..');
 
 const BASE_URL = process.env.APP_URL ?? 'http://localhost:5173';
 const SHIPMENT_URL = `${BASE_URL}/#/shipment`;
@@ -13,7 +12,7 @@ const API_URL = `${BASE_URL}/api/shipments`;
 
 const DATA_PATH = join(__dirname, 'shipment-test-data.json');
 const RESULTS_PATH = join(PROJECT_ROOT, 'test-results.json');
-const EVIDENCE_DIR = join(REPO_ROOT, 'docs', 'automation-run');
+const EVIDENCE_DIR = join(PROJECT_ROOT, 'docs', 'automation-run');
 
 const SELECTOR = {
   tracking: '#tracking-number',

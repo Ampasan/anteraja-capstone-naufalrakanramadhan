@@ -56,11 +56,12 @@ hub-dwell-monitor/
 │   ├── tests/
 │   │   ├── shipment-regression.js
 │   │   └── shipment-test-data.json
+│   ├── docs/
+│   │   ├── puppeteer-regression.md # Dokumentasi regression test
+│   │   └── automation-run/         # Screenshot evidence per scenario
 │   └── test-results.json      # Report otomatis per eksekusi
 ├── docs/
-│   ├── hub-dwell-monitor.md   # Dokumentasi lengkap
-│   ├── puppeteer-regression.md # Dokumentasi regression test
-│   └── automation-run/        # Screenshot evidence per scenario
+│   └── hub-dwell-monitor.md   # Dokumentasi lengkap
 └── screenshots/
     ├── stitch-v1.png
     ├── stitch-v2.png
@@ -96,7 +97,7 @@ npm test
 ```
 
 Detail objective, scenario, hasil, dan evidence ada di
-[docs/puppeteer-regression.md](docs/puppeteer-regression.md).
+[shipment-regression/docs/puppeteer-regression.md](shipment-regression/docs/puppeteer-regression.md).
 
 ## Threshold
 
