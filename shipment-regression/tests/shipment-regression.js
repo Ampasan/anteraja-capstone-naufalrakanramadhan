@@ -45,9 +45,6 @@ async function assertAppReachable() {
   }
 }
 
-// Setter nilai React lewat prototype input asli, lalu dispatch event input
-// agar state komponen ikut ter-update. Lebih stabil daripada keyboard.type
-// untuk input terkontrol React.
 async function fillField(page, selector, value) {
   await page.waitForSelector(selector, { visible: true });
   await page.$eval(
@@ -84,10 +81,6 @@ async function runScenario(browser, scenario, evidenceDir) {
   page.on('console', (msg) => {
     if (msg.type() !== 'error') return;
     const text = msg.text();
-    // Chrome menulis console.error otomatis untuk resource ber-status 4xx/5xx.
-    // Pada negative test, 400 memang diharapkan (input ditolak), jadi bukan
-    // error aplikasi. Kode HTTP-nya sendiri sudah diverifikasi terpisah lewat
-    // record.httpStatus, sehingga aman untuk tidak dihitung sebagai kegagalan.
     if (text.includes('Failed to load resource')) return;
     consoleErrors.push(`console.error: ${text}`);
   });
