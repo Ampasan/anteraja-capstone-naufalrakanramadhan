@@ -1,4 +1,4 @@
-import { MapPin, Truck, Bike, Car, Package, Thermometer, ClipboardList, MousePointerClick, Camera, Snowflake } from 'lucide-react';
+import { MapPin, Truck, Bike, Car, Package, Thermometer, ClipboardList, MousePointerClick, Camera } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 import type { IncidentReport, SeverityLevel } from '../types';
 
@@ -71,9 +71,9 @@ interface IncidentCardProps {
 function IncidentCard({ incident, isSelected, onClick, onViewEvidence }: IncidentCardProps) {
   const svcBadge = SERVICE_BADGE[incident.serviceType] ?? SERVICE_BADGE['Regular'];
   const catBadge = CATEGORY_BADGE[incident.incidentCategory ?? ''] ?? SERVICE_BADGE['Regular'];
-  const isCritical = incident.severity === 'CRITICAL';
-  const kendalaColor = isCritical ? 'text-red-600' : 'text-amber-600';
   const severityChip = SEVERITY_LABEL[incident.severity].chip;
+  const severityLabel =
+    incident.severity === 'CRITICAL' ? 'Prioritas Tinggi' : incident.severity === 'WARNING' ? 'Perlu Perhatian' : 'Normal';
   const isColdChain = incident.serviceType === 'Frozen' || incident.kendalaDetail?.includes('Suhu') || incident.kendalaDetail?.includes('suhu');
 
   return (
@@ -97,7 +97,7 @@ function IncidentCard({ incident, isSelected, onClick, onViewEvidence }: Inciden
     >
       <div className="px-4 pt-3.5 pb-3.5 flex flex-col gap-3">
 
-        {/* ── Row 1: Resi + badges ── */}
+        {/* ── Row 1: Identitas paket + aksi ── */}
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-[13px] font-extrabold text-[#0F172A] font-mono tracking-tight">
             Resi #{incident.waybillNumber}
@@ -106,15 +106,6 @@ function IncidentCard({ incident, isSelected, onClick, onViewEvidence }: Inciden
           <span className={cn('px-2 py-0.5 rounded-full text-[11px] font-bold border leading-none', svcBadge)}>
             {incident.serviceLabel}
           </span>
-
-          {incident.kendalaDetail && (
-            <span className={cn(
-              'px-2.5 py-0.5 rounded-full text-[11px] font-bold border leading-none',
-              catBadge,
-            )}>
-              {incident.kendalaDetail}
-            </span>
-          )}
 
           {incident.evidenceImageUrl && onViewEvidence && !isColdChain && (
             <button
@@ -131,15 +122,6 @@ function IncidentCard({ incident, isSelected, onClick, onViewEvidence }: Inciden
             </button>
           )}
 
-          {incident.incidentCategory && (
-            <span className={cn(
-              'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold border leading-none',
-              catBadge,
-            )}>
-              {incident.incidentCategory}
-            </span>
-          )}
-
           {isSelected ? (
             <span className="ml-auto px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-[#C91076] text-white leading-none animate-pulse">
               ● Sedang Dipilih
@@ -153,67 +135,34 @@ function IncidentCard({ incident, isSelected, onClick, onViewEvidence }: Inciden
           )}
         </div>
 
-        {/* ── Row 2: Icon + Nama kurir + Kendala ── */}
+        {/* ── Row 2: Kurir terdampak + sekali ringkas kendala & level ── */}
         <div className="flex items-start gap-3">
           <VehicleIcon type={incident.courier.vehicleType} />
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-2">
-              {/* Nama + kendaraan */}
-              <div className="flex flex-col gap-0.5">
-                <span className="text-[15px] font-extrabold text-[#0F172A] leading-tight">
-                  {incident.courier.name}
-                </span>
-                <span className="text-[12px] text-[#64748B] font-medium">
-                  {incident.courier.vehicleType}
-                </span>
-              </div>
+          <div className="flex-1 min-w-0 flex items-start justify-between gap-2">
+            {/* Nama + kendaraan */}
+            <div className="flex flex-col gap-0.5 min-w-0">
+              <span className="text-[15px] font-extrabold text-[#0F172A] leading-tight truncate">
+                {incident.courier.name}
+              </span>
+              <span className="text-[12px] text-[#64748B] font-medium truncate">
+                {incident.courier.vehicleType}
+              </span>
+            </div>
 
-              {/* Kendala + lokasi */}
-              <div className="flex flex-col items-end gap-0.5 flex-shrink-0 text-right">
-                <span className={cn('text-[13px] font-extrabold flex items-center gap-1', kendalaColor)}>
-                  <span className={cn('w-2 h-2 rounded-full flex-shrink-0 animate-pulse', SEVERITY_DOT[incident.severity])} />
-                  {incident.incidentCategory ?? incident.kendala}
-                </span>
-                <span className="text-[11px] text-[#94A3B8]">
-                  <MapPin size={10} className="inline -mt-px" aria-hidden="true" /> {incident.stoppedLocation}
-                </span>
-              </div>
+            {/* Apa kendalanya & seberapa buruk — detailnya di Formulir Pengalihan Cepat */}
+            <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+              <span className={cn('inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border', severityChip)}>
+                <span className={cn('w-1.5 h-1.5 rounded-full', SEVERITY_DOT[incident.severity])} />
+                {severityLabel}
+              </span>
+              <span
+                className={cn('inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold border leading-none', catBadge)}
+                title={incident.kendalaDetail || undefined}
+              >
+                {incident.incidentCategory ?? incident.kendala}
+              </span>
             </div>
           </div>
-        </div>
-
-        {/* ── Chip severity ── */}
-        <div className="flex items-center gap-2">
-          <span className={cn('inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border', severityChip)}>
-            <span className={cn('w-1.5 h-1.5 rounded-full', SEVERITY_DOT[incident.severity])} />
-            {incident.severity === 'CRITICAL' ? 'Prioritas Tinggi' : incident.severity === 'WARNING' ? 'Perlu Perhatian' : 'Normal'}
-          </span>
-          {isColdChain && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border bg-blue-50 text-blue-700 border-blue-200">
-              <Snowflake size={11} />
-              Cold-Chain
-            </span>
-          )}
-          {incident.incidentCategory && (
-            <span className={cn('inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border', catBadge)}>
-              {incident.incidentCategory}
-            </span>
-          )}
-
-          {/* Kondisi lapangan yang diisi kurir pelapor */}
-          {(incident.weatherCondition || incident.trafficCondition || incident.temperatureC != null) && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border bg-slate-50 text-slate-600 border-slate-200">
-              {incident.weatherCondition && <span>{incident.weatherCondition}</span>}
-              {incident.weatherCondition && incident.trafficCondition && <span aria-hidden="true">·</span>}
-              {incident.trafficCondition && <span>{incident.trafficCondition}</span>}
-              {incident.temperatureC != null && (
-                <span className="inline-flex items-center gap-0.5">
-                  <Thermometer size={10} aria-hidden="true" />
-                  {incident.temperatureC}°C
-                </span>
-              )}
-            </span>
-          )}
         </div>
 
         {/* ── Row 3: Tujuan + Status link ── */}
