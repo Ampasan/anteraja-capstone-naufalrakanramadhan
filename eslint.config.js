@@ -18,4 +18,11 @@ export default defineConfig([
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
   },
+  {
+    // Test suite berjalan di Node (Puppeteer), bukan di browser.
+    files: ['shipment-regression/**/*.js'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
 ])

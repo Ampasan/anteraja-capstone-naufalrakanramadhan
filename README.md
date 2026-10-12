@@ -34,6 +34,8 @@ hub-dwell-monitor/
 │       ├── metrics.json       # Dwell time per hub
 │       ├── locations.json     # Koordinat hub
 │       └── ai-summary.json    # AI summary + test logs
+├── server/
+│   └── shipment-api.js        # Middleware Vite: API validasi + riwayat shipment
 ├── src/
 │   ├── components/
 │   │   ├── KpiCard.jsx        # Metric tile
@@ -41,16 +43,24 @@ hub-dwell-monitor/
 │   │   ├── HubList.jsx        # Searchable hub list
 │   │   ├── HubMap.jsx         # Leaflet map
 │   │   ├── HubDetail.jsx      # Detail panel
-│   │   └── AiInsight.jsx      # AI summary display
+│   │   ├── AiInsight.jsx      # AI summary display
+│   │   └── ShipmentRequest.jsx # Form shipment + request history
 │   ├── hooks/
 │   │   └── useHubData.js      # Data fetching & merging
 │   ├── utils/
 │   │   └── format.js          # Dwell time formatter
-│   ├── App.jsx                # Main layout + shared state
+│   ├── App.jsx                # Routing, layout, shared state
 │   ├── App.css                # Responsive layout CSS
 │   └── index.css              # Global base styles
+├── shipment-regression/       # Suite regression Puppeteer (data-driven)
+│   ├── tests/
+│   │   ├── shipment-regression.js
+│   │   └── shipment-test-data.json
+│   └── test-results.json      # Report otomatis per eksekusi
 ├── docs/
-│   └── hub-dwell-monitor.md   # Dokumentasi lengkap
+│   ├── hub-dwell-monitor.md   # Dokumentasi lengkap
+│   ├── puppeteer-regression.md # Dokumentasi regression test
+│   └── automation-run/        # Screenshot evidence per scenario
 └── screenshots/
     ├── stitch-v1.png
     ├── stitch-v2.png
@@ -66,7 +76,27 @@ hub-dwell-monitor/
 - **Shared Filter** — Satu state filter mempengaruhi peta dan daftar sekaligus
 - **Pencarian** — Cari hub berdasarkan nama atau hub_id
 - **Hub Detail** — Semua metrics per hub dalam panel detail
+- **Shipment Request** — Form permintaan shipment dengan validasi server-side dan Request History, di route `#/shipment`
 - **Responsive** — Desktop 1440px (dua kolom) dan mobile 390px (bertumpuk)
+
+## Regression Test
+
+Workflow Shipment Request dijaga oleh automated end-to-end test berbasis
+Puppeteer. Test bersifat data-driven: satu runner membaca banyak scenario
+dari `shipment-regression/tests/shipment-test-data.json`.
+
+```bash
+# terminal 1
+npm run dev
+
+# terminal 2
+cd shipment-regression
+npm install
+npm test
+```
+
+Detail objective, scenario, hasil, dan evidence ada di
+[docs/puppeteer-regression.md](docs/puppeteer-regression.md).
 
 ## Threshold
 
